@@ -98,6 +98,11 @@ public static class Querier
     public static void SaveCache()
     {
         // amazing https://stackoverflow.com/a/56351540
+        if(_biomeCache is null)
+        {
+            Console.WriteLine($"Cache is null, skipping save...");
+            return;
+        }
         Console.Write($"Saving cache...");
         File.WriteAllText(BiomeCacheFilename, JsonSerializer.Serialize(BiomeCacheTranslationLayer, new JsonSerializerOptions() { WriteIndented = true }));
         Console.WriteLine($"...Done!");

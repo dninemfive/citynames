@@ -6,12 +6,19 @@ public class MarkovStringGenerator
 {
     // STX and ETX in ASCII
     public const char START = (char)2, STOP = (char)3;
-    public Dictionary<char, CountingDictionary<char, int>> _data { get; private set; } = new();
+    public Dictionary<char, CountingDictionary<char, int>> Data { get; private set; } = new();
     public MarkovStringGenerator() { }
     public MarkovStringGenerator(IEnumerable<string> data)
     {
         foreach (string datum in data)
             Add(datum);
+    }
+    [JsonConstructor]
+    public MarkovStringGenerator(Dictionary<char, CountingDictionary<char, int>> data)
+    {
+        Data = data;
+        if (data is null)
+            throw new Exception("data was null??");
     }
     public void Add(string s)
     {
@@ -21,10 +28,10 @@ public class MarkovStringGenerator
         char cur = START;
         for(int i = 0; i < s.Length; i++)
         {
-            if (!_data.ContainsKey(cur))
-                _data[cur] = new();
+            if (!Data.ContainsKey(cur))
+                Data[cur] = new();
             // Console.WriteLine($"{"".PadLeft(i)}{cur}");
-            _data[cur].Increment(s[i]);
+            Data[cur].Increment(s[i]);
             cur = s[i];
         }        
     }
@@ -33,13 +40,13 @@ public class MarkovStringGenerator
     {
         get
         {
-            if (!_data.Any())
+            if (!Data.Any())
                 throw new InvalidOperationException("Attempted to generate from a markov string generator with no data!");
             char cur = START;
             string result = "";
             for(int i = 0; cur != STOP; i++)
             {
-                if(_data.TryGetValue(cur, out CountingDictionary<char, int>? dict))
+                if(Data.TryGetValue(cur, out CountingDictionary<char, int>? dict))
                 {
                     cur = dict.WeightedRandomElement(x => x.Value).Key;
                 }
@@ -60,11 +67,11 @@ public class MarkovStringGenerator
         get
         {
             List<string> lines = new();
-            foreach(char c in _data.Keys.Order())
+            foreach(char c in Data.Keys.Order())
             {
                 lines.Add($"{c} ({(int)c}):");
-                foreach (char cc in _data[c].Keys.Order())
-                    lines.Add($"\t{cc} ({(int)cc}): {_data[c][cc]}");
+                foreach (char cc in Data[c].Keys.Order())
+                    lines.Add($"\t{cc} ({(int)cc}): {Data[c][cc]}");
             }
             return lines.Aggregate((x, y) => $"{x}\n{y}");
         }
@@ -82,11 +89,11 @@ public class MarkovStringGenerator
     public string MostCommonPairs(int itemCountLimit = int.MaxValue)
     {
         List<(string pair, int count)> pairs = new();
-        foreach(char c in _data.Keys)
+        foreach(char c in Data.Keys)
         {
-            foreach(char cc in _data[c].Keys)
+            foreach(char cc in Data[c].Keys)
             {
-                pairs.Add(($"{c}{cc}", _data[c][cc]));
+                pairs.Add(($"{c}{cc}", Data[c][cc]));
             }
         }
         List<string> lines = new();
