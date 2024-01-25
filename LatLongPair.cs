@@ -20,5 +20,7 @@ public class LatLongPair
         longitude = Longitude;
     }
     public override string ToString()
-        => $"({Latitude}°N {Longitude}°W)";
+        => $"({Latitude}°N {Longitude}°E)";
+    public string TableString
+        => $"{Latitude,6:F2}°N {Longitude,6:F2}°E";
 }
