@@ -1,11 +1,6 @@
 ﻿using d9.utl;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace citynames;
 public static class Querier
@@ -16,7 +11,7 @@ public static class Querier
     private static readonly HttpClient _client = new();
     public static async IAsyncEnumerable<(string city, string biome)> GetAllCities()
     {
-        foreach((string city, double latitude, double longitude) in GetCityData())
+        foreach((string city, (double latitude, double longitude)) in GetCityData())
         {
             string? biome = await GetBiomeAsync(latitude, longitude);
             if (biome is null)
@@ -24,7 +19,7 @@ public static class Querier
             yield return (city, biome);
         }
     }
-    public static IEnumerable<(string city, double latitude, double longitude)> GetCityData(int threshold = 50000, int limit = 10000)
+    public static IEnumerable<(string city, LatLongPair coords)> GetCityData(int threshold = 50000, int limit = 10000)
     {
         return JsonSerializer.Deserialize<List<WikidataResultItem>>(File.ReadAllText(WikidataQueryResultPath))!
                              .Select(x => x.ToData());
@@ -59,17 +54,5 @@ public static class Querier
             Console.WriteLine(doc.PrettyPrint());
             return null;
         }
-    }
-}
-public class WikidataResultItem
-{
-    public string item { get; set; }
-    public string itemLabel { get; set; }
-    public string coords { get; set; }
-    public string pop { get; set; }
-    public (string name, double latitude, double longitude) ToData()
-    {
-        string[] split = coords.Replace("Point(","").Replace(")","").Split(" ");
-        return (itemLabel, double.Parse(split[1]), double.Parse(split[0]));
     }
 }
