@@ -1,4 +1,5 @@
 ﻿using citynames;
+using System.Text.Json;
 
 internal class Program
 {
@@ -18,11 +19,13 @@ internal class Program
         Querier.SaveCache();
         Console.WriteLine("Generating city names...");
         _ = Directory.CreateDirectory("output");
+        _ = Directory.CreateDirectory("generators");
         foreach (string biome in generatorsByBiome.Keys.Order())
         {
-            string fileName = $"output/{biome.Replace("/", ",")}.txt";
+            string fileName = $"{biome.Replace("/", ",")}.txt";
             Console.WriteLine($"{biome}:");
-            File.WriteAllText(fileName, "");
+            File.WriteAllText(Path.Join("output", fileName), "");
+            File.WriteAllText(Path.Join("generators", fileName), JsonSerializer.Serialize(generatorsByBiome[biome]));
             for (int i = 0; i < 10; i++)
             {
                 string cityName = generatorsByBiome[biome].RandomStringOfLength(min: 5, max: 40);

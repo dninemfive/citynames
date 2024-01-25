@@ -1,11 +1,12 @@
 ﻿using d9.utl;
+using System.Text.Json.Serialization;
 
 namespace citynames;
 public class MarkovStringGenerator
 {
     // STX and ETX in ASCII
     public const char START = (char)2, STOP = (char)3;
-    readonly Dictionary<char, CountingDictionary<char, int>> _data = new();
+    public Dictionary<char, CountingDictionary<char, int>> _data { get; private set; } = new();
     public MarkovStringGenerator() { }
     public MarkovStringGenerator(IEnumerable<string> data)
     {
@@ -27,6 +28,7 @@ public class MarkovStringGenerator
             cur = s[i];
         }        
     }
+    [JsonIgnore]
     public string RandomString
     {
         get
@@ -52,6 +54,7 @@ public class MarkovStringGenerator
             return result[..^1];
         }
     }
+    [JsonIgnore]
     public string DataString
     {
         get
