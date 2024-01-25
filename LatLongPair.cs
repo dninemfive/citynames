@@ -1,4 +1,6 @@
-﻿namespace citynames;
+﻿using System.Text.Json.Serialization;
+
+namespace citynames;
 public class LatLongPair
 {
     /// <summary>
@@ -11,8 +13,8 @@ public class LatLongPair
     public double Longitude { get; private set; }
     public LatLongPair(double latitude, double longitude)
     {
-        Latitude = latitude;
-        Longitude = longitude;
+        Latitude = Math.Round(latitude, 2);
+        Longitude = Math.Round(longitude, 2);
     }
     public void Deconstruct(out double latitude, out double longitude)
     {
@@ -21,6 +23,7 @@ public class LatLongPair
     }
     public override string ToString()
         => $"({Latitude}°N {Longitude}°E)";
+    [JsonIgnore]
     public string TableString
         => $"{Latitude,6:F2}°N {Longitude,6:F2}°E";
 }
