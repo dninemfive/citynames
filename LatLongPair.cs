@@ -19,4 +19,6 @@ public class LatLongPair
         latitude = Latitude;
         longitude = Longitude;
     }
+    public override string ToString()
+        => $"({Latitude}°N {Longitude}°W)";
 }
