@@ -70,6 +70,6 @@ public class WikidataResultItem
     public (string name, double latitude, double longitude) ToData()
     {
         string[] split = coords.Replace("Point(","").Replace(")","").Split(" ");
-        return (itemLabel, double.Parse(split[0]), double.Parse(split[1]));
+        return (itemLabel, double.Parse(split[1]), double.Parse(split[0]));
     }
 }
