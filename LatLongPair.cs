@@ -4,11 +4,11 @@ public class LatLongPair
     /// <summary>
     /// Position wrt North-South, i.e. equivalent to "y".
     /// </summary>
-    public double Latitude;
+    public double Latitude { get; private set; }
     /// <summary>
     /// Position wrt East-West, i.e. equivalent to "x".
     /// </summary>
-    public double Longitude;
+    public double Longitude { get; private set; }
     public LatLongPair(double latitude, double longitude)
     {
         Latitude = latitude;
