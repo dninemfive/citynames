@@ -1,7 +1,7 @@
 ﻿using citynames;
 using System.Text.Json;
 
-internal class Program
+public static class Program
 {
     private static async Task Main(string[] args)
     {
@@ -13,7 +13,7 @@ internal class Program
                 generator = new();
                 generatorsByBiome[biome] = generator;
             }
-            generator.Add(city);
+            generator.Add(city.Split("(")[0].Split(",")[0]);
         }
         Console.WriteLine("Data loaded.");
         Querier.SaveCache();
