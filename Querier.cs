@@ -38,6 +38,9 @@ public static class Querier
     }
     public static async Task<string?> GetBiomeAsync(double latitude, double longitude)
     {
+        HttpResponseMessage? response = await _client.GetAsync(ArcGisQueryUrl.Replace("{y}", $"{latitude}").Replace("{x}", $"{longitude}"));
+        Console.WriteLine(response.PrettyPrint());
+        return null;
         JsonDocument? doc = await _client.GetFromJsonAsync<JsonDocument>(ArcGisQueryUrl.Replace("{y}", $"{latitude}")
                                                                                        .Replace("{x}", $"{longitude}"));
         if (doc is null)
