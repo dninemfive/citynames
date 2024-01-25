@@ -17,8 +17,6 @@ public class MarkovStringGenerator
     public MarkovStringGenerator(Dictionary<char, CountingDictionary<char, int>> data)
     {
         Data = data;
-        if (data is null)
-            throw new Exception("data was null??");
     }
     public void Add(string s)
     {

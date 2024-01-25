@@ -8,9 +8,9 @@ public class Program
     public const string OUTPUT_DIRECTORY = "output";
     private static async Task Main(string[] args)
     {
-        bool regenerate = CommandLineArgs.GetFlag("regenerate");
+        bool generate = CommandLineArgs.GetFlag("regenerate") || !File.Exists(GENERATOR_FILENAME);
         Dictionary<string, MarkovStringGenerator> generatorsByBiome;
-        if(regenerate || !File.Exists(GENERATOR_FILENAME))
+        if(generate)
         {
             generatorsByBiome = new();
             await foreach ((string city, string biome) in Querier.GetAllCities())
@@ -29,7 +29,7 @@ public class Program
         }
         Console.WriteLine("Data loaded.");
         Querier.SaveCache();
-        if(regenerate)
+        if(generate)
         {
             Console.Write($"Saving generators...");
             File.WriteAllText(GENERATOR_FILENAME, JsonSerializer.Serialize(generatorsByBiome));
