@@ -4,7 +4,7 @@ internal class Program
 {
     private static async Task Main(string[] args)
     {
-        Console.WriteLine(await Querier.GetBiomeAsync(-118.74, 34.532395));
+        Console.WriteLine(await Querier.GetBiomeAsync(34.3, -119));
         return;
         Dictionary<string, MarkovStringGenerator> generatorsByBiome = new();
         await foreach((string city, string biome) in Querier.GetAllCities())
