@@ -4,15 +4,21 @@ internal class Program
 {
     private static async Task Main(string[] args)
     {
-        IEnumerable<string> cityNames = File.ReadAllLines("C:/Users/dninemfive/Downloads/geonames-all-cities-with-a-population-1000.csv")
-                                            .Select(x => x.Split(";")[1]);
-        MarkovStringGenerator markov = new(cityNames);
-        Console.WriteLine(markov.MostCommonPairs(10));
-        List<string> names = new();
-        for (int i = 0; i < 10; i++)
-            names.Add($"{markov.RandomStringOfLength(min: 5)}");
-        File.WriteAllLines("city names.txt", names);
-        File.WriteAllText("most common pairs.txt", markov.MostCommonPairs());
-        File.WriteAllText("response.json", await Querier.GetBiomeAsync(34.3, -119));
+        Dictionary<string, MarkovStringGenerator> generatorsByBiome = new();
+        await foreach((string city, string biome) in Querier.GetAllCities())
+        {
+            if(!generatorsByBiome.TryGetValue(biome, out MarkovStringGenerator? generator))
+            {
+                generator = new();
+                generatorsByBiome[biome] = generator;
+            }
+            generator.Add(city);
+        }
+        foreach(string biome in generatorsByBiome.Keys.Order())
+        {
+            Console.WriteLine($"{biome}:");
+            for (int i = 0; i < 10; i++)
+                Console.WriteLine($"\t{generatorsByBiome[biome].RandomStringOfLength(5)}");
+        }
     }
 }
