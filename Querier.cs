@@ -87,9 +87,11 @@ public static class Querier
         if (File.Exists(BiomeCacheFilename))
         {
             BiomeCacheTranslationLayer = JsonSerializer.Deserialize<List<KeyValuePair<LatLongPair, string>>>(File.ReadAllText(BiomeCacheFilename))!;
+            Console.WriteLine($"Successfully loaded cache.");
         }
         else
         {
+            Console.WriteLine($"Cache not found!");
             _biomeCache = new();
         }
     }

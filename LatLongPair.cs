@@ -26,4 +26,8 @@ public class LatLongPair
     [JsonIgnore]
     public string TableString
         => $"{Latitude,6:F2}°N {Longitude,6:F2}°E";
+    public override bool Equals(object? obj)
+        => obj is LatLongPair other && Latitude == other.Latitude && Longitude == other.Longitude;
+    public override int GetHashCode()
+        => HashCode.Combine(Latitude, Longitude);
 }
