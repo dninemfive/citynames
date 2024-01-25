@@ -47,7 +47,7 @@ public class Program
             {
                 string cityName = generatorsByBiome[biome].RandomStringOfLength(min: 5, max: 40);
                 Console.WriteLine($"\t{cityName}");
-                File.AppendAllText(fileName, $"{cityName}\n");
+                File.AppendAllText(filePath, $"{cityName}\n");
             }
         }
     }
