@@ -20,7 +20,7 @@ public class MarkovStringGenerator
     }
     public void Add(string s)
     {
-        // Console.WriteLine($"Add({s})");
+        //Console.WriteLine($"Add({s})");
         if (s[^1] != STOP)
             s += STOP;
         string cur = "";
@@ -28,7 +28,7 @@ public class MarkovStringGenerator
         {
             if (!Data.ContainsKey(cur))
                 Data[cur] = new();
-            // Console.WriteLine($"{"".PadLeft(i)}{cur}");
+            //Console.WriteLine($"{"".PadLeft(i)}{cur}");
             Data[cur].Increment(s[i]);
             cur = s.SubstringSafe(i, i + 1);
         }        
@@ -75,12 +75,10 @@ public class MarkovStringGenerator
     }
     public string RandomStringOfLength(int min = 1, int max = int.MaxValue, int maxAttempts = 100)
     {
-        Console.WriteLine($"RandomStringOfLength({min}, {max}, {maxAttempts})");
         string result = "";
         int ct = 0;
         while (result.Length < min || result.Length > max)
         {
-            Console.WriteLine($"\t{ct}");
             result = RandomString;
             if (++ct == maxAttempts)
                 break;
