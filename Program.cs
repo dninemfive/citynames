@@ -11,14 +11,17 @@ public class Program
         int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string generatorFilename = $"generators_{contextLength}.json";
         bool buildGenerators = CommandLineArgs.GetFlag("rebuild") || !File.Exists(generatorFilename);
+
         GeneratorSet generatorSet = await (buildGenerators ? BuildGenerators(contextLength) 
                                                            : LoadGenerators(generatorFilename))
                                           .WithMessage($"{(buildGenerators ? "Build" : "Load")}ing generators");
+
         await Querier.SaveCache().WithMessage("Saving cache");
         if (buildGenerators)
             await SaveGenerators(generatorFilename, generatorSet)
                   .WithMessage("Saving generators");
         _ = Directory.CreateDirectory(OUTPUT_DIRECTORY);
+
         int numPerBiome   = CommandLineArgs.TryParseValue<int>(nameof(numPerBiome))   ?? 10,
             minCityLength = CommandLineArgs.TryParseValue<int>(nameof(minCityLength)) ?? 5,
             maxCityLength = CommandLineArgs.TryParseValue<int>(nameof(maxCityLength)) ?? 40;
@@ -53,25 +56,9 @@ public class Program
             File.WriteAllText(filePath, "");
         for (int i = 0; i < number; i++)
         {
-            string cityName = generators[biome].RandomStringOfLength(min: 5, max: 40);
+            string cityName = generators[biome].RandomStringOfLength(minLength, maxLength);
             Console.WriteLine($"\t{cityName}");
             File.AppendAllText(filePath, $"{cityName}\n");
         }
     }
-}
-internal class GeneratorSet
-{
-    private readonly Dictionary<string, MarkovStringGenerator> _dict;
-    internal GeneratorSet(Dictionary<string, MarkovStringGenerator>?  dict = null)
-    {
-        _dict = dict ?? new();
-    }
-    internal MarkovStringGenerator this[string key]
-    {
-        get => _dict[key];
-        set => _dict[key] = value;
-    }
-    internal bool TryGetValue(string key, [NotNullWhen(true)] out MarkovStringGenerator? value)
-        => _dict.TryGetValue(key, out value);
-    internal IEnumerable<string> Biomes => _dict.Keys;
 }
