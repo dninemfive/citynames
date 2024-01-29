@@ -1,7 +1,8 @@
 {
   "profiles": {
     "citynames": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "--numPerBiome 100"
     }
   }
 }

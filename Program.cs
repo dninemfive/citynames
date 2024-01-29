@@ -6,10 +6,10 @@ public class Program
 {
     public const string GENERATOR_FILENAME = "generators.json";
     public const string OUTPUT_DIRECTORY = "output";
-    private static async Task Main(string[] args)
+    private static async Task Main()
     {
         bool generate = CommandLineArgs.GetFlag("regenerate") || !File.Exists(GENERATOR_FILENAME);
-        int numPerBiome = CommandLineArgs.TryGet("numPerBiome", @default: 10);
+        int numPerBiome = CommandLineArgs.TryParseValue<int>("numPerBiome") ?? 10;
         Dictionary<string, MarkovStringGenerator> generatorsByBiome;
         if(generate)
         {
