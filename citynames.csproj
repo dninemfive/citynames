@@ -8,6 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="TestResults\**" />
+    <Compile Remove="tests\**" />
+    <EmbeddedResource Remove="TestResults\**" />
+    <EmbeddedResource Remove="tests\**" />
+    <None Remove="TestResults\**" />
+    <None Remove="tests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="utl">
       <HintPath>..\utl\bin\Release\net7.0\utl.dll</HintPath>
     </Reference>
