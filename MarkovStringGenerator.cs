@@ -24,7 +24,7 @@ public class MarkovStringGenerator
     }
     public void Add(string s)
     {
-        Console.WriteLine($"Add({s})");
+        //Console.WriteLine($"Add({s})");
         if (s[^1] != STOP)
             s += STOP;
         string cur = "";
@@ -32,7 +32,7 @@ public class MarkovStringGenerator
         {
             if (!Data.ContainsKey(cur))
                 Data[cur] = new();
-            Console.WriteLine($"{i,2}\t{cur}\t{s[i + ContextLength - 1]}");
+            //Console.WriteLine($"{i,2}\t{cur}\t{s[i + ContextLength - 1]}");
             Data[cur].Increment(s[i + ContextLength - 1]);
             cur = s.SubstringSafe(i, i + ContextLength);
         }        

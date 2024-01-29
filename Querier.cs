@@ -97,6 +97,7 @@ public static class Querier
             _biomeCache = new();
         }
     }
+    private static readonly JsonSerializerOptions _indented = new() { WriteIndented = true };
     public static void SaveCache()
     {
         // amazing https://stackoverflow.com/a/56351540
@@ -106,7 +107,7 @@ public static class Querier
             return;
         }
         Console.Write($"Saving cache...");
-        File.WriteAllText(BiomeCacheFilename, JsonSerializer.Serialize(BiomeCacheTranslationLayer, new JsonSerializerOptions() { WriteIndented = true }));
+        File.WriteAllText(BiomeCacheFilename, JsonSerializer.Serialize(BiomeCacheTranslationLayer, _indented));
         Console.WriteLine($"...Done!");
     }
 }
