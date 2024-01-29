@@ -9,6 +9,7 @@ public class Program
     private static async Task Main(string[] args)
     {
         bool generate = CommandLineArgs.GetFlag("regenerate") || !File.Exists(GENERATOR_FILENAME);
+        int numPerBiome = CommandLineArgs.TryGet("numPerBiome", @default: 10);
         Dictionary<string, MarkovStringGenerator> generatorsByBiome;
         if(generate)
         {
@@ -43,7 +44,7 @@ public class Program
             Console.WriteLine($"{biome}:");
             string filePath = Path.Join(OUTPUT_DIRECTORY, fileName);
             if(!File.Exists(filePath)) File.WriteAllText(filePath, "");
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < numPerBiome; i++)
             {
                 string cityName = generatorsByBiome[biome].RandomStringOfLength(min: 5, max: 40);
                 Console.WriteLine($"\t{cityName}");
