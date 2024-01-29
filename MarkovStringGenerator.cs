@@ -46,6 +46,8 @@ public class MarkovStringGenerator
                 if(Data.TryGetValue(context, out CountingDictionary<char, int>? dict))
                 {
                     context = $"{dict.WeightedRandomElement(x => x.Value).Key}";
+                    if (context.Contains(STOP))
+                        break;
                 }
                 else
                 {
@@ -71,13 +73,18 @@ public class MarkovStringGenerator
             return lines.Aggregate((x, y) => $"{x}\n{y}");
         }
     }
-    public string RandomStringOfLength(int min = 1, int max = int.MaxValue)
+    public string RandomStringOfLength(int min = 1, int max = int.MaxValue, int maxAttempts = 100)
     {
+        Console.WriteLine($"RandomStringOfLength({min}, {max}, {maxAttempts})");
         string result = "";
+        int ct = 0;
         while (result.Length < min || result.Length > max)
         {
+            Console.WriteLine($"\t{ct}");
             result = RandomString;
-            //Console.WriteLine($"Considering: {result,-100} ({result.Length})");
+            if (++ct == maxAttempts)
+                break;
+            // Console.WriteLine($"Considering: {result,-100} ({result.Length})");
         }
         return result;
     }
