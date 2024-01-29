@@ -5,4 +5,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Performance", "CA1860:Avoid using 'Enumerable.Any()' extension method", Justification = "<Pending>", Scope = "member", Target = "~P:citynames.StringTreeNode.RandomChild")]
+[assembly: SuppressMessage("Performance", "CA1860:Avoid using 'Enumerable.Any()' extension method", 
+                           Justification = "It reads better to me and i don't care about the performance impacts here", 
+                           Scope = "namespaceanddescendants", 
+                           Target = "~N:citynames")]
