@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 namespace citynames;
 public static class StringUtils
 {
-    public static string SubstringSafe(this string str, int length = 1, int endIndex = int.MaxValue)
+    public static string SubstringSafe(this string str, int start, int end)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(length, 1);
-        ArgumentOutOfRangeException.ThrowIfNegative(endIndex);
-        return str.Substring(Math.Max(endIndex - length, 0), Math.Min(endIndex, str.Length - 1));
+        start = Math.Max(start, 0);
+        end = Math.Min(end, str.Length);
+        return str[start..end];
     }
 }
