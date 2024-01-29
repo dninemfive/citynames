@@ -17,7 +17,7 @@ public class Program
             {
                 if (!generatorsByBiome.TryGetValue(biome, out MarkovStringGenerator? generator))
                 {
-                    generator = new();
+                    generator = new(contextLength: 1);
                     generatorsByBiome[biome] = generator;
                 }
                 generator.Add(city.Split("(")[0].Split(",")[0]);

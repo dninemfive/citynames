@@ -1,8 +1,7 @@
 {
   "profiles": {
     "citynames": {
-      "commandName": "Project",
-      "commandLineArgs": "--regenerate"
+      "commandName": "Project"
     }
   }
 }

@@ -7,14 +7,18 @@ public class MarkovStringGenerator
     // STX and ETX in ASCII
     public const char START = (char)2, STOP = (char)3;
     public Dictionary<string, CountingDictionary<char, int>> Data { get; private set; } = new();
-    public MarkovStringGenerator() { }
-    public MarkovStringGenerator(IEnumerable<string> data)
+    public int ContextLength { get; private set; }
+    public MarkovStringGenerator(int contextLength) 
+    {
+        ContextLength = contextLength;
+    }
+    public MarkovStringGenerator(IEnumerable<string> data, int contextLength) : this(contextLength)
     {
         foreach (string datum in data)
             Add(datum);
     }
     [JsonConstructor]
-    public MarkovStringGenerator(Dictionary<string, CountingDictionary<char, int>> data)
+    public MarkovStringGenerator(Dictionary<string, CountingDictionary<char, int>> data, int contextLength = 1) : this(contextLength)
     {
         Data = data;
     }
