@@ -28,13 +28,13 @@ public class MarkovStringGenerator
         if (s[^1] != STOP)
             s += STOP;
         string cur = "";
-        for(int i = 0; i < s.Length; i++)
+        for(int i = 1 - ContextLength; i < s.Length; i++)
         {
             if (!Data.ContainsKey(cur))
                 Data[cur] = new();
             //Console.WriteLine($"{"".PadLeft(i)}{cur}");
             Data[cur].Increment(s[i]);
-            cur = s.SubstringSafe(i, i + 1);
+            cur = s.SubstringSafe(i, i + ContextLength);
         }        
     }
     [JsonIgnore]
@@ -49,7 +49,7 @@ public class MarkovStringGenerator
             {
                 if(Data.TryGetValue(context, out CountingDictionary<char, int>? dict))
                 {
-                    context = $"{dict.WeightedRandomElement(x => x.Value).Key}";
+                    context = $"{context}{dict.WeightedRandomElement(x => x.Value).Key}".Last(ContextLength);
                     if (context.Contains(STOP))
                         break;
                 }
@@ -57,7 +57,7 @@ public class MarkovStringGenerator
                 {
                     break;
                 }
-                result += context;
+                result += context.Last();
             }
             return result.Replace($"{STOP}","");
         }
@@ -85,7 +85,10 @@ public class MarkovStringGenerator
         {
             result = RandomString;
             if (++ct == maxAttempts)
+            {
+                Console.WriteLine($"Failed to generate random string with target length [{min}..{max}] after {maxAttempts} attempts.");
                 break;
+            }
             // Console.WriteLine($"Considering: {result,-100} ({result.Length})");
         }
         return result;
