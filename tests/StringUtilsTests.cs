@@ -2,21 +2,27 @@
 [TestClass]
 public class StringUtilsTests
 {
+    const string _testString = "test string";
     [TestMethod]
     public void SubstringSafeTest()
     {
-        string testString = "test string";
-        for(int i = 0; i < testString.Length; i++)
+        for(int i = 0; i < _testString.Length; i++)
         {
-            Assert.AreEqual($"{testString[i]}", testString.SubstringSafe(i, i + 1));
+            Assert.AreEqual($"{_testString[i]}", _testString.SubstringSafe(i, i + 1));
             if(i == 0)
             {
-                Assert.AreEqual($"{testString[0]}", testString.SubstringSafe(i - 1, i + 1));
+                Assert.AreEqual($"{_testString[0]}", _testString.SubstringSafe(i - 1, i + 1));
             } 
             else
             {
-                Assert.AreEqual(testString.Substring(i - 1, 2), testString.SubstringSafe(i - 1, i + 1));
+                Assert.AreEqual(_testString.Substring(i - 1, 2), _testString.SubstringSafe(i - 1, i + 1));
             }
         }
+    }
+    [TestMethod]
+    public void LastTest()
+    {
+        Assert.AreEqual(_testString[^2..], _testString.Last(2));
+        Assert.AreEqual(_testString, _testString.Last(_testString.Length + 1));
     }
 }

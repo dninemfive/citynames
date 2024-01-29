@@ -13,4 +13,6 @@ public static class StringUtils
         end = Math.Min(end, str.Length);
         return str[start..end];
     }
+    public static string Last(this string str, int n)
+        => SubstringSafe(str, str.Length - n, str.Length);
 }
