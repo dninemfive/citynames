@@ -77,6 +77,8 @@ public static class Querier
         }
         return (_biomeCache[coords], false);
     }
+    public static async Task<(string? result, bool cacheHit)> GetBiomeAsync(double latitude, double longitude)
+        => await GetBiomeAsync(new(latitude, longitude));
     private static List<KeyValuePair<LatLongPair, string>> BiomeCacheTranslationLayer
     {
         get => _biomeCache!.ToList();
