@@ -98,16 +98,14 @@ public static class Querier
         }
     }
     private static readonly JsonSerializerOptions _indented = new() { WriteIndented = true };
-    public static void SaveCache()
+    public static async Task SaveCache()
     {
         // amazing https://stackoverflow.com/a/56351540
         if(_biomeCache is null)
         {
-            Console.WriteLine($"Cache is null, skipping save...");
+            Console.WriteLine($"Skipping (cache is null)...");
             return;
         }
-        Console.Write($"Saving cache...");
-        File.WriteAllText(BiomeCacheFilename, JsonSerializer.Serialize(BiomeCacheTranslationLayer, _indented));
-        Console.WriteLine($"...Done!");
+        await Task.Run(() => File.WriteAllText(BiomeCacheFilename, JsonSerializer.Serialize(BiomeCacheTranslationLayer, _indented)));
     }
 }

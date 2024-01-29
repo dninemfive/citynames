@@ -1,57 +1,77 @@
 ﻿using citynames;
 using d9.utl;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 namespace citynames;
 public class Program
 {
-    public static string GeneratorFilename { get; private set; } = "";
     public const string OUTPUT_DIRECTORY = "output";
     private static async Task Main()
     {
-        int numPerBiome = CommandLineArgs.TryParseValue<int>("numPerBiome") ?? 10,
-            contextLength = CommandLineArgs.TryParseValue<int>("contextLength") ?? 2;
-        GeneratorFilename = $"generators_{contextLength}.json";
-        bool generate = CommandLineArgs.GetFlag("regenerate") || !File.Exists(GeneratorFilename);
-        Dictionary<string, MarkovStringGenerator> generatorsByBiome;
-        if(generate)
-        {
-            generatorsByBiome = new();
-            await foreach ((string city, string biome) in Querier.GetAllCities())
-            {
-                if (!generatorsByBiome.TryGetValue(biome, out MarkovStringGenerator? generator))
-                {
-                    generator = new(contextLength);
-                    generatorsByBiome[biome] = generator;
-                }
-                generator.Add(city.Split("(")[0].Split(",")[0]);
-            }
-        } 
-        else
-        {
-            generatorsByBiome = JsonSerializer.Deserialize<Dictionary<string, MarkovStringGenerator>>(File.ReadAllText(GeneratorFilename))!;
-        }
-        Console.WriteLine("Data loaded.");
-        Querier.SaveCache();
-        if(generate)
-        {
-            Console.Write($"Saving generators...");
-            File.WriteAllText(GeneratorFilename, JsonSerializer.Serialize(generatorsByBiome));
-            Console.WriteLine($"...Done!");
-        }
-        Console.WriteLine("Generating city names...");
+        int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
+        string generatorFilename = $"generators_{contextLength}.json";
+        bool buildGenerators = CommandLineArgs.GetFlag("rebuild") || !File.Exists(generatorFilename);
+        GeneratorSet generatorSet = await (buildGenerators ? BuildGenerators(contextLength) 
+                                                           : LoadGenerators(generatorFilename))
+                                          .WithMessage($"{(buildGenerators ? "Build" : "Load")}ing generators");
+        await Querier.SaveCache().WithMessage("Saving cache");
+        if (buildGenerators)
+            await SaveGenerators(generatorFilename, generatorSet)
+                  .WithMessage("Saving generators");
         _ = Directory.CreateDirectory(OUTPUT_DIRECTORY);
-        foreach (string biome in generatorsByBiome.Keys.Order())
+        int numPerBiome   = CommandLineArgs.TryParseValue<int>(nameof(numPerBiome))   ?? 10,
+            minCityLength = CommandLineArgs.TryParseValue<int>(nameof(minCityLength)) ?? 5,
+            maxCityLength = CommandLineArgs.TryParseValue<int>(nameof(maxCityLength)) ?? 40;
+        foreach (string biome in generatorSet.Biomes.Order())
+            GenerateNamesFor(biome, generatorSet, numPerBiome, minCityLength, maxCityLength);
+    }
+    private static async Task<GeneratorSet> BuildGenerators(int contextLength)
+    {
+        Console.Write($"Building generators...");
+        GeneratorSet result = new();
+        await foreach ((string city, string biome) in Querier.GetAllCities())
         {
-            string fileName = $"{biome.Replace("/", ",")}.txt";
-            Console.WriteLine($"{biome}:");
-            string filePath = Path.Join(OUTPUT_DIRECTORY, fileName);
-            if(!File.Exists(filePath)) File.WriteAllText(filePath, "");
-            for (int i = 0; i < numPerBiome; i++)
+            if (!result.TryGetValue(biome, out MarkovStringGenerator? generator))
             {
-                string cityName = generatorsByBiome[biome].RandomStringOfLength(min: 5, max: 40);
-                Console.WriteLine($"\t{cityName}");
-                File.AppendAllText(filePath, $"{cityName}\n");
+                generator = new(contextLength);
+                result[biome] = generator;
             }
+            generator.Add(city.Split("(")[0].Split(",")[0]);
+        }
+        return result;
+    }
+    private static async Task<GeneratorSet> LoadGenerators(string fileName)
+        => new(await Task.Run(() => JsonSerializer.Deserialize<Dictionary<string, MarkovStringGenerator>>(File.ReadAllText(fileName))!));
+    private static async Task SaveGenerators(string fileName, GeneratorSet generatorsByBiome)
+        => await Task.Run(() => File.WriteAllText(fileName, JsonSerializer.Serialize(generatorsByBiome)));
+    private static void GenerateNamesFor(string biome, GeneratorSet generators, int number, int minLength = 5, int maxLength = 40)
+    {
+        string fileName = $"{biome.Replace("/", ",")}.txt";
+        Console.WriteLine($"{biome}:");
+        string filePath = Path.Join(OUTPUT_DIRECTORY, fileName);
+        if (!File.Exists(filePath))
+            File.WriteAllText(filePath, "");
+        for (int i = 0; i < number; i++)
+        {
+            string cityName = generators[biome].RandomStringOfLength(min: 5, max: 40);
+            Console.WriteLine($"\t{cityName}");
+            File.AppendAllText(filePath, $"{cityName}\n");
         }
     }
+}
+internal class GeneratorSet
+{
+    private readonly Dictionary<string, MarkovStringGenerator> _dict;
+    internal GeneratorSet(Dictionary<string, MarkovStringGenerator>?  dict = null)
+    {
+        _dict = dict ?? new();
+    }
+    internal MarkovStringGenerator this[string key]
+    {
+        get => _dict[key];
+        set => _dict[key] = value;
+    }
+    internal bool TryGetValue(string key, [NotNullWhen(true)] out MarkovStringGenerator? value)
+        => _dict.TryGetValue(key, out value);
+    internal IEnumerable<string> Biomes => _dict.Keys;
 }
