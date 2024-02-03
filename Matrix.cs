@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace citynames;
 public readonly ref struct Matrix<T>
-    where T : INumberBase<T>
+    where T : INumberBase<T>, IComparisonOperators<T, T, bool>
 {
     private readonly T[,] _data;
     public int Rows => _data.GetLength(1);
@@ -125,6 +125,56 @@ public readonly ref struct Matrix<T>
             return false;
         }
         throw new NotImplementedException();
+    }
+    public Matrix<T> SwapRows(int rowA, int rowB)
+    {
+        T[,] result = ArrayMatching(this);
+        foreach(int row in Rows)
+        {
+            foreach(int column in Columns)
+        }
+    }
+    // https://en.wikipedia.org/wiki/Gaussian_elimination#Pseudocode
+    public Matrix<T> Rref
+    {
+        get
+        {
+            T[,] result = ArrayMatching(this);
+            int row = 0, column = 0;
+            while(row < Rows && column < Columns)
+            {
+                int iMax = 0;
+                T max = T.Zero;
+                for(int i = row; i < Rows; i++)
+                {
+                    T abs = T.Abs(this[column, i]);
+                    if (abs > max)
+                    {
+                        iMax = i;
+                        max = abs;
+                    }
+                }
+                if(max == T.Zero)
+                {
+                    column++;
+                } 
+                else
+                {
+                    // swap rows(row, i_max)
+                    for(int i = row + 1; i < Rows; i++)
+                    {
+                        T f = this[column, i] / this[column, row];
+                        result[column, row] = T.Zero;
+                        for(int j = column + 1; j < Columns; j++)
+                        {
+                            result[j, i] = this[j, i] - this[j, row] * f;
+                        }
+                    }
+                    row++;
+                    column++;
+                }
+            }
+        }
     }
 }
 public static class MatrixUtils
