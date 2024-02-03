@@ -7,32 +7,36 @@ public readonly ref struct Matrix<T>
     where T : INumberBase<T>, IComparisonOperators<T, T, bool>
 {
     private readonly T[,] _data;
-    public int Rows => _data.GetLength(1);
-    public int Columns => _data.GetLength(0);
-    public (int columns, int rows) Dimensions => (Columns, Rows);
-    public IEnumerable<(int x, int y)> Cells
-        => MatrixUtils.AllCoordsFor(Columns, Rows);
-    public T this[int x, int y] => _data[x, y];
-    private static T[,] ArrayMatching(Matrix<T> m) => new T[m.Columns, m.Rows];
-    private void ThrowIfOutOfBounds(int input, int max, string? paramName)
+    public int RowCount => _data.GetLength(0);
+    public IEnumerable<int> Rows
+        => MatrixUtils.ZeroTo(RowCount);
+    public int ColumnCount => _data.GetLength(1);
+    public IEnumerable<int> Columns
+        => MatrixUtils.ZeroTo(ColumnCount);
+    public (int RowCount, int ColumnCount) Dimensions => (RowCount, ColumnCount);
+    public IEnumerable<(int row, int column)> Cells
+        => Rows.CrossJoin(Columns);
+    public T this[int row, int column] => _data[row, column];
+    private static T[,] ArrayMatching(Matrix<T> m) => new T[m.RowCount, m.ColumnCount];
+    private static void ThrowIfOutOfBounds(int input, int max, string? paramName)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(input, paramName);
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(input, max, paramName);
     }
-    public T[] Column(int column)
-    {
-        ThrowIfOutOfBounds(column, Columns, nameof(column));
-        T[] result = new T[Rows];
-        for (int r = 0; r < Rows; r++)
-            result[r] = this[column, r];
-        return result;
-    }
     public T[] Row(int row)
     {
-        ThrowIfOutOfBounds(row, Rows, nameof(row));
-        T[] result = new T[Columns];
-        for (int c = 0; c < Columns; c++)
+        ThrowIfOutOfBounds(row, RowCount, nameof(row));
+        T[] result = new T[ColumnCount];
+        for (int c = 0; c < ColumnCount; c++)
             result[c] = this[c, row];
+        return result;
+    }
+    public T[] Column(int column)
+    {
+        ThrowIfOutOfBounds(column, ColumnCount, nameof(column));
+        T[] result = new T[RowCount];
+        for (int r = 0; r < RowCount; r++)
+            result[r] = this[column, r];
         return result;
     }
     public Matrix(T[,] data)
@@ -43,7 +47,7 @@ public readonly ref struct Matrix<T>
     {
         get
         {
-            T[,] result = ArrayMatching(this);
+            T[,] result = new T[ColumnCount, RowCount];
             foreach((int i, int j) in Cells)
                 result[j, i] = _data[i, j];
             return result;
@@ -57,14 +61,14 @@ public readonly ref struct Matrix<T>
     {
         // would define in terms of Matrix.WithDimensions but that anonymous method thing
         T[,] result = ArrayMatching(this);
-        foreach ((int x, int y) in Cells)
-            result[x, y] = func(this[x, y]);
+        foreach ((int row, int column) in Cells)
+            result[row, column] = func(this[row, column]);
         return result;
     }
-    public static Matrix<T> WithDimensions(int width, int height, Func<int, int, T> valueSetter)
+    public static Matrix<T> WithDimensions(int rows, int columns, Func<int, int, T> valueSetter)
     {
-        T[,] result = new T[width, height];
-        foreach ((int x, int y) in MatrixUtils.AllCoordsFor(width, height))
+        T[,] result = new T[rows, columns];
+        foreach ((int x, int y) in MatrixUtils.AllCoordsFor(rows, columns))
             result[x, y] = valueSetter(x, y);
         return result;
     }
@@ -87,12 +91,12 @@ public readonly ref struct Matrix<T>
         => c * m;
     public static Matrix<T> operator *(Matrix<T> left, Matrix<T> right)
     {
-        if (left.Columns != right.Rows)
+        if (left.ColumnCount != right.RowCount)
             throw new ArgumentException("Multiplication is only defined when the left matrix has exactly as many columns as the right has rows," +
-            $"but the left has {left.Columns} and the right has {right.Rows}!");
-        T[,] result = new T[right.Columns, left.Rows];
-        foreach ((int c, int r) in MatrixUtils.AllCoordsFor(right.Columns, left.Rows))
-            result[c, r] = left.Row(r).Dot(right.Column(c));
+            $"but the left has {left.ColumnCount} and the right has {right.RowCount}!");
+        T[,] result = new T[left.RowCount, right.ColumnCount];
+        foreach ((int r, int c) in MatrixUtils.AllCoordsFor(left.RowCount, right.ColumnCount))
+            result[r, c] = left.Row(r).Dot(right.Column(c));
         return result;
     }
     public static Matrix<T> Identity(int n)
@@ -106,8 +110,8 @@ public readonly ref struct Matrix<T>
     {
         if (a.Dimensions != b.Dimensions)
             return false;
-        foreach ((int x, int y) in MatrixUtils.AllCoordsFor(a.Columns, a.Rows))
-            if (a[x, y] != b[x, y])
+        foreach ((int row, int column) in a.Cells)
+            if (a[row, column] != b[row, column])
                 return false;
         return true;
     }
@@ -116,7 +120,7 @@ public readonly ref struct Matrix<T>
     public override int GetHashCode()
         => _data.GetHashCode();
     public bool IsInvertible
-        => Rows == Columns && this * Transpose == Identity(Rows);
+        => Rows == Columns && this * Transpose == Identity(RowCount);
     public bool TryInvert([MaybeNullWhen(false)]out Matrix<T> result)
     {
         if (!IsInvertible)
@@ -128,11 +132,18 @@ public readonly ref struct Matrix<T>
     }
     public Matrix<T> SwapRows(int rowA, int rowB)
     {
+        if (rowA == rowB) return this;
         T[,] result = ArrayMatching(this);
-        foreach(int row in Rows)
+        foreach((int row, int column) in Cells)
         {
-            foreach(int column in Columns)
+            result[row, column] = (row == rowA, row == rowB) switch
+            {
+                (true, _) => this[rowB, column],
+                (_, true) => this[rowA, column],
+                _ => this[row, column]
+            };
         }
+        return result;
     }
     // https://en.wikipedia.org/wiki/Gaussian_elimination#Pseudocode
     public Matrix<T> Rref
@@ -140,53 +151,41 @@ public readonly ref struct Matrix<T>
         get
         {
             T[,] result = ArrayMatching(this);
-            int row = 0, column = 0;
-            while(row < Rows && column < Columns)
+            int h = 0, k = 0;
+            while(h < RowCount && k < ColumnCount)
             {
-                int iMax = 0;
-                T max = T.Zero;
-                for(int i = row; i < Rows; i++)
+                int pivot = Column(k).Select(T.Abs)
+                                     .Argmax();
+                if (T.IsZero(this[pivot, k]))
                 {
-                    T abs = T.Abs(this[column, i]);
-                    if (abs > max)
-                    {
-                        iMax = i;
-                        max = abs;
-                    }
-                }
-                if(max == T.Zero)
-                {
-                    column++;
+                    k++;
                 } 
                 else
                 {
-                    // swap rows(row, i_max)
-                    for(int i = row + 1; i < Rows; i++)
+                    result = SwapRows(h, pivot);
+                    for(int i = h + 1; i < RowCount; i++)
                     {
-                        T f = this[column, i] / this[column, row];
-                        result[column, row] = T.Zero;
-                        for(int j = column + 1; j < Columns; j++)
+                        T f = this[i, k] / this[h, k];
+                        result[i, k] = T.Zero;
+                        for(int j = k + 1; j < ColumnCount; j++)
                         {
-                            result[j, i] = this[j, i] - this[j, row] * f;
+                            result[i, j] = this[i, j] - this[h, j] * f;
                         }
                     }
-                    row++;
-                    column++;
+                    h++;
+                    k++;
                 }
             }
+            return result;
         }
     }
 }
 public static class MatrixUtils
 {
-    public static IEnumerable<(int x, int y)> AllCoordsFor(int width, int height)
-    {
-        for (int x = 0; x < width; x++)
-            for (int y = 0; y < height; y++)
-                yield return (x, y);
-    }
-    public static IEnumerable<(int x, int y)> AllCoords(this (int x, int y) dimensions)
-        => AllCoordsFor(dimensions.x, dimensions.y);
+    public static IEnumerable<(int row, int columns)> AllCoordsFor(int rows, int columns)
+        => ZeroTo(rows).CrossJoin(ZeroTo(columns));
+    public static IEnumerable<(int row, int column)> AllCoords(this (int rows, int columns) dimensions)
+        => AllCoordsFor(dimensions.rows, dimensions.columns);
     public static T Sum<T>(this IEnumerable<T> enumerable)
         where T : INumberBase<T>
         => enumerable.Aggregate((x, y) => x + y);
@@ -195,4 +194,23 @@ public static class MatrixUtils
         => a.Zip(b)
             .Select(x => x.First * x.Second)
             .Sum();
+    public static IEnumerable<int> To(this int a, int b)
+    {
+        for (int i = a; i < b; i++)
+            yield return i;
+    }
+    public static IEnumerable<int> ZeroTo(int max)
+        => 0.To(max);
+    public static IEnumerable<(T, U)> CrossJoin<T, U>(this IEnumerable<T> ts, IEnumerable<U> us)
+        => ts.SelectMany(t => us.Select(u => (t, u)));
+    public static int Argmax<T>(this IEnumerable<T> items)
+        where T : IComparisonOperators<T, T, bool>
+    {
+        T max = items.First();
+        int result = 0;
+        for (int i = 1; i < items.Count(); i++)
+            if (items.ElementAt(i) > max)
+                (max, result) = (items.ElementAt(i), i);
+        return result;
+    }
 }
