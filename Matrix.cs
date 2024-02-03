@@ -1,9 +1,10 @@
-﻿using System.Data.Common;
+﻿using d9.utl;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 namespace citynames;
-public readonly ref struct Matrix<T>
+public class Matrix<T>
     where T : INumberBase<T>, IComparisonOperators<T, T, bool>
 {
     private readonly T[,] _data;
@@ -134,18 +135,17 @@ public readonly ref struct Matrix<T>
         => _data.GetHashCode();
     public bool IsInvertible
         => RowCount == ColumnCount && this * Transpose == Identity(RowCount);
-    public bool TryInvert([MaybeNullWhen(false)]out Matrix<T> result)
+    public Matrix<T>? Inverse
     {
-        if (!IsInvertible)
+        get
         {
-            result = default;
-            return false;
+            if (!IsInvertible)
+            {
+                return null;
+            }
+            return this.Augmented.Rref.ColumnSlice(ColumnCount);
         }
-        result = this.Augmented.Rref.ColumnSlice(ColumnCount);
-        return true;
     }
-    public Matrix<T> Inverse
-        => TryInvert(out Matrix<T> result) ? result : throw new Exception($"Cannot invert non-invertible matrix {this}!");
     public Matrix<T> SwapRows(int rowA, int rowB)
     {
         if (rowA == rowB) return this;
@@ -163,22 +163,21 @@ public readonly ref struct Matrix<T>
     }
     public override string ToString()
     {
-        string[] result = new string[RowCount];
-        result[0] = "┌";
-        for (int r = 1; r < RowCount - 1; r++)
-            result[r] = "│";
-        result[^1] = "└";
+        int resultLength = RowCount + 2;
+        string[] result = new string[resultLength];
+        for (int r = 1; r < resultLength - 1; r++)
+            result[r] = "│ ";
         for(int c = 0; c < ColumnCount; c++)
         {
-            T[] column = Column(c);
-            int columnWidth = column.Select(x => x.ToString()?.Length ?? 0).Argmax();
-            for(int r = 0; r < column.Length; r++)
-                result[r] += column[r].ToString()?.PadLeft(columnWidth) + "\t";
+            IEnumerable<string> column = Column(c).Select(x => x.PrintNull("??"));
+            int columnWidth = column.Select(x => x.Length).Max();
+            for(int r = 0; r < column.Count(); r++)
+                result[r + 1] += column.ElementAt(r).PadLeft(columnWidth) + "\t";
         }
-        result[0] = result[0].Trim() + "┐";
-        for (int r = 0; r < RowCount - 1; r++)
-            result[r] = result[r].Trim() + "│";
-        result[^1] = result[^1].Trim() + "┘";
+        for (int r = 1; r < resultLength - 1; r++)
+            result[r] = result[r].Trim() + " │";
+        result[0] = "┌".PadRight(result[1].Length - 1) + "┐";
+        result[^1] = "└".PadRight(result[^2].Length - 1) + "┘";
         return result.Aggregate((x, y) => $"{x}\n{y}");
     }
     // https://en.wikipedia.org/wiki/Gaussian_elimination#Pseudocode
@@ -228,6 +227,8 @@ public readonly ref struct Matrix<T>
     }
     public Matrix<T> Augmented
         => HStack(Identity(RowCount));
+    public override bool Equals([NotNullWhen(true)]object? obj)
+        => obj is Matrix<T> other && this == other;
 }
 public static class MatrixUtils
 {

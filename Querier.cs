@@ -28,7 +28,7 @@ public static class Querier
             }
             yield return (city, biome);
             if(ct % 100 == 0) 
-                SaveCache();
+                await SaveCache();
         }
     }
     public static IEnumerable<(string city, LatLongPair coords)> GetCityData(int threshold = 50000, int limit = 10000)
