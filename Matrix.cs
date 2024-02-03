@@ -172,13 +172,12 @@ public class Matrix<T>
             IEnumerable<string> column = Column(c).Select(x => x.PrintNull("??"));
             int columnWidth = column.Select(x => x.Length).Max();
             for(int r = 0; r < column.Count(); r++)
-                result[r + 1] += column.ElementAt(r).PadLeft(columnWidth) + "\t";
+                result[r + 1] += column.ElementAt(r).PadLeft(columnWidth) + "  ";
         }
         for (int r = 1; r < resultLength - 1; r++)
             result[r] = result[r].Trim() + " │";
-        Console.WriteLine($"`{result[1]}` {result[1].Length}");
-        result[0] = "┌ ".PadRight(result[1].Length) + " ┐";
-        result[^1] = "└ ".PadRight(result[^2].Length) + " ┘";
+        result[0] = "┌".PadRight(result[1].Length - 1) + "┐";
+        result[^1] = "└".PadRight(result[^2].Length - 1) + "┘";
         return result.Aggregate((x, y) => $"{x}\n{y}");
     }
     // https://en.wikipedia.org/wiki/Gaussian_elimination#Pseudocode
