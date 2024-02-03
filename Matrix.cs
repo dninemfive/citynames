@@ -8,14 +8,10 @@ public readonly ref struct Matrix<T>
 {
     private readonly T[,] _data;
     public int RowCount => _data.GetLength(0);
-    public IEnumerable<int> Rows
-        => MatrixUtils.ZeroTo(RowCount);
     public int ColumnCount => _data.GetLength(1);
-    public IEnumerable<int> Columns
-        => MatrixUtils.ZeroTo(ColumnCount);
     public (int RowCount, int ColumnCount) Dimensions => (RowCount, ColumnCount);
     public IEnumerable<(int row, int column)> Cells
-        => Rows.CrossJoin(Columns);
+        => Dimensions.AllCoords();
     public T this[int row, int column] => _data[row, column];
     private static T[,] ArrayMatching(Matrix<T> m) => new T[m.RowCount, m.ColumnCount];
     private static void ThrowIfOutOfBounds(int input, int max, string? paramName)
@@ -38,6 +34,22 @@ public readonly ref struct Matrix<T>
         for (int r = 0; r < RowCount; r++)
             result[r] = this[column, r];
         return result;
+    }
+    public T[,] Columns(params int[] columns)
+    {
+        T[,] result = new T[RowCount, columns.Length];
+        for(int i = 0; i < columns.Length; i++)
+            for (int r = 0; r < RowCount; r++)
+                result[r, i] = this[r, columns[i]];
+        return result;
+    }
+    public T[,] ColumnSlice(int start = 0, int end = int.MaxValue)
+    {
+        start = Math.Max(start, 0);
+        end = Math.Min(end, ColumnCount - 1);
+        if (start > end)
+            throw new ArgumentException($"Can't slice starting at a larger value ({start}) to a smaller one ({end})!");
+        return Columns(start.To(end).ToArray());
     }
     public Matrix(T[,] data)
     {
@@ -75,7 +87,8 @@ public readonly ref struct Matrix<T>
     public static Matrix<T> operator+(Matrix<T> a, Matrix<T> b)
     {
         if (a.Dimensions != b.Dimensions)
-            throw new ArgumentException($"Attempted to add matrices with dimensions {a.Columns}x{a.Rows} and {b.Columns}x{b.Rows}, but their dimensions must be the same!");
+            throw new ArgumentException($"Attempted to add matrices with dimensions {a.ColumnCount}x{a.RowCount} " +
+                $"and {b.ColumnCount}x{b.RowCount}, but their dimensions must be the same!");
         T[,] result = ArrayMatching(a);
         foreach((int x, int y) in a.Cells)
             result[x, y] = a[x, y] + b[x, y];
@@ -120,7 +133,7 @@ public readonly ref struct Matrix<T>
     public override int GetHashCode()
         => _data.GetHashCode();
     public bool IsInvertible
-        => Rows == Columns && this * Transpose == Identity(RowCount);
+        => RowCount == ColumnCount && this * Transpose == Identity(RowCount);
     public bool TryInvert([MaybeNullWhen(false)]out Matrix<T> result)
     {
         if (!IsInvertible)
@@ -128,8 +141,11 @@ public readonly ref struct Matrix<T>
             result = default;
             return false;
         }
-        throw new NotImplementedException();
+        result = this.Augmented.Rref.ColumnSlice(ColumnCount);
+        return true;
     }
+    public Matrix<T> Inverse
+        => TryInvert(out Matrix<T> result) ? result : throw new Exception($"Cannot invert non-invertible matrix {this}!");
     public Matrix<T> SwapRows(int rowA, int rowB)
     {
         if (rowA == rowB) return this;
@@ -144,6 +160,26 @@ public readonly ref struct Matrix<T>
             };
         }
         return result;
+    }
+    public override string ToString()
+    {
+        string[] result = new string[RowCount];
+        result[0] = "┌";
+        for (int r = 1; r < RowCount - 1; r++)
+            result[r] = "│";
+        result[^1] = "└";
+        for(int c = 0; c < ColumnCount; c++)
+        {
+            T[] column = Column(c);
+            int columnWidth = column.Select(x => x.ToString()?.Length ?? 0).Argmax();
+            for(int r = 0; r < column.Length; r++)
+                result[r] += column[r].ToString()?.PadLeft(columnWidth) + "\t";
+        }
+        result[0] = result[0].Trim() + "┐";
+        for (int r = 0; r < RowCount - 1; r++)
+            result[r] = result[r].Trim() + "│";
+        result[^1] = result[^1].Trim() + "┘";
+        return result.Aggregate((x, y) => $"{x}\n{y}");
     }
     // https://en.wikipedia.org/wiki/Gaussian_elimination#Pseudocode
     public Matrix<T> Rref
@@ -179,6 +215,19 @@ public readonly ref struct Matrix<T>
             return result;
         }
     }
+    public Matrix<T> HStack(Matrix<T> other)
+    {
+        if (RowCount != other.RowCount)
+            throw new ArgumentException("Cannot stack two matrices with different row counts horizontally!");
+        int newColumnCount = ColumnCount + other.ColumnCount;
+        T[,] result = new T[RowCount, newColumnCount];
+        for(int r = 0; r < RowCount; r++)
+            for (int c = 0; c < newColumnCount; c++)
+                result[r, c] = c < ColumnCount ? this[r, c] : other[r, c - ColumnCount];
+        return result;
+    }
+    public Matrix<T> Augmented
+        => HStack(Identity(RowCount));
 }
 public static class MatrixUtils
 {
