@@ -7,7 +7,7 @@ public class Tests_Matrix
     {
         Matrix<double> matrix = new(new double[,]
         {
-            { -1, 3 / 2 },
+            { -1, 3/2.0 },
             { 1,     -1 }
         });
         Console.WriteLine(matrix);

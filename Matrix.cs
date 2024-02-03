@@ -54,7 +54,7 @@ public class Matrix<T>
     }
     public Matrix(T[,] data)
     {
-        _data = data;
+        _data = data.Transpose();
     }
     public Matrix<T> Transpose
     {
@@ -176,8 +176,9 @@ public class Matrix<T>
         }
         for (int r = 1; r < resultLength - 1; r++)
             result[r] = result[r].Trim() + " │";
-        result[0] = "┌".PadRight(result[1].Length - 1) + "┐";
-        result[^1] = "└".PadRight(result[^2].Length - 1) + "┘";
+        Console.WriteLine($"`{result[1]}` {result[1].Length}");
+        result[0] = "┌ ".PadRight(result[1].Length) + " ┐";
+        result[^1] = "└ ".PadRight(result[^2].Length) + " ┘";
         return result.Aggregate((x, y) => $"{x}\n{y}");
     }
     // https://en.wikipedia.org/wiki/Gaussian_elimination#Pseudocode
@@ -261,6 +262,13 @@ public static class MatrixUtils
         for (int i = 1; i < items.Count(); i++)
             if (items.ElementAt(i) > max)
                 (max, result) = (items.ElementAt(i), i);
+        return result;
+    }
+    public static T[,] Transpose<T>(this T[,] array)
+    {
+        T[,] result = new T[array.GetLength(1), array.GetLength(0)];
+        foreach ((int i, int j) in AllCoordsFor(array.GetLength(0), array.GetLength(1)))
+            result[j, i] = array[i, j];
         return result;
     }
 }
