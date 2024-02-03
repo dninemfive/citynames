@@ -1,10 +1,10 @@
 ﻿namespace citynames.tests;
 [TestClass]
-public class StringUtilsTests
+public class Tests_StringUtils
 {
     const string _testString = "test string";
     [TestMethod]
-    public void SubstringSafeTest()
+    public void Test_SubstringSafe()
     {
         for(int i = 0; i < _testString.Length; i++)
         {
@@ -20,7 +20,7 @@ public class StringUtilsTests
         }
     }
     [TestMethod]
-    public void LastTest()
+    public void Test_Last()
     {
         Assert.AreEqual(_testString[^2..], _testString.Last(2));
         Assert.AreEqual(_testString, _testString.Last(_testString.Length + 1));

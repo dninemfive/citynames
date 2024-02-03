@@ -1,0 +1,20 @@
+https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/Resolve_Ecoregions/FeatureServer/query
+  ?layerDefs=%7B+%22allLayers%22%3A+%22true%22+%7D  
+  &geometry=%7B%0D%0A++%22x%22%3A+34.05223%2C+%0D%0A++%22y%22%3A+-118.24368%2C+%0D%0A++%22spatialReference%22%3A+%7B%0D%0A++++%22wkid%22%3A+4326%0D%0A++%7D%0D%0A%7D
+  &geometryType=esriGeometryPoint
+  &inSR=
+  &spatialRel=esriSpatialRelWithin
+  &outSR=
+  &datumTransformation=
+  &applyVCSProjection=false
+  &returnGeometry=true
+  &maxAllowableOffset=
+  &geometryPrecision=
+  &returnIdsOnly=false
+  &returnCountOnly=false
+  &returnDistinctValues=false
+  &returnZ=false
+  &returnM=false
+  &sqlFormat=none
+  &f=pjson
+  &token=
