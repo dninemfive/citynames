@@ -56,20 +56,12 @@ public class Matrix<T>
     {
         _data = data.Transpose();
     }
-    public Matrix<T> Transpose
-    {
-        get
-        {
-            T[,] result = new T[ColumnCount, RowCount];
-            foreach((int i, int j) in Cells)
-                result[j, i] = _data[i, j];
-            return result;
-        }
-    }
+    public Matrix<T> Transposition
+        => _data.Transpose();
     public static implicit operator Matrix<T>(T[,] data) 
         => new(data);
     public static implicit operator T[,](Matrix<T> m)
-        => m._data;
+        => m._data.Transpose();
     public Matrix<T> Apply(Func<T, T> func)
     {
         // would define in terms of Matrix.WithDimensions but that anonymous method thing
@@ -134,7 +126,7 @@ public class Matrix<T>
     public override int GetHashCode()
         => _data.GetHashCode();
     public bool IsInvertible
-        => RowCount == ColumnCount && this * Transpose == Identity(RowCount);
+        => RowCount == ColumnCount && this * Transposition == Identity(RowCount);
     public Matrix<T>? Inverse
     {
         get
