@@ -8,7 +8,8 @@ public class Tests_Matrix
         Matrix<double> matrix = new(new double[,]
         {
             { -1, 3/2.0 },
-            { 1,     -1 }
+            { 1,     -1 },
+            { 5,     4 }
         });
         Console.WriteLine(matrix);
     }
@@ -50,7 +51,8 @@ public class Tests_Matrix
             { 5, 4 }
         }) + new Matrix<double>(new double[,]
         {
-            { 4, 6 }, { 5, 2}
+            { 4, 6 }, 
+            { 5, 2 }
         }));
         Matrix<double> a = new(new double[,]
         {

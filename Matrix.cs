@@ -25,7 +25,7 @@ public class Matrix<T>
         ThrowIfOutOfBounds(row, RowCount, nameof(row));
         T[] result = new T[ColumnCount];
         for (int c = 0; c < ColumnCount; c++)
-            result[c] = this[c, row];
+            result[c] = this[row, c];
         return result;
     }
     public T[] Column(int column)
@@ -33,7 +33,7 @@ public class Matrix<T>
         ThrowIfOutOfBounds(column, ColumnCount, nameof(column));
         T[] result = new T[RowCount];
         for (int r = 0; r < RowCount; r++)
-            result[r] = this[column, r];
+            result[r] = this[r, column];
         return result;
     }
     public T[,] Columns(params int[] columns)
@@ -54,14 +54,14 @@ public class Matrix<T>
     }
     public Matrix(T[,] data)
     {
-        _data = data.Transpose();
+        _data = data;
     }
     public Matrix<T> Transposition
         => _data.Transpose();
     public static implicit operator Matrix<T>(T[,] data) 
         => new(data);
     public static implicit operator T[,](Matrix<T> m)
-        => m._data.Transpose();
+        => m._data;
     public Matrix<T> Apply(Func<T, T> func)
     {
         // would define in terms of Matrix.WithDimensions but that anonymous method thing
