@@ -2,16 +2,49 @@
 [TestClass]
 public class Tests_Matrix
 {
-    [TestMethod]
-    public void Test_Constructor()
+    private List<double[,]> _testMatricesA = new List<double[,]>()
     {
-        Matrix<double> matrix = new(new double[,]
-        {
-            { -1, 3/2.0 },
-            { 1,     -1 },
-            { 5,     4 }
-        });
-        Console.WriteLine(matrix);
+        // 2x2
+        new double[,] {
+            {  1,  2 },
+            { -3, -4 }
+        },
+        // 3x2
+        new double[,] {
+            {  1,  2 },
+            { -3,  4 },
+            { -5, -6 }
+        },
+        // 2x3
+        new double[,] {
+            {  1,  2,  3 },
+            { -4, -5, -6 }
+        },
+    };
+    private List<double[,]> _testMatricesB = new List<double[,]>()
+    {
+        // 2x2
+        new double[,] {
+            { 1, -2 },
+            { 3, -4 }
+        },
+        // 3x2
+        new double[,] {
+            {  1, -2 },
+            {  3, -4 },
+            {  5, -6 }
+        },
+        // 2x3
+        new double[,] {
+            {  1, -2,  3 },
+            {  4, -5, -6 }
+        }
+    };
+    [TestMethod]
+    public void Test_ToString()
+    {
+        foreach (Matrix<double> matrix in _testMatricesA)
+            Console.WriteLine(matrix);
     }
     [TestMethod]
     public void Test_Equals()
@@ -31,17 +64,12 @@ public class Tests_Matrix
     [TestMethod]
     public void Test_UnaryNegation()
     {
-        Matrix<double> original = new(new double[,]
+        foreach(Matrix<double> testMatrix in _testMatricesA)
         {
-            { -1, 3/2.0 },
-            { 1,     -1 }
-        });
-        Matrix<double> expected = new(new double[,]
-        {
-            { 1, -3.0/2.0 },
-            { -1,     1 }
-        });
-        Assert.AreEqual(expected, -original);
+            Matrix<double> actual = -testMatrix;
+            foreach((int r, int c) in testMatrix.Cells)
+                Assert.AreEqual(-testMatrix[r, c], actual[r, c]);
+        }
     }
     [TestMethod]
     public void Test_Addition()
@@ -54,22 +82,15 @@ public class Tests_Matrix
             { 4, 6 }, 
             { 5, 2 }
         }));
-        Matrix<double> a = new(new double[,]
+        foreach((Matrix<double> a, Matrix<double> b) in _testMatricesA.Zip(_testMatricesB))
         {
-            { 1, 2 }, 
-            { -3, -4 }
-        });
-        Matrix<double> b = new(new double[,]
-        {
-            { 5, -3 }, 
-            { 6, -7 }
-        });
-        Matrix<double> expected = new(new double[,]
-        {
-            { 6, -1 }, { 3, -11 }
-        });
-        Assert.AreEqual(expected, a + b);
-        Assert.AreEqual(expected, b + a);
+            Matrix<double> actual1 = a + b, actual2 = b + a;
+            foreach ((int r, int c) in a.Cells)
+            {
+                Assert.AreEqual(a[r, c] + b[r, c], actual1[r, c]);
+                Assert.AreEqual(a[r, c] + b[r, c], actual2[r, c]);
+            }
+        }
     }
     [TestMethod]
     public void Test_Subtraction()
@@ -81,28 +102,28 @@ public class Tests_Matrix
         {
             { 4, 6 }, { 5, 2}
         }));
-        Matrix<double> a = new(new double[,]
+        foreach ((Matrix<double> a, Matrix<double> b) in _testMatricesA.Zip(_testMatricesB))
         {
-            { 1, 2 },
-            { -3, -4 }
-        });
-        Matrix<double> b = new(new double[,]
+            Matrix<double> actual1 = a - b, actual2 = b - a;
+            foreach ((int r, int c) in a.Cells)
+            {
+                Assert.AreEqual(a[r, c] - b[r, c], actual1[r, c]);
+                Assert.AreEqual(b[r, c] - a[r, c], actual2[r, c]);
+            }
+        }
+    }
+    [TestMethod]
+    public void Test_ScalarMultiplication()
+    {
+        foreach(Matrix<double> matrix in _testMatricesA)
         {
-            { 5, -3 },
-            { 6, -7 }
-        });
-        Matrix<double> expected1 = new(new double[,]
-        {
-            { -4, 5 }, 
-            { -9, 3 }
-        });
-        Assert.AreEqual(expected1, a - b);
-        Matrix<double> expected2 = new(new double[,]
-        {
-            { 4, -5 },
-            { 9, -3 }
-        });
-        Assert.AreEqual(expected2, b - a);
+            Matrix<double> actual1 = matrix * 2, actual2 = 2 * matrix;
+            foreach ((int r, int c) in matrix.Cells)
+            {
+                Assert.AreEqual(matrix[r, c] * 2, actual1[r, c]);
+                Assert.AreEqual(matrix[r, c] * 2, actual2[r, c]);
+            }
+        }
     }
     [TestMethod]
     public void Test_Identity()
