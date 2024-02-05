@@ -262,4 +262,7 @@ public static class MatrixUtils
             result[j, i] = array[i, j];
         return result;
     }
+    public static Matrix<T> ToMatrix<T>(this T[,] array)
+        where T : INumberBase<T>, IComparisonOperators<T, T, bool>
+        => array;
 }
