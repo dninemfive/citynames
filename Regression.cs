@@ -18,6 +18,8 @@ public class Regression
     {
         
     }
+    public static Matrix<double> RegressionCoefficients(Matrix<double> X, Matrix<double> Y)
+        => (X.Transposition * X).Inverse! * X.Transposition * Y;
     public double Predict(Dictionary<string, double> data)
     {
         double result = _const;

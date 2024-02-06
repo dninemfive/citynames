@@ -126,7 +126,7 @@ public class Matrix<T>
     public override int GetHashCode()
         => _data.GetHashCode();
     public bool IsInvertible
-        => RowCount == ColumnCount && this * Transposition == Identity(RowCount);
+        => RowCount == ColumnCount && (this * Transposition) == Identity(RowCount);
     public Matrix<T>? Inverse
     {
         get
