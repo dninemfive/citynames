@@ -8,3 +8,4 @@ Casual city name generator using a basic markov generator which can take variabl
 # Credits
 - [Alexis Cooper](https://github.com/AACooper1): consultation about linguistics stuff
 - [Connor Shea](https://github.com/connorshea): Wikidata help, in theory
+- [OtherwiseJunk](https://github.com/OtherwiseJunk): code review
