@@ -2,6 +2,7 @@
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Linq;
 
 namespace citynames;
 public class Matrix<T>
@@ -97,6 +98,7 @@ public class Matrix<T>
         => c * m;
     public static Matrix<T> operator *(Matrix<T> left, Matrix<T> right)
     {
+        Console.WriteLine($"Left matrix:\n{left}\nRight matrix:\n{right}");
         if (left.ColumnCount != right.RowCount)
             throw new ArgumentException("Multiplication is only defined when the left matrix has exactly as many columns as the right has rows," +
             $"but the left has {left.ColumnCount} and the right has {right.RowCount}!");
@@ -126,21 +128,24 @@ public class Matrix<T>
     public override int GetHashCode()
         => _data.GetHashCode();
     public bool IsInvertible
-        => RowCount == ColumnCount && (this * Transposition) == Identity(RowCount);
+    //    => RowCount == ColumnCount && (this * Transposition) == Identity(RowCount);
+        => true; //todo: determinant == 0 or something
     public Matrix<T>? Inverse
     {
         get
         {
             if (!IsInvertible)
-            {
                 return null;
-            }
-            return this.Augmented.Rref.ColumnSlice(ColumnCount);
+            Matrix<T> augmentedRref = Augmented.Rref;
+            Console.WriteLine($"Augmented:\n{Augmented}\nAugmented RREF:\n{augmentedRref}");
+            return augmentedRref.ColumnSlice(ColumnCount);
         }
     }
     public Matrix<T> SwapRows(int rowA, int rowB)
     {
+        Console.WriteLine($"SwapRows({rowA}, {rowB})({rowA != rowB})");
         if (rowA == rowB) return this;
+        Console.WriteLine($"Original:\n{this}");
         T[,] result = ArrayMatching(this);
         foreach((int row, int column) in Cells)
         {
@@ -151,6 +156,7 @@ public class Matrix<T>
                 _ => this[row, column]
             };
         }
+        Console.WriteLine($"Result:\n{new Matrix<T>(result)}");
         return result;
     }
     public override string ToString()
@@ -183,8 +189,10 @@ public class Matrix<T>
             {
                 int pivot = Column(k).Select(T.Abs)
                                      .Argmax();
+                Console.WriteLine($"Rref(h = {h}, k = {k}, pivot = {pivot}):\n{new Matrix<T>(result)}");
                 if (T.IsZero(this[pivot, k]))
                 {
+                    Console.WriteLine("\tPivot is 0");
                     k++;
                 } 
                 else
@@ -193,6 +201,7 @@ public class Matrix<T>
                     for(int i = h + 1; i < RowCount; i++)
                     {
                         T f = this[i, k] / this[h, k];
+                        Console.WriteLine($"\tf = {f}");
                         result[i, k] = T.Zero;
                         for(int j = k + 1; j < ColumnCount; j++)
                         {
@@ -265,4 +274,5 @@ public static class MatrixUtils
     public static Matrix<T> ToMatrix<T>(this T[,] array)
         where T : INumberBase<T>, IComparisonOperators<T, T, bool>
         => array;
+
 }
