@@ -183,7 +183,7 @@ public class Matrix<T>
     {
         get
         {
-            T[,] result = ArrayMatching(this);
+            T[,] result = this;
             int h = 0, k = 0;
             while(h < RowCount && k < ColumnCount)
             {
@@ -197,16 +197,15 @@ public class Matrix<T>
                 } 
                 else
                 {
-                    result = SwapRows(h, pivot);
-                    for(int i = h + 1; i < RowCount; i++)
+                    result = result.SwapRows(h, pivot);
+                    for (int i = h + 1; i < RowCount; i++)
                     {
+                        Console.WriteLine($"i, k = {i}, {k}");
                         T f = this[i, k] / this[h, k];
                         Console.WriteLine($"\tf = {f}");
                         result[i, k] = T.Zero;
-                        for(int j = k + 1; j < ColumnCount; j++)
-                        {
-                            result[i, j] = this[i, j] - this[h, j] * f;
-                        }
+                        Console.WriteLine($"{result[i, k]}");
+                        result = result.AddTwoRows(i, h, -f);
                     }
                     h++;
                     k++;
@@ -271,8 +270,44 @@ public static class MatrixUtils
             result[j, i] = array[i, j];
         return result;
     }
+    public static T[,] SwapRows<T>(this T[,] array, int rowA, int rowB)
+        where T : INumberBase<T>, IComparisonOperators<T, T, bool>
+    {
+        Console.WriteLine($"SwapRows({array.MatrixString()}, {rowA}, {rowB})");
+        T[,] result = array;
+        for (int c = 0; c < result.GetLength(1); c++)
+        {
+            result[rowA, c] = array[rowB, c];
+            result[rowB, c] = array[rowA, c];
+        }
+        Console.WriteLine(result.MatrixString());
+        return result;
+    }
+    public static T[,] MultiplyRow<T>(this T[,] array, int row, T scalar)
+        where T : INumberBase<T>, IComparisonOperators<T, T, bool>
+    {
+        Console.WriteLine($"MultiplyRow({array.MatrixString()}, {row}, {scalar})");
+        T[,] result = array;
+        for (int c = 0; c < result.GetLength(1); c++)
+            result[row, c] = scalar * array[row, c];
+        Console.WriteLine(result.MatrixString());
+        return result;
+    }
+    public static T[,] AddTwoRows<T>(this T[,] array, int targetRow, int sourceRow, T scalar)
+        where T : INumberBase<T>, IComparisonOperators<T, T, bool>
+    {
+        Console.WriteLine($"AddTwoRows({array.MatrixString()}, {targetRow}, {sourceRow}, {scalar})");
+        T[,] result = array;
+        for (int c = 0; c < result.GetLength(1); c++)
+            result[targetRow, c] += array[sourceRow, c] * scalar;
+        Console.WriteLine(result.MatrixString());
+        return result;
+    }
     public static Matrix<T> ToMatrix<T>(this T[,] array)
         where T : INumberBase<T>, IComparisonOperators<T, T, bool>
         => array;
+    public static string MatrixString<T>(this T[,] m)
+        where T : INumberBase<T>, IComparisonOperators<T, T, bool>
+        => $"{new Matrix<T>(m)}";
 
 }
