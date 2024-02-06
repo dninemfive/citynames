@@ -201,11 +201,11 @@ public class Matrix<T>
                     for (int i = h + 1; i < RowCount; i++)
                     {
                         Console.WriteLine($"i, k = {i}, {k}");
-                        T f = this[i, k] / this[h, k];
+                        T f = result[i, k] / result[h, k];
                         Console.WriteLine($"\tf = {f}");
-                        result[i, k] = T.Zero;
                         Console.WriteLine($"{result[i, k]}");
                         result = result.AddTwoRows(i, h, -f);
+                        result[i, k] = T.Zero;
                     }
                     h++;
                     k++;
@@ -270,11 +270,18 @@ public static class MatrixUtils
             result[j, i] = array[i, j];
         return result;
     }
+    public static T[,] Copy<T>(this T[,] array)
+    {
+        T[,] result = new T[array.GetLength(0), array.GetLength(1)];
+        foreach ((int i, int j) in AllCoordsFor(array.GetLength(0), array.GetLength(1)))
+            result[i, j] = array[i, j];
+        return result;
+    }
     public static T[,] SwapRows<T>(this T[,] array, int rowA, int rowB)
         where T : INumberBase<T>, IComparisonOperators<T, T, bool>
     {
         Console.WriteLine($"SwapRows({array.MatrixString()}, {rowA}, {rowB})");
-        T[,] result = array;
+        T[,] result = array.Copy();
         for (int c = 0; c < result.GetLength(1); c++)
         {
             result[rowA, c] = array[rowB, c];
@@ -287,7 +294,7 @@ public static class MatrixUtils
         where T : INumberBase<T>, IComparisonOperators<T, T, bool>
     {
         Console.WriteLine($"MultiplyRow({array.MatrixString()}, {row}, {scalar})");
-        T[,] result = array;
+        T[,] result = array.Copy();
         for (int c = 0; c < result.GetLength(1); c++)
             result[row, c] = scalar * array[row, c];
         Console.WriteLine(result.MatrixString());
@@ -297,7 +304,7 @@ public static class MatrixUtils
         where T : INumberBase<T>, IComparisonOperators<T, T, bool>
     {
         Console.WriteLine($"AddTwoRows({array.MatrixString()}, {targetRow}, {sourceRow}, {scalar})");
-        T[,] result = array;
+        T[,] result = array.Copy();
         for (int c = 0; c < result.GetLength(1); c++)
             result[targetRow, c] += array[sourceRow, c] * scalar;
         Console.WriteLine(result.MatrixString());
