@@ -39,6 +39,7 @@ public class Matrix<T>
     }
     public T[,] Columns(params int[] columns)
     {
+        Console.WriteLine($"Columns({columns.ListNotation()})");
         T[,] result = new T[RowCount, columns.Length];
         for(int i = 0; i < columns.Length; i++)
             for (int r = 0; r < RowCount; r++)
@@ -48,7 +49,7 @@ public class Matrix<T>
     public T[,] ColumnSlice(int start = 0, int end = int.MaxValue)
     {
         start = Math.Max(start, 0);
-        end = Math.Min(end, ColumnCount - 1);
+        end = Math.Min(end, ColumnCount);
         if (start > end)
             throw new ArgumentException($"Can't slice starting at a larger value ({start}) to a smaller one ({end})!");
         return Columns(start.To(end).ToArray());
@@ -105,6 +106,7 @@ public class Matrix<T>
         T[,] result = new T[left.RowCount, right.ColumnCount];
         foreach ((int r, int c) in MatrixUtils.AllCoordsFor(left.RowCount, right.ColumnCount))
             result[r, c] = left.Row(r).Dot(right.Column(c));
+        Console.WriteLine($"Result:\n{result.ToMatrix()}");
         return result;
     }
     public static Matrix<T> Identity(int n)
