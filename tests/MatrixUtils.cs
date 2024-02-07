@@ -32,6 +32,25 @@ public class MatrixUtils
         }
     }
     [TestMethod]
+    public void SwapRows_OriginalMatrixUnchanged()
+    {
+        double[,] initial = new double[,]
+        {
+            { 1, 2 },
+            { 3, 4 },
+            { 5, 6 }
+        };
+        double[,] expected = new double[,]
+        {
+            { 1, 2 },
+            { 3, 4 },
+            { 5, 6 }
+        };
+        double[,] _ = initial.SwapRows(0, 1);
+        Console.WriteLine($"expected: {expected.MatrixString()}\nactual: {initial.MatrixString()}");
+        Assert.AreEqual(expected, initial, new Array2DEqualityComparer(), $"expected: {expected.MatrixString()}\nactual: {initial.MatrixString()}");
+    }
+    [TestMethod]
     public void SwapRows()
     {
         Console.WriteLine("SwapRows()");
@@ -52,6 +71,25 @@ public class MatrixUtils
         Assert.AreEqual(expected, actual, new Array2DEqualityComparer(), $"expected: {expected.MatrixString()}\nactual: {actual.MatrixString()}");
     }
     [TestMethod]
+    public void MultiplyRow_OriginalMatrixUnchanged()
+    {
+        double[,] initial = new double[,]
+        {
+            { 1, 2 },
+            { 3, 4 },
+            { 5, 6 }
+        };
+        double[,] expected = new double[,]
+        {
+            { 1, 2 },
+            { 3, 4 },
+            { 5, 6 }
+        };
+        double[,] _ = initial.MultiplyRow(0, 3.14);
+        Console.WriteLine($"expected: {expected.MatrixString()}\nactual: {initial.MatrixString()}");
+        Assert.AreEqual(expected, initial, new Array2DEqualityComparer(), $"expected: {expected.MatrixString()}\nactual: {initial.MatrixString()}");
+    }
+    [TestMethod]
     public void MultiplyRow()
     {
         Console.WriteLine("MultiplyRow()");
@@ -68,6 +106,25 @@ public class MatrixUtils
         double[,] actual = initial.MultiplyRow(0, 0.5);
         Console.WriteLine($"expected: {expected.MatrixString()}\nactual: {actual.MatrixString()}");
         Assert.AreEqual(expected, actual, new Array2DEqualityComparer(), $"expected: {expected.MatrixString()}\nactual: {actual.MatrixString()}");
+    }
+    [TestMethod]
+    public void AddTwoRows_OriginalMatrixUnchanged()
+    {
+        double[,] initial = new double[,]
+        {
+            { 1, 2 },
+            { 3, 4 },
+            { 5, 6 }
+        };
+        double[,] expected = new double[,]
+        {
+            { 1, 2 },
+            { 3, 4 },
+            { 5, 6 }
+        };
+        double[,] _ = initial.AddTwoRows(0, 1, 3.14);
+        Console.WriteLine($"expected: {expected.MatrixString()}\nactual: {initial.MatrixString()}");
+        Assert.AreEqual(expected, initial, new Array2DEqualityComparer(), $"expected: {expected.MatrixString()}\nactual: {initial.MatrixString()}");
     }
     [TestMethod]
     public void AddTwoRows()
