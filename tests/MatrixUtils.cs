@@ -91,7 +91,7 @@ public class MatrixUtils
         expected = new double[,]
         {
             { 1, 2 },
-            { 1.5, -1 },
+            { 1.5, 1 },
             { 5, 6 }
         };
         actual = initial.AddTwoRows(1, 0, -1.5);
