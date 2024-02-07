@@ -141,12 +141,41 @@ public class Matrix<T>
             return augmentedRref.ColumnSlice(ColumnCount);
         }
     }
+    public Matrix<T> RowEchelonForm
+    {
+        get
+        {
+            T[,] result = _data.Copy();
+            throw new NotImplementedException();
+            // https://www.math.purdue.edu/~shao92/documents/Algorithm%20REF.pdf
+            // 1. (given)
+            // 2. determine leftmost nonzero column
+            // 3. use elementary row operations to put a 1 in the topmost (pivot) position of this column
+            // 4. use EROs to put zeros strictly below the pivot position
+            // 5. if there are no more non-zero rows below the pivot position, return
+            // 6. apply 2-5 to the rows below the current
+        }
+    }
+    public Matrix<T> ReducedRowEchelonForm
+    { 
+        get
+        {
+            T[,] result = RowEchelonForm;
+            throw new NotImplementedException();
+            // https://www.math.purdue.edu/~shao92/documents/Algorithm%20REF.pdf
+            // 8. find all the leading rows
+            // 9. determine the rightmost column containing a leading one
+            // 10. use type III elementary row operations (multiplications?) to erase nonzero entries above the leading one
+            // 11. if there are no more columns containing leading ones, return
+            // 12. apply 9-11 to the columns left of the pivot
+        }
+    }
     // https://en.wikipedia.org/wiki/Gaussian_elimination#Pseudocode
     public Matrix<T> Rref
     {
         get
         {
-            T[,] result = this;
+            T[,] result = _data.Copy();
             int h = 0, k = 0;
             while (h < RowCount && k < ColumnCount)
             {
