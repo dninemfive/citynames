@@ -153,6 +153,23 @@ public class Matrix
         }
     }
     [TestMethod]
+    public void Inverse_Correctness()
+    {
+        // from https://en.wikipedia.org/wiki/Invertible_matrix#Examples
+        Matrix<double> initial = new(new double[,]
+        {
+            { -1, 1.5 },
+            { 1, -1 }
+        });
+        Matrix<double> expected = new(new double[,]
+        {
+            { 2, 3 },
+            { 2, 2 }
+        });
+        Matrix<double> actual = initial.Inverse!;
+        Assert.AreEqual(expected, actual);
+    }
+    [TestMethod]
     public void Identity()
     {
         Matrix<double> actual = Matrix<double>.Identity(2);
