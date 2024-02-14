@@ -53,4 +53,12 @@ public class Datum
         result = Result;
     }
     public string CsvString => $"{Biome},{Context},{Result}";
+    public override string ToString()
+        => $"{Biome}\t{Context}\t{Result}\t({(int)Result})";
+    public override bool Equals(object? obj)
+        => obj is Datum d && d.Biome == Biome && d.Context == Context && d.Result == Result;
+    public override int GetHashCode()
+        => HashCode.Combine(Biome, Context, Result);
+    public static bool operator ==(Datum a, Datum b) => a.Equals(b);
+    public static bool operator !=(Datum a, Datum b) => !(a == b);
 }
