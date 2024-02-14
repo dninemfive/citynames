@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 namespace citynames;
-internal class MarkovSetStringGenerator : IStringGenerator<string>, IAsyncSerializable<MarkovSetStringGenerator>
+internal class MarkovSetStringGenerator : IStringGenerator<string>
 {
     private readonly Dictionary<string, MarkovStringGenerator> _dict;
     internal MarkovSetStringGenerator(Dictionary<string, MarkovStringGenerator>? dict = null)
