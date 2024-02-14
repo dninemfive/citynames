@@ -7,7 +7,7 @@ namespace citynames;
 /// takes a string of characters as input and produces a random character based on the input characters,
 /// weighted by commonality in the source corpus. 
 /// </summary>
-public class MarkovStringGenerator
+public class MarkovStringGenerator : IStringGenerator
 {
     /// <summary>
     /// The ETX (End-of-Text) character in ASCII. Used to mark the end of a word,
