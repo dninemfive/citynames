@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 namespace citynames;
-internal class MarkovSetStringGenerator : IStringGenerator<string>
+internal class MarkovSetStringGenerator : IStringGenerator<string>, IAsyncSerializable<MarkovSetStringGenerator>
 {
     private readonly Dictionary<string, MarkovStringGenerator> _dict;
     internal MarkovSetStringGenerator(Dictionary<string, MarkovStringGenerator>? dict = null)
@@ -17,5 +17,7 @@ internal class MarkovSetStringGenerator : IStringGenerator<string>
         => this[biome].RandomString;
     public string RandomStringOfLength(string biome, int min = 1, int max = int.MaxValue, int maxAttempts = 100)
         => this[biome].RandomStringOfLength(min, max, maxAttempts);
+    public IEnumerable<string> RandomStringsOfLength(string biome, int count, int min = 1, int max = int.MaxValue, int maxAttempts = 100)
+        => ((IStringGenerator<string>)this).RandomStringsOfLength(biome, count, min, max, maxAttempts);
     internal IEnumerable<string> Biomes => _dict.Keys;
 }

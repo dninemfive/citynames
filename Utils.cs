@@ -24,4 +24,14 @@ public static class Utils
     }
     public static bool EndsWith(this string s, char c) => s.Length > 0 && s[^1] == c;
     public static string AppendIfNotPresent(this string s, char c) => s.EndsWith(c) ? s : $"{s}{c}";
+    public static void PrintAndWrite(string path, string s)
+    {
+        Console.WriteLine($"\t{s}");
+        File.AppendAllText(path, $"{s}\n");
+    }
+    public static void CreateIfNotExists(this string path)
+    {
+        if (!File.Exists(path))
+            File.CreateText(path);
+    }
 }
