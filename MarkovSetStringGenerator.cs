@@ -1,14 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 namespace citynames;
-/// <summary>
-/// Just an alias for the <see cref="Dictionary{TKey, TValue}">Dictionary</see>&lt;<see langword="string"/>, <see cref="MarkovStringGenerator"/>&gt;
-/// type since that was creating unnecessarily verbose code.
-/// </summary>
-internal class GeneratorSet
+internal class MarkovSetStringGenerator : IStringGenerator<string>
 {
     private readonly Dictionary<string, MarkovStringGenerator> _dict;
-    internal GeneratorSet(Dictionary<string, MarkovStringGenerator>? dict = null)
+    internal MarkovSetStringGenerator(Dictionary<string, MarkovStringGenerator>? dict = null)
         => _dict = dict ?? new();
     internal MarkovStringGenerator this[string key]
     {
@@ -17,5 +13,9 @@ internal class GeneratorSet
     }
     internal bool TryGetValue(string key, [NotNullWhen(true)]out MarkovStringGenerator? value)
         => _dict.TryGetValue(key, out value);
+    public string RandomString(string biome)
+        => this[biome].RandomString;
+    public string RandomStringOfLength(string biome, int min = 1, int max = int.MaxValue, int maxAttempts = 100)
+        => this[biome].RandomStringOfLength(min, max, maxAttempts);
     internal IEnumerable<string> Biomes => _dict.Keys;
 }

@@ -12,8 +12,8 @@ public class Program
         string generatorFilename = $"generators_{contextLength}.json";
         bool buildGenerators = CommandLineArgs.GetFlag("rebuild") || !File.Exists(generatorFilename);
 
-        GeneratorSet generatorSet = await (buildGenerators ? BuildGenerators(contextLength) 
-                                                           : LoadGenerators(generatorFilename))
+        MarkovSetStringGenerator generatorSet = await (buildGenerators ? BuildGenerator(contextLength) 
+                                                           : LoadGenerator(generatorFilename))
                                           .WithMessage($"{(buildGenerators ? "Build" : "Load")}ing generators");
 
         await Querier.SaveCache().WithMessage("Saving cache");
@@ -25,13 +25,30 @@ public class Program
         int numPerBiome   = CommandLineArgs.TryParseValue<int>(nameof(numPerBiome))   ?? 10,
             minCityLength = CommandLineArgs.TryParseValue<int>(nameof(minCityLength)) ?? 5,
             maxCityLength = CommandLineArgs.TryParseValue<int>(nameof(maxCityLength)) ?? 40;
+
+        void PrintAndWrite(string path, string s)
+        {
+            Console.WriteLine($"\t{s}");
+            File.AppendAllText(path, $"{s}\n");
+        }
+        void CreateIfNotExists(string path)
+        {
+            if (!File.Exists(path))
+                File.CreateText(path);
+        }
         foreach (string biome in generatorSet.Biomes.Order())
-            GenerateNamesFor(biome, generatorSet, numPerBiome, minCityLength, maxCityLength);
+        {
+            Console.WriteLine(biome);
+            string path = $"{biome.Replace("/", ",")}.txt";
+            CreateIfNotExists(path);
+            foreach (string name in GenerateNamesFor(biome, generatorSet, numPerBiome, minCityLength, maxCityLength))
+                PrintAndWrite(path, name);
+        }
     }
-    private static async Task<GeneratorSet> BuildGenerators(int contextLength)
+    private static async Task<MarkovSetStringGenerator> BuildGenerator(int contextLength)
     {
         Console.Write($"Building generators...");
-        GeneratorSet result = new();
+        MarkovSetStringGenerator result = new();
         await foreach ((string city, string biome) in Querier.GetAllCities())
         {
             if (!result.TryGetValue(biome, out MarkovStringGenerator? generator))
@@ -43,22 +60,14 @@ public class Program
         }
         return result;
     }
-    private static async Task<GeneratorSet> LoadGenerators(string fileName)
+    private static async Task<MarkovSetStringGenerator> LoadGenerator(string fileName)
         => new(await Task.Run(() => JsonSerializer.Deserialize<Dictionary<string, MarkovStringGenerator>>(File.ReadAllText(fileName))!));
-    private static async Task SaveGenerators(string fileName, GeneratorSet generatorsByBiome)
-        => await Task.Run(() => File.WriteAllText(fileName, JsonSerializer.Serialize(generatorsByBiome)));
-    private static void GenerateNamesFor(string biome, GeneratorSet generators, int number, int minLength = 5, int maxLength = 40)
+    private static async Task SaveGenerators(string fileName, MarkovSetStringGenerator generator)
+        => await Task.Run(() => File.WriteAllText(fileName, JsonSerializer.Serialize(generator)));
+    private static IEnumerable<string> GenerateNamesFor<T>(T input, IStringGenerator<T> generator, int number, int minLength = 5, int maxLength = 40, int attemptsPerResult = 100)
+        where T : notnull
     {
-        string fileName = $"{biome.Replace("/", ",")}.txt";
-        Console.WriteLine($"{biome}:");
-        string filePath = Path.Join(OUTPUT_DIRECTORY, fileName);
-        if (!File.Exists(filePath))
-            File.WriteAllText(filePath, "");
         for (int i = 0; i < number; i++)
-        {
-            string cityName = generators[biome].RandomStringOfLength(minLength, maxLength);
-            Console.WriteLine($"\t{cityName}");
-            File.AppendAllText(filePath, $"{cityName}\n");
-        }
+            yield return generator.RandomStringOfLength(input, minLength, maxLength, attemptsPerResult);
     }
 }
