@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.ML" Version="3.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="utl">
       <HintPath>..\utl\bin\Release\net7.0\utl.dll</HintPath>
     </Reference>

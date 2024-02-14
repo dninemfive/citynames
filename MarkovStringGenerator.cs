@@ -10,11 +10,6 @@ namespace citynames;
 public class MarkovStringGenerator : IStringGenerator
 {
     /// <summary>
-    /// The ETX (End-of-Text) character in ASCII. Used to mark the end of a word,
-    /// which allows randomly-generated words to break in positions which make sense.
-    /// </summary>
-    public const char STOP = (char)3;
-    /// <summary>
     /// Holds the corresponding weights for each character based on a given input (sub-)string.
     /// </summary>
     /// <remarks>This is <see langword="public"/> primarily to make serialization less tedious.
@@ -51,16 +46,13 @@ public class MarkovStringGenerator : IStringGenerator
     /// <param name="s">The string to add to the dataset.</param>
     public void Add(string s)
     {
-        if (s[^1] != STOP)
-            s += STOP;
-        string cur = "";
-        for(int i = 1 - ContextLength; i <= s.Length - ContextLength; i++)
+        foreach(Datum datum in DataProcessor.DataFrom(s, "n/a", ContextLength))
         {
-            if (!Data.ContainsKey(cur))
-                Data[cur] = new();
-            Data[cur].Increment(s[i + ContextLength - 1]);
-            cur = s.SubstringSafe(i, i + ContextLength);
-        }        
+            (string context, string _, char result) = datum;
+            if (!Data.ContainsKey(context))
+                Data[context] = new();
+            Data[context].Increment(result);
+        }  
     }
     [JsonIgnore]
     public string RandomString
@@ -75,7 +67,7 @@ public class MarkovStringGenerator : IStringGenerator
                 if(Data.TryGetValue(context, out CountingDictionary<char, int>? dict))
                 {
                     context = $"{context}{dict.WeightedRandomElement(x => x.Value).Key}".Last(ContextLength);
-                    if (context.Contains(STOP))
+                    if (context.Contains(DataProcessor.STOP))
                         break;
                 }
                 else
@@ -84,7 +76,7 @@ public class MarkovStringGenerator : IStringGenerator
                 }
                 result += context.Last();
             }
-            return result.Replace($"{STOP}","");
+            return result.Replace($"{DataProcessor.STOP}","");
         }
     }
     public string RandomStringOfLength(int min = 1, int max = int.MaxValue, int maxAttempts = 100)

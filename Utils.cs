@@ -28,4 +28,6 @@ public static class Utils
         Console.WriteLine("Done!");
         return result;
     }
+    public static bool EndsWith(this string s, char c) => s.Length > 0 && s[^1] == c;
+    public static string AppendIfNotPresent(this string s, char c) => s.EndsWith(c) ? s : $"{s}{c}";
 }
