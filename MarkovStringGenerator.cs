@@ -7,7 +7,7 @@ namespace citynames;
 /// takes a string of characters as input and produces a random character based on the input characters,
 /// weighted by commonality in the source corpus. 
 /// </summary>
-public class MarkovStringGenerator : IStringGenerator
+public class MarkovStringGenerator
 {
     /// <summary>
     /// Holds the corresponding weights for each character based on a given input (sub-)string.
