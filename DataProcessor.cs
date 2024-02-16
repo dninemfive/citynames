@@ -76,19 +76,27 @@ public static class DataProcessor
                                                 .ToList();
             foreach (string cityName in cityNames)
                 foreach (Datum datum in DataFrom(cityName, biome, contextLength))
+                {
+                    if (datum.Successor == ',')
+                        break;
                     Add(datum.Context, biome, datum.Successor);
+                }
         }
-        _ = Directory.CreateDirectory("csvs");
-        foreach((string context, string _) in processedData.Keys.OrderBy(x => x.context))
+        string fileName = $"transformedData.csv";
+        File.WriteAllText(fileName, "");
+        using FileStream fs = File.OpenWrite(fileName);
+        using StreamWriter sw = new(fs);
+        sw.WriteLine($"context,successor,biome,count");
+        foreach ((string context, string biome) in processedData.Keys.OrderBy(x => x.context)
+                                                                     .ThenBy(x => x.biome))
         {
-            string fileName = $"csvs/{context.FileNameSafe()}.csv";
-            fileName.CreateIfNotExists("biome,character,count");
-            foreach(string biome in biomes)
+            if (processedData.TryGetValue((context, biome), out CountingDictionary<char, int>? contextData))
             {
-                Console.WriteLine($"\t{context}: {biome}");
-                CountingDictionary<char, int> contextData = processedData.TryGetValue((context, biome), out CountingDictionary<char, int>? val) ? val : new();
-                foreach (char c in alphabet)
-                    File.AppendAllText(fileName, $"\n{biome},{c},{contextData[c]}");
+                foreach (char c in contextData.Keys.Order())
+                {
+                    Console.WriteLine($"{context},{c},{biome},{contextData[c]}");
+                    sw.WriteLine($"{context},{c},{biome},{contextData[c]}");
+                }
             }
         }
     }
