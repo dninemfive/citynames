@@ -9,7 +9,7 @@ public static class Querier
     public const string WikidataQueryResultPath = @"C:\Users\dninemfive\Documents\workspaces\misc\citynames\wikidata query result.json";
     public const string BiomeCacheFilename = "biomeCache.json";
     private static readonly HttpClient _client = new();
-    public static async IAsyncEnumerable<(string city, string biome)> GetAllCities()
+    public static async IAsyncEnumerable<(string city, string biome)> GetAllCityDataAsync()
     {
         int ct = 0;
         foreach((string city, LatLongPair coords) in GetCityData())

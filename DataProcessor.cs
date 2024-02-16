@@ -34,4 +34,11 @@ public static class DataProcessor
             cur = cityName.SubstringSafe(i, i + contextLength);
         }
     }
+    public static IEnumerable<string> CsvLines(IEnumerable<(string cityName, string biome)> rawData, int contextLength = 2)
+    {
+        yield return Datum.CsvHeader;
+        foreach ((string cityName, string biome) in rawData)
+            foreach (Datum datum in DataFrom(cityName, biome, contextLength))
+                yield return datum.CsvLine;
+    }
 }

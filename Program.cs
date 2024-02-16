@@ -8,6 +8,8 @@ public class Program
     public const string OUTPUT_DIRECTORY = "output";
     private static async Task Main()
     {
+        File.WriteAllLines("data.csv", DataProcessor.CsvLines(Querier.GetAllCityDataAsync().ToBlockingEnumerable()));
+        return;
         int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string generatorFilename = $"generators_{contextLength}.json";
         bool buildGenerator = CommandLineArgs.GetFlag("rebuild") || !File.Exists(generatorFilename);
@@ -39,7 +41,7 @@ public class Program
     {
         Console.Write($"Building generators...");
         MarkovSetStringGenerator result = new();
-        await foreach ((string city, string biome) in Querier.GetAllCities())
+        await foreach ((string city, string biome) in Querier.GetAllCityDataAsync())
         {
             if (!result.TryGetValue(biome, out MarkovStringGenerator? generator))
             {
