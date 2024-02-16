@@ -58,19 +58,24 @@ public class Program
         MLContext mlContext = new();
         IDataView dataView = mlContext.Data.LoadFromTextFile<Feature>("transformedData.csv", new() { HasHeader = true, Separators = new char[] { ',' } });
         PrintPreview(dataView, 250);
-        return;
         var pipeline = mlContext.Transforms.CopyColumns("Label", "Count")
                                            .Append(mlContext.Transforms.Categorical.OneHotEncoding("BiomeEncoded", "Biome"))
                                            .Append(mlContext.Transforms.Categorical.OneHotEncoding("ContextEncoded", "Context"))
                                            .Append(mlContext.Transforms.Categorical.OneHotEncoding("SuccessorEncoded", "Successor"))
                                            .Append(mlContext.Transforms.NormalizeMeanVariance(outputColumnName: "Count"))
-                                           .Append(mlContext.Transforms.Concatenate("Features", "BiomeEncoded", "ContextEncoded", "SuccessorEncoded", "Count"))
-                                           .Append(mlContext.Regression.Trainers.Sdca());
-        var model = pipeline.Fit(dataView);
+                                           .Append(mlContext.Transforms.Concatenate("Features", "BiomeEncoded", "ContextEncoded", "SuccessorEncoded", "Count"));
+        var model = pipeline.Append(mlContext.Regression.Trainers.Sdca()).Fit(dataView);
         IDataView predictions = model.Transform(dataView);
         RegressionMetrics metrics = mlContext.Regression.Evaluate(predictions);
         Console.WriteLine(metrics.PrettyPrint());
         mlContext.Model.Save(model, dataView.Schema, "model.zip");
+        Feature test = new()
+        {
+            Context = "zz",
+            Successor = "a",
+            Biome = "Tropical & Subtropical Moist Broadleaf Forests"
+        };
+        Console.WriteLine(mlContext.Model.CreatePredictionEngine<Feature, Label>(model).Predict(test).PredictedCount);
         return;
         int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string generatorFilename = $"generators_{contextLength}.json";
