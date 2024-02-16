@@ -43,9 +43,9 @@ public static class DataProcessor
             foreach (Datum datum in DataFrom(cityName, biome, contextLength))
                 yield return datum.CsvLine;
     }
-    public static void WriteCsvs(int contextLength = 2)
+    public static void WriteCsv(int contextLength = 2)
     {
-        Console.WriteLine($"{nameof(WriteCsvs)}({contextLength})");
+        Console.WriteLine($"{nameof(WriteCsv)}({contextLength})");
         List<(string cityName, string biome)> allCityData = Querier.GetAllCityDataAsync()
                                                                    .ToBlockingEnumerable()
                                                                    .ToList();
@@ -55,13 +55,14 @@ public static class DataProcessor
                                          .Where(x => x != ',')
                                          .Order()
                                          .ToList();
-        List<string> biomes = allCityData.Select(x => x.biome)
+        List<string> biomes = allCityData.Select(x => x.biome.Replace(',', '_'))
                                          .Distinct()
                                          .Order()
                                          .ToList();
         Dictionary<(string context, string biome), CountingDictionary<char, int>> processedData = new();
         void Add(string context, string biome, char successor)
         {
+            biome = biome.Replace(',', '_');
             Console.WriteLine($"\t\tAdd({context}, {biome}, {successor} ({(int)successor}))");
             if (!processedData.TryGetValue((context, biome), out CountingDictionary<char, int>? dict))
                 dict = new();

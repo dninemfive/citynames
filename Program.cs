@@ -10,37 +10,38 @@ public class Program
     public const string OUTPUT_DIRECTORY = "output";
     public class Feature
     {
+        [LoadColumnName("context")]
+        public string Context;
+        [LoadColumnName("successor")]
+        public char Successor;
+        [LoadColumnName("biome")]
         public string Biome;
+        [LoadColumnName("count")]
+        [ColumnName("Count")]
         public float Count;
-        public Feature(string biome, int count) { Biome = biome; Count = count; }
-        public static implicit operator Feature((string biome, int count) tuple) => new(tuple.biome, tuple.count);
     }
     public class Label
     {
-        public float Weight;
+        [ColumnName("Score")]
+        public float PredictedCount;
     }
     private static async Task Main()
     {
+        // DataProcessor.WriteCsv();
         MLContext mlContext = new();
-        IDataView dataView = mlContext.Data.LoadFromEnumerable(new List<Feature>()
-            {
-                ("biome1", 5),
-                ("biome1", 3),
-                ("biome2", 10),
-                ("biome2", 6),
-                ("biome3", 3),
-                ("biome3", 13),
-                ("biome4", 0),
-                ("biome4", 0)
-            });
+        IDataView dataView = mlContext.Data.LoadFromTextFile("transformedData.csv", new() { HasHeader = true, Separators = new char[] { ',' } });
         var pipeline = mlContext.Transforms.CopyColumns("Label", "Count")
-                                               .Append(mlContext.Transforms.Categorical.OneHotEncoding("BiomeEncoded", "Biome"))
-                                               .Append(mlContext.Transforms.Concatenate("Features", "BiomeEncoded"))
-                                               .Append(mlContext.Regression.Trainers.LbfgsPoissonRegression());
+                                           .Append(mlContext.Transforms.Categorical.OneHotEncoding("BiomeEncoded", "Biome"))
+                                           .Append(mlContext.Transforms.Categorical.OneHotEncoding("ContextEncoded", "Context"))
+                                           .Append(mlContext.Transforms.Categorical.OneHotEncoding("SuccessorEncoded", "Successor"))
+                                           .Append(mlContext.Transforms.NormalizeMeanVariance(outputColumnName: "Count"))
+                                           .Append(mlContext.Transforms.Concatenate("Features", "BiomeEncoded", "ContextEncoded", "SuccessorEncoded", "Count"))
+                                           .Append(mlContext.Regression.Trainers.Sdca());
         var model = pipeline.Fit(dataView);
-        PredictionEngine<Feature, Label> predictionFunction = mlContext.Model.CreatePredictionEngine<Feature, Label>(model);
-        Feature test = new("biome1", 0);
-        Console.WriteLine(predictionFunction.Predict(test).Weight);
+        IDataView predictions = model.Transform(dataView);
+        RegressionMetrics metrics = mlContext.Regression.Evaluate(predictions);
+        Console.WriteLine(metrics.PrettyPrint());
+        mlContext.Model.Save(model, dataView.Schema, "model.zip");
         return;
         int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string generatorFilename = $"generators_{contextLength}.json";
