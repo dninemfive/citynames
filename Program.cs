@@ -1,14 +1,46 @@
 ﻿using citynames;
 using d9.utl;
+using Microsoft.ML;
+using Microsoft.ML.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 namespace citynames;
 public class Program
 {
     public const string OUTPUT_DIRECTORY = "output";
+    public class Feature
+    {
+        public string Biome;
+        public float Count;
+        public Feature(string biome, int count) { Biome = biome; Count = count; }
+        public static implicit operator Feature((string biome, int count) tuple) => new(tuple.biome, tuple.count);
+    }
+    public class Label
+    {
+        public float Weight;
+    }
     private static async Task Main()
     {
-        DataProcessor.WriteCsvs();
+        MLContext mlContext = new();
+        IDataView dataView = mlContext.Data.LoadFromEnumerable(new List<Feature>()
+            {
+                ("biome1", 5),
+                ("biome1", 3),
+                ("biome2", 10),
+                ("biome2", 6),
+                ("biome3", 3),
+                ("biome3", 13),
+                ("biome4", 0),
+                ("biome4", 0)
+            });
+        var pipeline = mlContext.Transforms.CopyColumns("Label", "Count")
+                                               .Append(mlContext.Transforms.Categorical.OneHotEncoding("BiomeEncoded", "Biome"))
+                                               .Append(mlContext.Transforms.Concatenate("Features", "BiomeEncoded"))
+                                               .Append(mlContext.Regression.Trainers.LbfgsPoissonRegression());
+        var model = pipeline.Fit(dataView);
+        PredictionEngine<Feature, Label> predictionFunction = mlContext.Model.CreatePredictionEngine<Feature, Label>(model);
+        Feature test = new("biome1", 0);
+        Console.WriteLine(predictionFunction.Predict(test).Weight);
         return;
         int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string generatorFilename = $"generators_{contextLength}.json";
