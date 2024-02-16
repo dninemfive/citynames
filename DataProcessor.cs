@@ -45,12 +45,14 @@ public static class DataProcessor
     }
     public static void WriteCsvs(int contextLength = 2)
     {
+        Console.WriteLine($"{nameof(WriteCsvs)}({contextLength})");
         List<(string cityName, string biome)> allCityData = Querier.GetAllCityDataAsync()
                                                                    .ToBlockingEnumerable()
                                                                    .ToList();
         List<char> alphabet = allCityData.Select(x => x.cityName)
                                          .SelectMany(x => x.AsEnumerable())
                                          .Distinct()
+                                         .Where(x => x != ',')
                                          .Order()
                                          .ToList();
         List<string> biomes = allCityData.Select(x => x.biome)
@@ -60,6 +62,7 @@ public static class DataProcessor
         Dictionary<(string context, string biome), CountingDictionary<char, int>> processedData = new();
         void Add(string context, string biome, char successor)
         {
+            Console.WriteLine($"\t\tAdd({context}, {biome}, {successor} ({(int)successor}))");
             if (!processedData.TryGetValue((context, biome), out CountingDictionary<char, int>? dict))
                 dict = new();
             dict.Increment(successor);
@@ -67,12 +70,26 @@ public static class DataProcessor
         }
         foreach(string biome in biomes)
         {
+            Console.WriteLine($"\t{biome}");
             List<string> cityNames = allCityData.Where(x => x.biome == biome)
                                                 .Select(x => x.cityName)
                                                 .ToList();
             foreach (string cityName in cityNames)
                 foreach (Datum datum in DataFrom(cityName, biome, contextLength))
-                    Add(cityName, biome, datum.Successor);
+                    Add(datum.Context, biome, datum.Successor);
+        }
+        _ = Directory.CreateDirectory("csvs");
+        foreach((string context, string _) in processedData.Keys.OrderBy(x => x.context))
+        {
+            string fileName = $"csvs/{context.FileNameSafe()}.csv";
+            fileName.CreateIfNotExists("biome,character,count");
+            foreach(string biome in biomes)
+            {
+                Console.WriteLine($"\t{context}: {biome}");
+                CountingDictionary<char, int> contextData = processedData.TryGetValue((context, biome), out CountingDictionary<char, int>? val) ? val : new();
+                foreach (char c in alphabet)
+                    File.AppendAllText(fileName, $"\n{biome},{c},{contextData[c]}");
+            }
         }
     }
 }

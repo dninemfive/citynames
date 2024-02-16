@@ -8,7 +8,7 @@ public class Program
     public const string OUTPUT_DIRECTORY = "output";
     private static async Task Main()
     {
-        File.WriteAllLines("data.csv", DataProcessor.CsvLines(Querier.GetAllCityDataAsync().ToBlockingEnumerable()));
+        DataProcessor.WriteCsvs();
         return;
         int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string generatorFilename = $"generators_{contextLength}.json";
