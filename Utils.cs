@@ -29,9 +29,18 @@ public static class Utils
         Console.WriteLine($"\t{s}");
         File.AppendAllText(path, $"{s}\n");
     }
-    public static void CreateIfNotExists(this string path)
+    public static void CreateIfNotExists(this string path, string initialText = "")
     {
         if (!File.Exists(path))
-            File.CreateText(path);
+            File.WriteAllText(path, "");
+    }
+    private static readonly char[] _invalidFileNameChars = Path.GetInvalidFileNameChars();
+    public static bool IsInvalidFileNameChar(this char c) => _invalidFileNameChars.Contains(c);
+    public static string FileNameSafe(this string s)
+    {
+        string result = string.Empty;
+        foreach (char c in s)
+            result += c.IsInvalidFileNameChar() ? $"`{(int)c}`" : c;
+        return result;
     }
 }
