@@ -1,4 +1,5 @@
-﻿using System;
+﻿using d9.utl;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -44,15 +45,34 @@ public static class DataProcessor
     }
     public static void WriteCsvs(int contextLength = 2)
     {
-        foreach ((string cityName, string biome) in Querier.GetAllCityDataAsync().ToBlockingEnumerable())
+        List<(string cityName, string biome)> allCityData = Querier.GetAllCityDataAsync()
+                                                                   .ToBlockingEnumerable()
+                                                                   .ToList();
+        List<char> alphabet = allCityData.Select(x => x.cityName)
+                                         .SelectMany(x => x.AsEnumerable())
+                                         .Distinct()
+                                         .Order()
+                                         .ToList();
+        List<string> biomes = allCityData.Select(x => x.biome)
+                                         .Distinct()
+                                         .Order()
+                                         .ToList();
+        Dictionary<(string context, string biome), CountingDictionary<char, int>> processedData = new();
+        void Add(string context, string biome, char successor)
         {
-            foreach (Datum datum in DataFrom(cityName, biome, contextLength))
-            {
-                (string _, string context, char successor) = datum;
-                string filePath = $"{$"{context}{successor}".FileNameSafe()}.csv";
-                filePath.CreateIfNotExists(initialText: Datum.CsvHeader);
-                File.AppendAllText(filePath, $"\n{datum.Biome}");
-            }
+            if (!processedData.TryGetValue((context, biome), out CountingDictionary<char, int>? dict))
+                dict = new();
+            dict.Increment(successor);
+            processedData[(context, biome)] = dict;
+        }
+        foreach(string biome in biomes)
+        {
+            List<string> cityNames = allCityData.Where(x => x.biome == biome)
+                                                .Select(x => x.cityName)
+                                                .ToList();
+            foreach (string cityName in cityNames)
+                foreach (Datum datum in DataFrom(cityName, biome, contextLength))
+                    Add(cityName, biome, datum.Successor);
         }
     }
 }
