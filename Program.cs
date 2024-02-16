@@ -2,6 +2,7 @@
 using d9.utl;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 namespace citynames;
@@ -10,14 +11,13 @@ public class Program
     public const string OUTPUT_DIRECTORY = "output";
     public class Feature
     {
-        [LoadColumnName("context")]
+        [LoadColumn(0)]
         public string Context;
-        [LoadColumnName("successor")]
-        public char Successor;
-        [LoadColumnName("biome")]
+        [LoadColumn(1)]
+        public string Successor;
+        [LoadColumn(2)]
         public string Biome;
-        [LoadColumnName("count")]
-        [ColumnName("Count")]
+        [LoadColumn(3)]
         public float Count;
     }
     public class Label
@@ -25,11 +25,40 @@ public class Program
         [ColumnName("Score")]
         public float PredictedCount;
     }
+    private static void PrintPreview(IDataView dataView, int maxRows = 100)
+    {
+        DataDebuggerPreview preview = dataView.Preview(maxRows);
+        Console.WriteLine($"{maxRows}\t{preview.ColumnView.Select(x => x.Column.Name).Aggregate((x, y) => $"{x}\t{y}")}");
+        int ct = 0;
+        foreach(DataDebuggerPreview.RowInfo row in preview.RowView)
+        {
+            Console.Write($"{ct++}");
+            foreach (object value in row.Values.Select(x => x.Value))
+            {
+                if(value is IEnumerable enumerable)
+                {
+                    foreach(object item in enumerable)
+                    {
+                        Console.Write($"\t{item}");
+                    }
+                }
+                else
+                {
+                    Console.Write($"\t{value}");
+                } 
+            }
+            Console.WriteLine();
+            if (ct > maxRows)
+                break;
+        }
+    }
     private static async Task Main()
     {
         // DataProcessor.WriteCsv();
         MLContext mlContext = new();
-        IDataView dataView = mlContext.Data.LoadFromTextFile("transformedData.csv", new() { HasHeader = true, Separators = new char[] { ',' } });
+        IDataView dataView = mlContext.Data.LoadFromTextFile<Feature>("transformedData.csv", new() { HasHeader = true, Separators = new char[] { ',' } });
+        PrintPreview(dataView, 250);
+        return;
         var pipeline = mlContext.Transforms.CopyColumns("Label", "Count")
                                            .Append(mlContext.Transforms.Categorical.OneHotEncoding("BiomeEncoded", "Biome"))
                                            .Append(mlContext.Transforms.Categorical.OneHotEncoding("ContextEncoded", "Context"))
