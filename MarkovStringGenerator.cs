@@ -46,7 +46,7 @@ public class MarkovStringGenerator
     /// <param name="s">The string to add to the dataset.</param>
     public void Add(string s)
     {
-        foreach(Datum datum in DataProcessor.DataFrom(s, "n/a", ContextLength))
+        foreach(BigramFeature datum in DataProcessor.DataFrom(s, "n/a", ContextLength))
         {
             (string context, string _, char result) = datum;
             if (!Data.ContainsKey(context))

@@ -56,8 +56,8 @@ public class Program
     {
         // DataProcessor.WriteCsv();
         MLContext mlContext = new();
-        IDataView dataView = mlContext.Data.LoadFromTextFile<Feature>("transformedData.csv", new() { HasHeader = true, Separators = new char[] { ',' } });
-        PrintPreview(dataView, 250);
+        IDataView dataView = mlContext.Data.LoadFromTextFile<BigramFeature>("transformedData.csv", new() { HasHeader = true, Separators = new char[] { ',' } });
+        // PrintPreview(dataView, 250);
         var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label", "Successor")
                                            .Append(mlContext.Transforms.Categorical.OneHotEncoding("BiomeEncoded", "Biome"))
                                            .Append(mlContext.Transforms.Text.FeaturizeText("ContextEncoded", "Context"))
@@ -65,18 +65,19 @@ public class Program
         var model = pipeline.Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy())
                             .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"))
                             .Fit(dataView);
-        IDataView predictions = model.Transform(dataView);
+        Console.WriteLine(model.GetType().Name);
+        // IDataView predictions = model.Transform(dataView);
         //MulticlassClassificationMetrics metrics = mlContext.MulticlassClassification.Evaluate(predictions);
         //Console.WriteLine(metrics.PrettyPrint());
         mlContext.Model.Save(model, dataView.Schema, "model.zip");
-        Feature test = new()
+        BigramFeature test = new()
         {
             Context = "zy",
             Successor = "Q",
             Biome = "Montane Grasslands & Shrublands"
         };
-        Console.WriteLine(mlContext.Model.CreatePredictionEngine<Feature, Label>(model).Predict(test).PredictedCharacter);
-        Console.WriteLine(mlContext.Model.CreatePredictionEngine<Feature, Label>(model).Predict(test).CharacterWeights.ListNotation());
+        Console.WriteLine(mlContext.Model.CreatePredictionEngine<BigramFeature, Label>(model).Predict(test).PredictedCharacter);
+        Console.WriteLine(mlContext.Model.CreatePredictionEngine<BigramFeature, Label>(model).Predict(test).CharacterWeights.ListNotation());
         return;
         int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string generatorFilename = $"generators_{contextLength}.json";

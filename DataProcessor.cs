@@ -26,7 +26,7 @@ public static class DataProcessor
     /// which allows randomly-generated words to break in positions which make sense.
     /// </summary>
     public const char STOP = (char)3;
-    public static IEnumerable<Datum> DataFrom(string cityName, string biome, int contextLength = 2)
+    public static IEnumerable<BigramFeature> DataFrom(string cityName, string biome, int contextLength = 2)
     {
         cityName = cityName.AppendIfNotPresent(STOP);
         string cur = "";
@@ -36,14 +36,19 @@ public static class DataProcessor
             cur = cityName.SubstringSafe(i, i + contextLength);
         }
     }
-    public static IEnumerable<string> CsvLines(IEnumerable<(string cityName, string biome)> rawData, int contextLength = 2)
+    public static IEnumerable<BigramFeature> Process(IEnumerable<(string cityName, string biome)> rawData, int contextLength = 2)
     {
-        yield return Datum.CsvHeader;
         foreach ((string cityName, string biome) in rawData)
-            foreach (Datum datum in DataFrom(cityName, biome, contextLength))
-                yield return datum.CsvLine;
+        {
+            foreach (BigramFeature datum in DataFrom(cityName, biome, contextLength))
+            {
+                if (datum.Successor == ',')
+                    break;
+                yield return datum;
+            }
+        }
     }
-    public static void WriteCsv(int contextLength = 2)
+    public static void WriteCsv(int contextLength = 2, bool writeToConsole = false)
     {
         Console.WriteLine($"{nameof(WriteCsv)}({contextLength})");
         List<(string cityName, string biome)> allCityData = Querier.GetAllCityDataAsync()
@@ -53,20 +58,14 @@ public static class DataProcessor
         File.WriteAllText(fileName, "");
         using FileStream fs = File.OpenWrite(fileName);
         using StreamWriter sw = new(fs);
-        sw.WriteLine($"context,biome,successor");
-        static void write(string? s, params Action<string?>[] funcs)
+        void write(string? s)
         {
-            foreach (Action<string?> func in funcs)
-                func(s);
+            sw.WriteLine(s);
+            if (writeToConsole)
+                Console.WriteLine(s);
         }
-        foreach ((string cityName, string biome) in allCityData)
-        {
-            foreach (Datum datum in DataFrom(cityName, biome, contextLength))
-            {
-                if (datum.Successor == ',')
-                    break;
-                write($"{datum.Context},{biome},{datum.Successor}", Console.WriteLine, sw.WriteLine);
-            }
-        }
+        write(BigramFeature.CsvHeader);
+        foreach(BigramFeature datum in Process(allCityData, contextLength))
+            write(datum.CsvLine);
     }
 }

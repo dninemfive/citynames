@@ -7,8 +7,8 @@ public class DataProcessor
     [TestMethod]
     public void DataFrom()
     {
-        Datum[] result = citynames.DataProcessor.DataFrom("test", "n/a", 2).ToArray();
-        Datum[] expected = new Datum[]
+        BigramFeature[] result = citynames.DataProcessor.DataFrom("test", "n/a", 2).ToArray();
+        BigramFeature[] expected = new BigramFeature[]
         {
             new("n/a", "", 't'),
             new("n/a", "t", 'e'),
