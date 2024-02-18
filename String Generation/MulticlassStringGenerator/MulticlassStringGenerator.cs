@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace citynames;
-public class MulticlassStringGenerator : IStringGenerator<NgramInfo>
+public class MulticlassStringGenerator : IStringGenerator<NgramInfo>, IAsyncSaveLoadable<MulticlassStringGenerator>
 {
     private readonly MLContext _mlContext = new();
     public IDataView Data { get; private set; }
@@ -38,8 +38,12 @@ public class MulticlassStringGenerator : IStringGenerator<NgramInfo>
                         .Fit(Data);
         Console.WriteLine($"Loaded MulticlassStringGenerator from `{path}`.");
     }
-    public void Save(string name = "model.zip")
-        => _mlContext.Model.Save(Model, Data.Schema, name);
+    public async Task SaveAsync(string name = "model.zip")
+        => await Task.Run(() => _mlContext.Model.Save(Model, Data.Schema, name));
+    public static Task<MulticlassStringGenerator> LoadAsync(string path)
+    {
+        throw new NotImplementedException();
+    }
     public CharacterPrediction Predict(NgramInfo input)
         => PredictionEngine.Predict(input);
     public char RandomChar(NgramInfo input)
