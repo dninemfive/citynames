@@ -5,19 +5,25 @@ using System.Reflection;
 namespace citynames;
 public class NgramInfo
 {
+    /// <summary>
+    /// The ETX (End-of-Text) character in ASCII. Used to mark the end of a word,
+    /// which allows randomly-generated words to break in positions which make sense.
+    /// </summary>
+    public const char STOP = (char)3;
     [LoadColumn(0)]
     public string Context;
     [LoadColumn(1)]
     public char Successor;
     [LoadColumn(2)]
     public string Biome;
-    public NgramInfo(string biome) : this(string.Empty, Constants.NullCharacter, biome) { }
     public NgramInfo(string context, char successor, string biome)
     {
         Context = context;
         Successor = successor;
         Biome = biome;
     }
+    public static NgramInfo FromQuery(string biome)
+        => new(string.Empty, Characters.NULL, biome);
     public void Deconstruct(out string context, out char successor, out string biome)
     {        
         context = Context;
@@ -41,4 +47,17 @@ public class NgramInfo
         => HashCode.Combine(Biome, Context, Successor);
     public static bool operator ==(NgramInfo a, NgramInfo b) => a.Equals(b);
     public static bool operator !=(NgramInfo a, NgramInfo b) => !(a == b);
+}
+public static class NgramExtensions
+{    
+    public static IEnumerable<NgramInfo> NgramInfos(this string cityName, string biome, int contextLength = 2)
+    {
+        cityName = cityName.AppendIfNotPresent(Characters.STOP);
+        string cur = "";
+        for (int i = 1 - contextLength; i <= cityName.Length - contextLength; i++)
+        {
+            yield return new(cur, cityName[i + contextLength - 1], biome);
+            cur = cityName.SubstringSafe(i, i + contextLength);
+        }
+    }
 }

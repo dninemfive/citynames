@@ -53,10 +53,10 @@ public class MulticlassStringGenerator : IStringGenerator<NgramInfo>
         while (true)
         {
             context = $"{context}{RandomChar(input)}".Last(2);
-            if (context.Contains(DataProcessor.STOP))
+            if (context.Contains(Characters.STOP))
                 break;
             result += context.Last();
         }
-        return result.Replace($"{DataProcessor.STOP}", "");
+        return result.Replace($"{Characters.STOP}", "");
     }
 }

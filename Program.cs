@@ -73,7 +73,7 @@ public class Program
             Console.WriteLine(biome);
             string path = $"{biome.Replace("/", ",")}.txt";
             path.CreateIfNotExists();
-            foreach (string name in generatorSet.RandomStringsOfLength(new(biome), numPerBiome, minCityLength, maxCityLength))
+            foreach (string name in generatorSet.RandomStringsOfLength(NgramInfo.FromQuery(biome), numPerBiome, minCityLength, maxCityLength))
                 Utils.PrintAndWrite(path, name);
         }
     }

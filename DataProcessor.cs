@@ -20,27 +20,11 @@ namespace citynames;
  */
 public static class DataProcessor
 {
-
-    /// <summary>
-    /// The ETX (End-of-Text) character in ASCII. Used to mark the end of a word,
-    /// which allows randomly-generated words to break in positions which make sense.
-    /// </summary>
-    public const char STOP = (char)3;
-    public static IEnumerable<NgramInfo> DataFrom(string cityName, string biome, int contextLength = 2)
-    {
-        cityName = cityName.AppendIfNotPresent(STOP);
-        string cur = "";
-        for (int i = 1 - contextLength; i <= cityName.Length - contextLength; i++)
-        {
-            yield return new(cur, cityName[i + contextLength - 1], biome);
-            cur = cityName.SubstringSafe(i, i + contextLength);
-        }
-    }
     public static IEnumerable<NgramInfo> Process(IEnumerable<(string cityName, string biome)> rawData, int contextLength = 2)
     {
         foreach ((string cityName, string biome) in rawData)
         {
-            foreach (NgramInfo datum in DataFrom(cityName, biome, contextLength))
+            foreach (NgramInfo datum in cityName.NgramInfos(biome, contextLength))
             {
                 if (datum.Successor == ',')
                     break;

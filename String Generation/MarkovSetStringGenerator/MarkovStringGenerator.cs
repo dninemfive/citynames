@@ -46,7 +46,7 @@ public class MarkovStringGenerator
     /// <param name="s">The string to add to the dataset.</param>
     public void Add(string s)
     {
-        foreach(NgramInfo datum in DataProcessor.DataFrom(s, "n/a", ContextLength))
+        foreach(NgramInfo datum in s.NgramInfos("", ContextLength))
         {
             (string context, char result, string _) = datum;
             if (!Data.ContainsKey(context))
@@ -67,7 +67,7 @@ public class MarkovStringGenerator
                 if(Data.TryGetValue(context, out CountingDictionary<char, int>? dict))
                 {
                     context = $"{context}{dict.WeightedRandomElement(x => x.Value).Key}".Last(ContextLength);
-                    if (context.Contains(DataProcessor.STOP))
+                    if (context.Contains(Characters.STOP))
                         break;
                 }
                 else
@@ -76,7 +76,7 @@ public class MarkovStringGenerator
                 }
                 result += context.Last();
             }
-            return result.Replace($"{DataProcessor.STOP}","");
+            return result.Replace($"{Characters.STOP}","");
         }
     }
     [JsonIgnore]

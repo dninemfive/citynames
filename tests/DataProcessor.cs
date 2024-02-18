@@ -7,14 +7,14 @@ public class DataProcessor
     [TestMethod]
     public void DataFrom()
     {
-        NgramInfo[] result = citynames.DataProcessor.DataFrom("test", "n/a", 2).ToArray();
+        NgramInfo[] result = "test".NgramInfos("n/a", 2).ToArray();
         NgramInfo[] expected = new NgramInfo[]
         {
             new("", 't', ""),
             new("t", 'e', ""),
             new("te", 's', ""),
             new("es", 't', ""),
-            new("st", citynames.DataProcessor.STOP, "")
+            new("st", Characters.STOP, "")
         };
         Console.WriteLine($"result:   {result.ListNotation()}");
         Console.WriteLine($"expected: {expected.ListNotation()}");
