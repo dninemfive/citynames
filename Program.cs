@@ -3,6 +3,7 @@ using d9.utl;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using System.Collections;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 namespace citynames;
@@ -40,7 +41,17 @@ public class Program
     private static async Task Main()
     {
         MulticlassStringGenerator mcsg = await MulticlassStringGenerator.LoadAsync("transformedData.csv");
-        Console.WriteLine(mcsg.Predict(NgramInfo.Query("Montane Grasslands & Shrublands")).PrettyPrint());
+        Console.WriteLine(mcsg.Predict(NgramInfo.Query("Montane Grasslands & Shrublands")).CharacterWeights.ListNotation());
+        DataDebuggerPreview preview = mcsg.Model.Preview(mcsg.Data, maxRows: 10000);
+        ImmutableArray<DataDebuggerPreview.ColumnInfo> columnView = preview.ColumnView;
+        Console.WriteLine(columnView.Select(x => x.Column.Name).ListNotation());
+        Console.WriteLine($"{columnView[1].Column.Name}");
+        Console.WriteLine($"{columnView[3].Column.Name}");
+        foreach ((object successor, object label) in columnView[1].Values.Select(x => $"{x}")
+                                                                         .Zip(columnView[3].Values.Select(x => $"{x}"))
+                                                                         .DistinctBy(x => x.First)
+                                                                         .OrderBy(x => x.First))
+            Console.WriteLine($"{successor}\t{label}");
         return;
         // DataProcessor.WriteCsv();
         // PrintPreview(dataView, 250);
