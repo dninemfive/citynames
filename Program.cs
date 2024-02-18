@@ -39,6 +39,9 @@ public class Program
     }
     private static async Task Main()
     {
+        MulticlassStringGenerator mcsg = await MulticlassStringGenerator.LoadAsync("transformedData.csv");
+        Console.WriteLine(mcsg.Predict(NgramInfo.Query("Montane Grasslands & Shrublands")).PrettyPrint());
+        return;
         // DataProcessor.WriteCsv();
         // PrintPreview(dataView, 250);
         // IDataView predictions = model.Transform(dataView);
@@ -86,7 +89,7 @@ public class Program
             Console.WriteLine(biome);
             string path = $"{biome.Replace("/", ",")}.txt";
             path.CreateIfNotExists();
-            foreach (string name in generator.RandomStringsOfLength(NgramInfo.FromQuery(biome), numPerBiome, minCityLength, maxCityLength))
+            foreach (string name in generator.RandomStringsOfLength(NgramInfo.Query(biome), numPerBiome, minCityLength, maxCityLength))
                 Utils.PrintAndWrite(path, name);
         }
     }

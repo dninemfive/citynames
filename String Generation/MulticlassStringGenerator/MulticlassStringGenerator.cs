@@ -12,7 +12,18 @@ namespace citynames;
 public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo, MulticlassStringGenerator>
 {
     private readonly MLContext _mlContext = new();
-    public IDataView Data { get; private set; }
+    private IDataView _data;
+    public IDataView Data
+    {
+        get => _data;
+        set
+        {
+            _data = value;
+            Model = Pipeline.Append(_mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy())
+                            .Append(_mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"))
+                            .Fit(Data);
+        }
+    }
     public EstimatorChain<ColumnConcatenatingTransformer> Pipeline { get; private set; }
     public ITransformer Model { get; private set; }
     private PredictionEngine<NgramInfo, CharacterPrediction>? _predictionEngine;
@@ -34,9 +45,6 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
                              .Append(_mlContext.Transforms.Categorical.OneHotEncoding("BiomeEncoded", "Biome"))
                              .Append(_mlContext.Transforms.Text.FeaturizeText("ContextEncoded", "Context"))
                              .Append(_mlContext.Transforms.Concatenate("Features", "BiomeEncoded", "ContextEncoded"));
-        Model = Pipeline.Append(_mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy())
-                        .Append(_mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"))
-                        .Fit(Data);
     }
     public async Task SaveAsync(string name = "model.zip")
         => await Task.Run(() => _mlContext.Model.Save(Model, Data.Schema, name));

@@ -60,7 +60,7 @@ public static class DataProcessor
         }
         write(NgramInfo.CsvHeader);
         foreach(NgramInfo datum in allCityData.ToNgrams(contextLength))
-            write(datum.CsvLine);
+            write(datum.CsvLine());
     }
     private static readonly HashSet<string> _biomeCache = new();
     public static IReadOnlySet<string> BiomeCache => _biomeCache;

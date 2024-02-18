@@ -15,7 +15,7 @@ public class MarkovStringGenerator
     /// </summary>
     /// <remarks>This is <see langword="public"/> primarily to make serialization less tedious.
     /// Generally, data should only be added using <see cref="Add(string)"/>.</remarks>
-    public Dictionary<string, CountingDictionary<char, int>> Data { get; private set; } = new();
+    public Dictionary<string, CountingDictionary<string, int>> Data { get; private set; } = new();
     /// <summary>
     /// The length of input string used to determine the next character. Note that this is only
     /// an upper bound, as substrings at the beginnings of words will be shorter.<br/><br/>
@@ -31,13 +31,13 @@ public class MarkovStringGenerator
         ContextLength = contextLength;
     }
     [JsonConstructor]
-    public MarkovStringGenerator(Dictionary<string, CountingDictionary<char, int>> data, int contextLength = 1) : this(contextLength)
+    public MarkovStringGenerator(Dictionary<string, CountingDictionary<string, int>> data, int contextLength = 1) : this(contextLength)
     {
         Data = data;
     }
     public void Add(NgramInfo ngram)
     {
-        (string context, char result, string _) = ngram;
+        (string context, string result, string _) = ngram;
         if (!Data.ContainsKey(context))
             Data[context] = new();
         Data[context].Increment(result);
@@ -57,7 +57,7 @@ public class MarkovStringGenerator
             string context = "", result = "";
             while(true)
             {
-                if(Data.TryGetValue(context, out CountingDictionary<char, int>? dict))
+                if(Data.TryGetValue(context, out CountingDictionary<string, int>? dict))
                 {
                     context = $"{context}{dict.WeightedRandomElement(x => x.Value).Key}".Last(ContextLength);
                     if (context.Contains(Characters.STOP))
@@ -81,8 +81,8 @@ public class MarkovStringGenerator
             foreach (string s in Data.Keys.Order())
             {
                 lines.Add($"{s} ({(int)s[0]}):");
-                foreach (char cc in Data[s].Keys.Order())
-                    lines.Add($"\t{cc} ({(int)cc}): {Data[s][cc]}");
+                foreach (string cc in Data[s].Keys.Order())
+                    lines.Add($"\t{cc} ({(int)cc[0]}): {Data[s][cc]}");
             }
             return lines.Aggregate((x, y) => $"{x}\n{y}");
         }
@@ -92,7 +92,7 @@ public class MarkovStringGenerator
         List<(string pair, int count)> pairs = new();
         foreach(string s in Data.Keys)
         {
-            foreach(char cc in Data[s].Keys)
+            foreach(string cc in Data[s].Keys)
             {
                 pairs.Add(($"{s}{cc}", Data[s][cc]));
             }

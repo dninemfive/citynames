@@ -8,18 +8,18 @@ public class NgramInfo
     [LoadColumn(0)]
     public string Context;
     [LoadColumn(1)]
-    public char Successor;
+    public string Successor;
     [LoadColumn(2)]
     public string Biome;
-    public NgramInfo(string context, char successor, string biome)
+    public NgramInfo(string context, string successor, string biome)
     {
         Context = context;
         Successor = successor;
         Biome = biome;
     }
-    public static NgramInfo FromQuery(string biome)
-        => new(string.Empty, Characters.NULL, biome);
-    public void Deconstruct(out string context, out char successor, out string biome)
+    public static NgramInfo Query(string biome)
+        => new(string.Empty, string.Empty, biome);
+    public void Deconstruct(out string context, out string successor, out string biome)
     {        
         context = Context;
         successor = Successor;
@@ -35,7 +35,7 @@ public class NgramInfo
         }
     }
     public static string CsvHeader => FieldsInColumnOrder.Select(x => x.Name).JoinWithDelim(",");
-    public string CsvLine => FieldsInColumnOrder.Select(x => x.GetValue(this)).JoinWithDelim(",");
+    public string CsvLine() => FieldsInColumnOrder.Select(x => x.GetValue(this)).JoinWithDelim(",");
     public override bool Equals(object? obj)
         => obj is NgramInfo d && d.Biome == Biome && d.Context == Context && d.Successor == Successor;
     public override int GetHashCode()
@@ -51,7 +51,7 @@ public static class NgramExtensions
         string cur = "";
         for (int i = 1 - contextLength; i <= cityName.Length - contextLength; i++)
         {
-            yield return new(cur, cityName[i + contextLength - 1], biome);
+            yield return new(cur, $"{cityName[i + contextLength - 1]}", biome);
             cur = cityName.SubstringSafe(i, i + contextLength);
         }
     }

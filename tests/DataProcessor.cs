@@ -10,11 +10,11 @@ public class DataProcessor
         NgramInfo[] result = "test".NgramInfos("n/a", 2).ToArray();
         NgramInfo[] expected = new NgramInfo[]
         {
-            new("", 't', ""),
-            new("t", 'e', ""),
-            new("te", 's', ""),
-            new("es", 't', ""),
-            new("st", Characters.STOP, "")
+            new("", "t", ""),
+            new("t", "t", ""),
+            new("te", "t", ""),
+            new("es", "t", ""),
+            new("st", $"{Characters.STOP}", "")
         };
         Console.WriteLine($"result:   {result.ListNotation()}");
         Console.WriteLine($"expected: {expected.ListNotation()}");
