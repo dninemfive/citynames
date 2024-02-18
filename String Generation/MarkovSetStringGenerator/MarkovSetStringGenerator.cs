@@ -2,7 +2,7 @@
 using System.Text.Json;
 
 namespace citynames;
-internal class MarkovSetStringGenerator : IBuildableStringGenerator<NgramInfo, MarkovSetStringGenerator>
+internal class MarkovSetStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo, MarkovSetStringGenerator>
 {
     private readonly Dictionary<string, MarkovStringGenerator> _dict;
     internal MarkovSetStringGenerator(Dictionary<string, MarkovStringGenerator>? dict = null)
@@ -35,6 +35,4 @@ internal class MarkovSetStringGenerator : IBuildableStringGenerator<NgramInfo, M
         }
         return result;
     }
-    public static async Task<MarkovSetStringGenerator> BuildOrLoadAsync(bool load, string? path, Func<IAsyncEnumerable<NgramInfo>> func, int contextLength = 2)
-        => await BuildableStringGenerators<NgramInfo, MarkovSetStringGenerator>.BuildOrLoadAsync(load, path, func, contextLength);
 }

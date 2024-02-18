@@ -20,29 +20,27 @@ namespace citynames;
  */
 public static class DataProcessor
 {
+    private static IEnumerable<NgramInfo> ToNgramsInternal(this string cityName, string biome, int contextLength = 2, string breakChars = ",(")
+    {
+        _ = _biomeCache.Add(biome);
+        foreach (NgramInfo ngram in cityName.NgramInfos(biome, contextLength))
+        {
+            if (breakChars.Contains(ngram.Successor))
+                break;
+            yield return ngram;
+        }
+    }
     public static IEnumerable<NgramInfo> ToNgrams(this IEnumerable<(string cityName, string biome)> rawData, int contextLength = 2, string breakChars = ",(")
     {
         foreach ((string cityName, string biome) in rawData)
-        {
-            foreach (NgramInfo ngram in cityName.NgramInfos(biome, contextLength))
-            {
-                if (breakChars.Contains(ngram.Successor))
-                    break;
+            foreach (NgramInfo ngram in cityName.ToNgramsInternal(biome, contextLength, breakChars))
                 yield return ngram;
-            }
-        }
     }
     public static async IAsyncEnumerable<NgramInfo> ToNgramsAsync(this IAsyncEnumerable<(string cityName, string biome)> rawData, int contextLength = 2, string breakChars = ",(")
     {
         await foreach((string cityName, string biome) in rawData)
-        {
-            foreach(NgramInfo ngram in cityName.NgramInfos(biome, contextLength))
-            {
-                if (breakChars.Contains(ngram.Successor))
-                    break;
+            foreach (NgramInfo ngram in cityName.ToNgramsInternal(biome, contextLength, breakChars))
                 yield return ngram;
-            } 
-        } 
     } 
     public static void WriteCsv(int contextLength = 2, bool writeToConsole = false)
     {
@@ -64,4 +62,6 @@ public static class DataProcessor
         foreach(NgramInfo datum in allCityData.ToNgrams(contextLength))
             write(datum.CsvLine);
     }
+    private static readonly HashSet<string> _biomeCache = new();
+    public static IReadOnlySet<string> BiomeCache => _biomeCache;
 }

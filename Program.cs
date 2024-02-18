@@ -40,30 +40,40 @@ public class Program
     private static async Task Main()
     {
         // DataProcessor.WriteCsv();
-        MulticlassStringGenerator generator = await MulticlassStringGenerator.LoadAsync("transformedData.csv");
         // PrintPreview(dataView, 250);
         // IDataView predictions = model.Transform(dataView);
         //MulticlassClassificationMetrics metrics = mlContext.MulticlassClassification.Evaluate(predictions);
         //Console.WriteLine(metrics.PrettyPrint());
-        await generator.SaveAsync();
-        NgramInfo test = new("zy", 'Q', "Montane Grasslands & Shrublands");
-        CharacterPrediction prediction = generator.Predict(test);
-        Console.WriteLine($"{prediction}");
-        return;
         int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
-        string generatorFilename = $"generators_{contextLength}.json";
+        string generatorType = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "markov";
+        ArgumentException invalidGeneratorTypeException = new($"--generator argument must be either \"markov\" or \"multiclass\", not {generatorType}!");
+        string generatorFilename = generatorType switch
+        {
+            "markov" => $"generators_{contextLength}.json",
+            "multiclass" => "transformedData.csv",
+            _ => throw invalidGeneratorTypeException
+        };
         bool buildGenerator = CommandLineArgs.GetFlag("rebuild") || !File.Exists(generatorFilename);
 
-        MarkovSetStringGenerator generatorSet 
-            = await MarkovSetStringGenerator.BuildOrLoadAsync(!buildGenerator, 
-                                                              generatorFilename, 
-                                                              () => Querier.GetAllCityDataAsync()
-                                                                           .ToNgramsAsync(contextLength), 
-                                                              contextLength);
-
+        ISaveableStringGenerator<NgramInfo> generator = generatorType switch
+        {
+            "markov" => await BuildOrLoadGeneratorAsync<MarkovSetStringGenerator>
+                                    (!buildGenerator,
+                                      generatorFilename,
+                                      () => Querier.GetAllCityDataAsync()
+                                                   .ToNgramsAsync(contextLength),
+                                      contextLength),
+            "multiclass" => await BuildOrLoadGeneratorAsync<MulticlassStringGenerator>
+                                    (!buildGenerator,
+                                      generatorFilename,
+                                      () => Querier.GetAllCityDataAsync()
+                                                   .ToNgramsAsync(contextLength),
+                                      contextLength),
+            _ => throw invalidGeneratorTypeException
+        };
         await Querier.SaveCache().WithMessage("Saving cache");
         if (buildGenerator)
-            await generatorSet.SaveAsync(generatorFilename)
+            await generator.SaveAsync(generatorFilename)
                               .WithMessage("Saving generators");
         _ = Directory.CreateDirectory(OUTPUT_DIRECTORY);
 
@@ -71,13 +81,22 @@ public class Program
             minCityLength = CommandLineArgs.TryParseValue<int>(nameof(minCityLength)) ?? 5,
             maxCityLength = CommandLineArgs.TryParseValue<int>(nameof(maxCityLength)) ?? 40;
 
-        foreach (string biome in generatorSet.Biomes.Order())
+        foreach (string biome in DataProcessor.BiomeCache.Order())
         {
             Console.WriteLine(biome);
             string path = $"{biome.Replace("/", ",")}.txt";
             path.CreateIfNotExists();
-            foreach (string name in generatorSet.RandomStringsOfLength(NgramInfo.FromQuery(biome), numPerBiome, minCityLength, maxCityLength))
+            foreach (string name in generator.RandomStringsOfLength(NgramInfo.FromQuery(biome), numPerBiome, minCityLength, maxCityLength))
                 Utils.PrintAndWrite(path, name);
         }
     }
+    public static async Task<ISaveableStringGenerator<NgramInfo>> BuildOrLoadGeneratorAsync<T>(
+            bool load, 
+            string? path = null, 
+            Func<IAsyncEnumerable<NgramInfo>>? loadData = null, 
+            int contextLength = 2)
+        where T : IBuildLoadAbleStringGenerator<NgramInfo, T>
+        => await (load ? T.LoadAsync(path!)
+                       : T.BuildAsync(loadData!(), contextLength))
+                          .WithMessage($"{(load ? "Load" : "Build")}ing generator");
 }

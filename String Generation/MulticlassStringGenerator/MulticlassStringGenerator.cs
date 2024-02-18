@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace citynames;
-public class MulticlassStringGenerator : IBuildableStringGenerator<NgramInfo, MulticlassStringGenerator>
+public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo, MulticlassStringGenerator>
 {
     private readonly MLContext _mlContext = new();
     public IDataView Data { get; private set; }
