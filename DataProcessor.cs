@@ -32,7 +32,7 @@ public static class DataProcessor
         string cur = "";
         for (int i = 1 - contextLength; i <= cityName.Length - contextLength; i++)
         {
-            yield return new(biome, cur, cityName[i + contextLength - 1]);
+            yield return new(cur, cityName[i + contextLength - 1], biome);
             cur = cityName.SubstringSafe(i, i + contextLength);
         }
     }

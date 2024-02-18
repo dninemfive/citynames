@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using d9.utl;
+using System.Numerics;
 
 namespace citynames;
 public static class Linq3
@@ -28,4 +29,6 @@ public static class Linq3
         for (int i = a; i < b; i++)
             yield return i;
     }
+    public static string JoinWithDelim<T>(this IEnumerable<T> enumerable, string delim)
+        => enumerable.Select(x => x?.ToString().PrintNull()).Aggregate((x, y) => $"{x}{delim}{y}")!;
 }

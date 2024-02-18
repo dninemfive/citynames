@@ -32,8 +32,8 @@ public class BigramFeature
                     yield return fi;
         }
     }
-    public static string CsvHeader => FieldsInColumnOrder.Select(x => x.Name).Aggregate((x, y) => $"{x},{y}");
-    public string CsvLine => FieldsInColumnOrder.Select(x => x.GetValue(this)!.ToString()).Aggregate((x, y) => $"{x},{y}")!;
+    public static string CsvHeader => FieldsInColumnOrder.Select(x => x.Name).JoinWithDelim(",");
+    public string CsvLine => FieldsInColumnOrder.Select(x => x.GetValue(this)).JoinWithDelim(",");
     public override bool Equals(object? obj)
         => obj is BigramFeature d && d.Biome == Biome && d.Context == Context && d.Successor == Successor;
     public override int GetHashCode()

@@ -48,7 +48,7 @@ public class MarkovStringGenerator
     {
         foreach(BigramFeature datum in DataProcessor.DataFrom(s, "n/a", ContextLength))
         {
-            (string context, string _, char result) = datum;
+            (string context, char result, string _) = datum;
             if (!Data.ContainsKey(context))
                 Data[context] = new();
             Data[context].Increment(result);

@@ -7,4 +7,6 @@ public class CharacterPrediction
     public float[] CharacterWeights;
     [ColumnName("PredictedLabel")]
     public string PredictedCharacter;
+    public override string ToString()
+        => $"CharacterPrediction({PredictedCharacter}, {CharacterWeights})";
 }

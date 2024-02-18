@@ -40,23 +40,15 @@ public class Program
     private static async Task Main()
     {
         // DataProcessor.WriteCsv();
-        MLContext mlContext = new();
-        IDataView dataView = mlContext.Data.LoadFromTextFile<BigramFeature>("transformedData.csv", new() { HasHeader = true, Separators = new char[] { ',' } });
+        MulticlassStringGenerator generator = new("transformedData.csv");
         // PrintPreview(dataView, 250);
-        var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label", "Successor")
-                                           .Append(mlContext.Transforms.Categorical.OneHotEncoding("BiomeEncoded", "Biome"))
-                                           .Append(mlContext.Transforms.Text.FeaturizeText("ContextEncoded", "Context"))
-                                           .Append(mlContext.Transforms.Concatenate("Features", "BiomeEncoded", "ContextEncoded"));
-        var model = pipeline.Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy())
-                            .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"))
-                            .Fit(dataView);
         // IDataView predictions = model.Transform(dataView);
         //MulticlassClassificationMetrics metrics = mlContext.MulticlassClassification.Evaluate(predictions);
         //Console.WriteLine(metrics.PrettyPrint());
-        mlContext.Model.Save(model, dataView.Schema, "model.zip");
+        generator.Save();
         BigramFeature test = new("zy", 'Q', "Montane Grasslands & Shrublands");
-        Console.WriteLine(mlContext.Model.CreatePredictionEngine<BigramFeature, CharacterPrediction>(model).Predict(test).PredictedCharacter);
-        Console.WriteLine(mlContext.Model.CreatePredictionEngine<BigramFeature, CharacterPrediction>(model).Predict(test).CharacterWeights.ListNotation());
+        CharacterPrediction prediction = generator.Predict(test);
+        Console.WriteLine($"{prediction}");
         return;
         int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string generatorFilename = $"generators_{contextLength}.json";
