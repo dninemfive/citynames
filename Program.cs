@@ -9,22 +9,7 @@ namespace citynames;
 public class Program
 {
     public const string OUTPUT_DIRECTORY = "output";
-    public class Feature
-    {
-        [LoadColumn(0)]
-        public string Context;
-        [LoadColumn(2)]
-        public string Successor;
-        [LoadColumn(1)]
-        public string Biome;
-    }
-    public class Label
-    {
-        [ColumnName("Score")]
-        public float[] CharacterWeights;
-        [ColumnName("PredictedLabel")]
-        public string PredictedCharacter;
-    }
+    
     private static void PrintPreview(IDataView dataView, int maxRows = 100)
     {
         DataDebuggerPreview preview = dataView.Preview(maxRows);
@@ -65,19 +50,13 @@ public class Program
         var model = pipeline.Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy())
                             .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"))
                             .Fit(dataView);
-        Console.WriteLine(model.GetType().Name);
         // IDataView predictions = model.Transform(dataView);
         //MulticlassClassificationMetrics metrics = mlContext.MulticlassClassification.Evaluate(predictions);
         //Console.WriteLine(metrics.PrettyPrint());
         mlContext.Model.Save(model, dataView.Schema, "model.zip");
-        BigramFeature test = new()
-        {
-            Context = "zy",
-            Successor = "Q",
-            Biome = "Montane Grasslands & Shrublands"
-        };
-        Console.WriteLine(mlContext.Model.CreatePredictionEngine<BigramFeature, Label>(model).Predict(test).PredictedCharacter);
-        Console.WriteLine(mlContext.Model.CreatePredictionEngine<BigramFeature, Label>(model).Predict(test).CharacterWeights.ListNotation());
+        BigramFeature test = new("zy", 'Q', "Montane Grasslands & Shrublands");
+        Console.WriteLine(mlContext.Model.CreatePredictionEngine<BigramFeature, CharacterPrediction>(model).Predict(test).PredictedCharacter);
+        Console.WriteLine(mlContext.Model.CreatePredictionEngine<BigramFeature, CharacterPrediction>(model).Predict(test).CharacterWeights.ListNotation());
         return;
         int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string generatorFilename = $"generators_{contextLength}.json";
