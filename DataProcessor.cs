@@ -49,55 +49,23 @@ public static class DataProcessor
         List<(string cityName, string biome)> allCityData = Querier.GetAllCityDataAsync()
                                                                    .ToBlockingEnumerable()
                                                                    .ToList();
-        List<char> alphabet = allCityData.Select(x => x.cityName)
-                                         .SelectMany(x => x.AsEnumerable())
-                                         .Distinct()
-                                         .Where(x => x != ',')
-                                         .Order()
-                                         .ToList();
-        List<string> biomes = allCityData.Select(x => x.biome.Replace(',', '_'))
-                                         .Distinct()
-                                         .Order()
-                                         .ToList();
-        Dictionary<(string context, string biome), CountingDictionary<char, int>> processedData = new();
-        void Add(string context, string biome, char successor)
-        {
-            biome = biome.Replace(',', '_');
-            Console.WriteLine($"\t\tAdd({context}, {biome}, {successor} ({(int)successor}))");
-            if (!processedData.TryGetValue((context, biome), out CountingDictionary<char, int>? dict))
-                dict = new();
-            dict.Increment(successor);
-            processedData[(context, biome)] = dict;
-        }
-        foreach(string biome in biomes)
-        {
-            Console.WriteLine($"\t{biome}");
-            List<string> cityNames = allCityData.Where(x => x.biome == biome)
-                                                .Select(x => x.cityName)
-                                                .ToList();
-            foreach (string cityName in cityNames)
-                foreach (Datum datum in DataFrom(cityName, biome, contextLength))
-                {
-                    if (datum.Successor == ',')
-                        break;
-                    Add(datum.Context, biome, datum.Successor);
-                }
-        }
         string fileName = $"transformedData.csv";
         File.WriteAllText(fileName, "");
         using FileStream fs = File.OpenWrite(fileName);
         using StreamWriter sw = new(fs);
-        sw.WriteLine($"context,successor,biome,count");
-        foreach ((string context, string biome) in processedData.Keys.OrderBy(x => x.context)
-                                                                     .ThenBy(x => x.biome))
+        sw.WriteLine($"context,biome,successor");
+        static void write(string? s, params Action<string?>[] funcs)
         {
-            if (processedData.TryGetValue((context, biome), out CountingDictionary<char, int>? contextData))
+            foreach (Action<string?> func in funcs)
+                func(s);
+        }
+        foreach ((string cityName, string biome) in allCityData)
+        {
+            foreach (Datum datum in DataFrom(cityName, biome, contextLength))
             {
-                foreach (char c in contextData.Keys.Order())
-                {
-                    Console.WriteLine($"{context},{c},{biome},{contextData[c]}");
-                    sw.WriteLine($"{context},{c},{biome},{contextData[c]}");
-                }
+                if (datum.Successor == ',')
+                    break;
+                write($"{datum.Context},{biome},{datum.Successor}", Console.WriteLine, sw.WriteLine);
             }
         }
     }

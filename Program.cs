@@ -13,17 +13,17 @@ public class Program
     {
         [LoadColumn(0)]
         public string Context;
-        [LoadColumn(1)]
-        public string Successor;
         [LoadColumn(2)]
+        public string Successor;
+        [LoadColumn(1)]
         public string Biome;
-        [LoadColumn(3)]
-        public float Count;
     }
     public class Label
     {
         [ColumnName("Score")]
-        public float PredictedCount;
+        public float[] CharacterWeights;
+        [ColumnName("PredictedLabel")]
+        public string PredictedCharacter;
     }
     private static void PrintPreview(IDataView dataView, int maxRows = 100)
     {
@@ -58,24 +58,25 @@ public class Program
         MLContext mlContext = new();
         IDataView dataView = mlContext.Data.LoadFromTextFile<Feature>("transformedData.csv", new() { HasHeader = true, Separators = new char[] { ',' } });
         PrintPreview(dataView, 250);
-        var pipeline = mlContext.Transforms.CopyColumns("Label", "Count")
+        var pipeline = mlContext.Transforms.Conversion.MapValueToKey("Label", "Successor")
                                            .Append(mlContext.Transforms.Categorical.OneHotEncoding("BiomeEncoded", "Biome"))
-                                           .Append(mlContext.Transforms.Categorical.OneHotEncoding("ContextEncoded", "Context"))
-                                           .Append(mlContext.Transforms.Categorical.OneHotEncoding("SuccessorEncoded", "Successor"))
-                                           .Append(mlContext.Transforms.NormalizeMeanVariance(outputColumnName: "Count"))
-                                           .Append(mlContext.Transforms.Concatenate("Features", "BiomeEncoded", "ContextEncoded", "SuccessorEncoded", "Count"));
-        var model = pipeline.Append(mlContext.Regression.Trainers.Sdca()).Fit(dataView);
+                                           .Append(mlContext.Transforms.Text.FeaturizeText("ContextEncoded", "Context"))
+                                           .Append(mlContext.Transforms.Concatenate("Features", "BiomeEncoded", "ContextEncoded"));
+        var model = pipeline.Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy())
+                            .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"))
+                            .Fit(dataView);
         IDataView predictions = model.Transform(dataView);
-        RegressionMetrics metrics = mlContext.Regression.Evaluate(predictions);
-        Console.WriteLine(metrics.PrettyPrint());
+        //MulticlassClassificationMetrics metrics = mlContext.MulticlassClassification.Evaluate(predictions);
+        //Console.WriteLine(metrics.PrettyPrint());
         mlContext.Model.Save(model, dataView.Schema, "model.zip");
         Feature test = new()
         {
-            Context = "zz",
-            Successor = "a",
-            Biome = "Tropical & Subtropical Moist Broadleaf Forests"
+            Context = "zy",
+            Successor = "Q",
+            Biome = "Montane Grasslands & Shrublands"
         };
-        Console.WriteLine(mlContext.Model.CreatePredictionEngine<Feature, Label>(model).Predict(test).PredictedCount);
+        Console.WriteLine(mlContext.Model.CreatePredictionEngine<Feature, Label>(model).Predict(test).PredictedCharacter);
+        Console.WriteLine(mlContext.Model.CreatePredictionEngine<Feature, Label>(model).Predict(test).CharacterWeights.ListNotation());
         return;
         int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string generatorFilename = $"generators_{contextLength}.json";
