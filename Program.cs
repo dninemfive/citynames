@@ -40,12 +40,12 @@ public class Program
     private static async Task Main()
     {
         // DataProcessor.WriteCsv();
-        MulticlassStringGenerator generator = new("transformedData.csv");
+        MulticlassStringGenerator generator = await MulticlassStringGenerator.LoadAsync("transformedData.csv");
         // PrintPreview(dataView, 250);
         // IDataView predictions = model.Transform(dataView);
         //MulticlassClassificationMetrics metrics = mlContext.MulticlassClassification.Evaluate(predictions);
         //Console.WriteLine(metrics.PrettyPrint());
-        generator.Save();
+        await generator.SaveAsync();
         NgramInfo test = new("zy", 'Q', "Montane Grasslands & Shrublands");
         CharacterPrediction prediction = generator.Predict(test);
         Console.WriteLine($"{prediction}");
@@ -54,14 +54,17 @@ public class Program
         string generatorFilename = $"generators_{contextLength}.json";
         bool buildGenerator = CommandLineArgs.GetFlag("rebuild") || !File.Exists(generatorFilename);
 
-        MarkovSetStringGenerator generatorSet = await (buildGenerator ? BuildGenerator(contextLength) 
-                                                           : LoadGenerator(generatorFilename))
-                                          .WithMessage($"{(buildGenerator ? "Build" : "Load")}ing generator");
+        MarkovSetStringGenerator generatorSet 
+            = await MarkovSetStringGenerator.BuildOrLoadAsync(!buildGenerator, 
+                                                              generatorFilename, 
+                                                              () => Querier.GetAllCityDataAsync()
+                                                                           .ToNgramsAsync(contextLength), 
+                                                              contextLength);
 
         await Querier.SaveCache().WithMessage("Saving cache");
         if (buildGenerator)
-            await SaveGenerator(generatorFilename, generatorSet)
-                  .WithMessage("Saving generators");
+            await generatorSet.SaveAsync(generatorFilename)
+                              .WithMessage("Saving generators");
         _ = Directory.CreateDirectory(OUTPUT_DIRECTORY);
 
         int numPerBiome   = CommandLineArgs.TryParseValue<int>(nameof(numPerBiome))   ?? 10,
@@ -77,23 +80,4 @@ public class Program
                 Utils.PrintAndWrite(path, name);
         }
     }
-    private static async Task<MarkovSetStringGenerator> BuildGenerator(int contextLength)
-    {
-        Console.Write($"Building generators...");
-        MarkovSetStringGenerator result = new();
-        await foreach ((string city, string biome) in Querier.GetAllCityDataAsync())
-        {
-            if (!result.TryGetValue(biome, out MarkovStringGenerator? generator))
-            {
-                generator = new(contextLength);
-                result[biome] = generator;
-            }
-            generator.Add(city.Split("(")[0].Split(",")[0]);
-        }
-        return result;
-    }
-    private static async Task<MarkovSetStringGenerator> LoadGenerator(string fileName)
-        => new(await Task.Run(() => JsonSerializer.Deserialize<Dictionary<string, MarkovStringGenerator>>(File.ReadAllText(fileName))!));
-    private static async Task SaveGenerator(string fileName, MarkovSetStringGenerator generator)
-        => await Task.Run(() => File.WriteAllText(fileName, JsonSerializer.Serialize(generator)));
 }

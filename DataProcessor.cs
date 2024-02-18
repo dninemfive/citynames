@@ -20,18 +20,30 @@ namespace citynames;
  */
 public static class DataProcessor
 {
-    public static IEnumerable<NgramInfo> Process(IEnumerable<(string cityName, string biome)> rawData, int contextLength = 2)
+    public static IEnumerable<NgramInfo> ToNgrams(this IEnumerable<(string cityName, string biome)> rawData, int contextLength = 2, string breakChars = ",(")
     {
         foreach ((string cityName, string biome) in rawData)
         {
-            foreach (NgramInfo datum in cityName.NgramInfos(biome, contextLength))
+            foreach (NgramInfo ngram in cityName.NgramInfos(biome, contextLength))
             {
-                if (datum.Successor == ',')
+                if (breakChars.Contains(ngram.Successor))
                     break;
-                yield return datum;
+                yield return ngram;
             }
         }
     }
+    public static async IAsyncEnumerable<NgramInfo> ToNgramsAsync(this IAsyncEnumerable<(string cityName, string biome)> rawData, int contextLength = 2, string breakChars = ",(")
+    {
+        await foreach((string cityName, string biome) in rawData)
+        {
+            foreach(NgramInfo ngram in cityName.NgramInfos(biome, contextLength))
+            {
+                if (breakChars.Contains(ngram.Successor))
+                    break;
+                yield return ngram;
+            } 
+        } 
+    } 
     public static void WriteCsv(int contextLength = 2, bool writeToConsole = false)
     {
         Console.WriteLine($"{nameof(WriteCsv)}({contextLength})");
@@ -49,7 +61,7 @@ public static class DataProcessor
                 Console.WriteLine(s);
         }
         write(NgramInfo.CsvHeader);
-        foreach(NgramInfo datum in Process(allCityData, contextLength))
+        foreach(NgramInfo datum in allCityData.ToNgrams(contextLength))
             write(datum.CsvLine);
     }
 }

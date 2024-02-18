@@ -1,5 +1,6 @@
 ﻿using d9.utl;
 using System.Text.Json.Serialization;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace citynames;
 /// <summary>
@@ -29,30 +30,22 @@ public class MarkovStringGenerator
     {
         ContextLength = contextLength;
     }
-    public MarkovStringGenerator(IEnumerable<string> data, int contextLength) : this(contextLength)
-    {
-        foreach (string datum in data)
-            Add(datum);
-    }
     [JsonConstructor]
     public MarkovStringGenerator(Dictionary<string, CountingDictionary<char, int>> data, int contextLength = 1) : this(contextLength)
     {
         Data = data;
     }
-    /// <summary>
-    /// Adds a new string to the generator's <see cref="Data"/>. Breaks the string down into substrings of
-    /// length <see cref="ContextLength"/> and notes which character succeeds a given substring.
-    /// </summary>
-    /// <param name="s">The string to add to the dataset.</param>
-    public void Add(string s)
+    public void Add(NgramInfo ngram)
     {
-        foreach(NgramInfo datum in s.NgramInfos("", ContextLength))
-        {
-            (string context, char result, string _) = datum;
-            if (!Data.ContainsKey(context))
-                Data[context] = new();
-            Data[context].Increment(result);
-        }  
+        (string context, char result, string _) = ngram;
+        if (!Data.ContainsKey(context))
+            Data[context] = new();
+        Data[context].Increment(result);
+    }
+    public void Add(IEnumerable<NgramInfo> ngrams)
+    {
+        foreach (NgramInfo ngram in ngrams)
+            Add(ngram);
     }
     [JsonIgnore]
     public string RandomString

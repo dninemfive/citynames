@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace citynames;
-public class MulticlassStringGenerator : IStringGenerator<NgramInfo>, IAsyncSaveLoadable<MulticlassStringGenerator>
+public class MulticlassStringGenerator : IBuildableStringGenerator<NgramInfo, MulticlassStringGenerator>
 {
     private readonly MLContext _mlContext = new();
     public IDataView Data { get; private set; }
@@ -24,11 +24,12 @@ public class MulticlassStringGenerator : IStringGenerator<NgramInfo>, IAsyncSave
             return _predictionEngine;
         }
     }
-    public readonly TextLoader.Options CsvLoaderOptions = new() { HasHeader = true, Separators = new char[] { ','} };
-    public MulticlassStringGenerator(string path, TextLoader.Options? options = null)
+    public static readonly TextLoader.Options CsvLoaderOptions = new() { HasHeader = true, Separators = new char[] { ','} };
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value [...]: only called by LoadAsync and BuildAsync,
+                               // which definitely initialize Data
+    private MulticlassStringGenerator()
+#pragma warning restore CS8618
     {
-        Console.WriteLine($"Loading MulticlassStringGenerator from `{path}`...");
-        Data = _mlContext.Data.LoadFromTextFile<NgramInfo>(path, options ?? CsvLoaderOptions);
         Pipeline = _mlContext.Transforms.Conversion.MapValueToKey("Label", "Successor")
                              .Append(_mlContext.Transforms.Categorical.OneHotEncoding("BiomeEncoded", "Biome"))
                              .Append(_mlContext.Transforms.Text.FeaturizeText("ContextEncoded", "Context"))
@@ -36,13 +37,20 @@ public class MulticlassStringGenerator : IStringGenerator<NgramInfo>, IAsyncSave
         Model = Pipeline.Append(_mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy())
                         .Append(_mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"))
                         .Fit(Data);
-        Console.WriteLine($"Loaded MulticlassStringGenerator from `{path}`.");
     }
     public async Task SaveAsync(string name = "model.zip")
         => await Task.Run(() => _mlContext.Model.Save(Model, Data.Schema, name));
-    public static Task<MulticlassStringGenerator> LoadAsync(string path)
+    public static async Task<MulticlassStringGenerator> LoadAsync(string path)
     {
-        throw new NotImplementedException();
+        MulticlassStringGenerator result = new();
+        result.Data = await Task.Run(() => result._mlContext.Data.LoadFromTextFile<NgramInfo>(path, CsvLoaderOptions));
+        return result;
+    }
+    public static async Task<MulticlassStringGenerator> BuildAsync(IAsyncEnumerable<NgramInfo> ngrams, int _ = 2)
+    {
+        MulticlassStringGenerator result = new();
+        result.Data = await Task.Run(() => result._mlContext.Data.LoadFromEnumerable(ngrams.ToBlockingEnumerable()));
+        return result;
     }
     public CharacterPrediction Predict(NgramInfo input)
         => PredictionEngine.Predict(input);

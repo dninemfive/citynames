@@ -5,11 +5,6 @@ using System.Reflection;
 namespace citynames;
 public class NgramInfo
 {
-    /// <summary>
-    /// The ETX (End-of-Text) character in ASCII. Used to mark the end of a word,
-    /// which allows randomly-generated words to break in positions which make sense.
-    /// </summary>
-    public const char STOP = (char)3;
     [LoadColumn(0)]
     public string Context;
     [LoadColumn(1)]

@@ -2,7 +2,7 @@
 using System.Text.Json;
 
 namespace citynames;
-internal class MarkovSetStringGenerator : IStringGenerator<NgramInfo>, IAsyncSaveLoadable<MarkovSetStringGenerator>
+internal class MarkovSetStringGenerator : IBuildableStringGenerator<NgramInfo, MarkovSetStringGenerator>
 {
     private readonly Dictionary<string, MarkovStringGenerator> _dict;
     internal MarkovSetStringGenerator(Dictionary<string, MarkovStringGenerator>? dict = null)
@@ -21,4 +21,20 @@ internal class MarkovSetStringGenerator : IStringGenerator<NgramInfo>, IAsyncSav
         => new(await Task.Run(() => JsonSerializer.Deserialize<Dictionary<string, MarkovStringGenerator>>(File.ReadAllText(path))!));
     public async Task SaveAsync(string path)
         => await Task.Run(() => File.WriteAllText(path, JsonSerializer.Serialize(this)));
+    public static async Task<MarkovSetStringGenerator> BuildAsync(IAsyncEnumerable<NgramInfo> ngrams, int contextLength = 2)
+    {
+        MarkovSetStringGenerator result = new();
+        await foreach (NgramInfo ngram in ngrams)
+        {
+            if (!result.TryGetValue(ngram.Biome, out MarkovStringGenerator? generator))
+            {
+                generator = new(contextLength);
+                result[ngram.Biome] = generator;
+            }
+            generator.Add(ngram);
+        }
+        return result;
+    }
+    public static async Task<MarkovSetStringGenerator> BuildOrLoadAsync(bool load, string? path, Func<IAsyncEnumerable<NgramInfo>> func, int contextLength = 2)
+        => await BuildableStringGenerators<NgramInfo, MarkovSetStringGenerator>.BuildOrLoadAsync(load, path, func, contextLength);
 }
