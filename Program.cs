@@ -46,7 +46,7 @@ public class Program
         //MulticlassClassificationMetrics metrics = mlContext.MulticlassClassification.Evaluate(predictions);
         //Console.WriteLine(metrics.PrettyPrint());
         generator.Save();
-        BigramFeature test = new("zy", 'Q', "Montane Grasslands & Shrublands");
+        NgramInfo test = new("zy", 'Q', "Montane Grasslands & Shrublands");
         CharacterPrediction prediction = generator.Predict(test);
         Console.WriteLine($"{prediction}");
         return;
@@ -73,7 +73,7 @@ public class Program
             Console.WriteLine(biome);
             string path = $"{biome.Replace("/", ",")}.txt";
             path.CreateIfNotExists();
-            foreach (string name in generatorSet.RandomStringsOfLength(biome, numPerBiome, minCityLength, maxCityLength))
+            foreach (string name in generatorSet.RandomStringsOfLength(new(biome), numPerBiome, minCityLength, maxCityLength))
                 Utils.PrintAndWrite(path, name);
         }
     }

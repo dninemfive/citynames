@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 namespace citynames;
-internal class MarkovSetStringGenerator : IStringGenerator<string>
+internal class MarkovSetStringGenerator : IStringGenerator<NgramInfo>
 {
     private readonly Dictionary<string, MarkovStringGenerator> _dict;
     internal MarkovSetStringGenerator(Dictionary<string, MarkovStringGenerator>? dict = null)
@@ -13,11 +13,7 @@ internal class MarkovSetStringGenerator : IStringGenerator<string>
     }
     internal bool TryGetValue(string key, [NotNullWhen(true)]out MarkovStringGenerator? value)
         => _dict.TryGetValue(key, out value);
-    public string RandomString(string biome)
-        => this[biome].RandomString;
-    public string RandomStringOfLength(string biome, int min = 1, int max = int.MaxValue, int maxAttempts = 100)
-        => this[biome].RandomStringOfLength(min, max, maxAttempts);
-    public IEnumerable<string> RandomStringsOfLength(string biome, int count, int min = 1, int max = int.MaxValue, int maxAttempts = 100)
-        => ((IStringGenerator<string>)this).RandomStringsOfLength(biome, count, min, max, maxAttempts);
+    public string RandomString(NgramInfo input)
+        => this[input.Biome].RandomString;
     internal IEnumerable<string> Biomes => _dict.Keys;
 }

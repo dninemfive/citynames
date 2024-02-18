@@ -46,7 +46,7 @@ public class MarkovStringGenerator
     /// <param name="s">The string to add to the dataset.</param>
     public void Add(string s)
     {
-        foreach(BigramFeature datum in DataProcessor.DataFrom(s, "n/a", ContextLength))
+        foreach(NgramInfo datum in DataProcessor.DataFrom(s, "n/a", ContextLength))
         {
             (string context, char result, string _) = datum;
             if (!Data.ContainsKey(context))
@@ -78,21 +78,6 @@ public class MarkovStringGenerator
             }
             return result.Replace($"{DataProcessor.STOP}","");
         }
-    }
-    public string RandomStringOfLength(int min = 1, int max = int.MaxValue, int maxAttempts = 100)
-    {
-        string result = "";
-        int ct = 0;
-        while (result.Length < min || result.Length > max)
-        {
-            result = RandomString;
-            if (++ct == maxAttempts)
-            {
-                Console.WriteLine($"Failed to generate random string with target length [{min}..{max}] after {maxAttempts} attempts.");
-                break;
-            }
-        }
-        return result;
     }
     [JsonIgnore]
     public string DataString

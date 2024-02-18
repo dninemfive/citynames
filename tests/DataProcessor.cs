@@ -7,14 +7,14 @@ public class DataProcessor
     [TestMethod]
     public void DataFrom()
     {
-        BigramFeature[] result = citynames.DataProcessor.DataFrom("test", "n/a", 2).ToArray();
-        BigramFeature[] expected = new BigramFeature[]
+        NgramInfo[] result = citynames.DataProcessor.DataFrom("test", "n/a", 2).ToArray();
+        NgramInfo[] expected = new NgramInfo[]
         {
-            new("n/a", "", 't'),
-            new("n/a", "t", 'e'),
-            new("n/a", "te", 's'),
-            new("n/a", "es", 't'),
-            new("n/a", "st", citynames.DataProcessor.STOP)
+            new("", 't', ""),
+            new("t", 'e', ""),
+            new("te", 's', ""),
+            new("es", 't', ""),
+            new("st", citynames.DataProcessor.STOP, "")
         };
         Console.WriteLine($"result:   {result.ListNotation()}");
         Console.WriteLine($"expected: {expected.ListNotation()}");

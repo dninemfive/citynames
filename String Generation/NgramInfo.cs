@@ -3,7 +3,7 @@ using Microsoft.ML.Data;
 using System.Reflection;
 
 namespace citynames;
-public class BigramFeature
+public class NgramInfo
 {
     [LoadColumn(0)]
     public string Context;
@@ -11,7 +11,8 @@ public class BigramFeature
     public char Successor;
     [LoadColumn(2)]
     public string Biome;
-    public BigramFeature(string context, char successor, string biome)
+    public NgramInfo(string biome) : this(string.Empty, Constants.NullCharacter, biome) { }
+    public NgramInfo(string context, char successor, string biome)
     {
         Context = context;
         Successor = successor;
@@ -27,7 +28,7 @@ public class BigramFeature
     {
         get
         {
-            foreach (MemberInfo mi in typeof(BigramFeature).MembersWithAttribute<LoadColumnAttribute>().OrderBy(x => x.attr.TypeId).Select(x => x.member))
+            foreach (MemberInfo mi in typeof(NgramInfo).MembersWithAttribute<LoadColumnAttribute>().OrderBy(x => x.attr.TypeId).Select(x => x.member))
                 if (mi is FieldInfo fi)
                     yield return fi;
         }
@@ -35,9 +36,9 @@ public class BigramFeature
     public static string CsvHeader => FieldsInColumnOrder.Select(x => x.Name).JoinWithDelim(",");
     public string CsvLine => FieldsInColumnOrder.Select(x => x.GetValue(this)).JoinWithDelim(",");
     public override bool Equals(object? obj)
-        => obj is BigramFeature d && d.Biome == Biome && d.Context == Context && d.Successor == Successor;
+        => obj is NgramInfo d && d.Biome == Biome && d.Context == Context && d.Successor == Successor;
     public override int GetHashCode()
         => HashCode.Combine(Biome, Context, Successor);
-    public static bool operator ==(BigramFeature a, BigramFeature b) => a.Equals(b);
-    public static bool operator !=(BigramFeature a, BigramFeature b) => !(a == b);
+    public static bool operator ==(NgramInfo a, NgramInfo b) => a.Equals(b);
+    public static bool operator !=(NgramInfo a, NgramInfo b) => !(a == b);
 }

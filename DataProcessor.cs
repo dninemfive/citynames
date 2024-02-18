@@ -26,7 +26,7 @@ public static class DataProcessor
     /// which allows randomly-generated words to break in positions which make sense.
     /// </summary>
     public const char STOP = (char)3;
-    public static IEnumerable<BigramFeature> DataFrom(string cityName, string biome, int contextLength = 2)
+    public static IEnumerable<NgramInfo> DataFrom(string cityName, string biome, int contextLength = 2)
     {
         cityName = cityName.AppendIfNotPresent(STOP);
         string cur = "";
@@ -36,11 +36,11 @@ public static class DataProcessor
             cur = cityName.SubstringSafe(i, i + contextLength);
         }
     }
-    public static IEnumerable<BigramFeature> Process(IEnumerable<(string cityName, string biome)> rawData, int contextLength = 2)
+    public static IEnumerable<NgramInfo> Process(IEnumerable<(string cityName, string biome)> rawData, int contextLength = 2)
     {
         foreach ((string cityName, string biome) in rawData)
         {
-            foreach (BigramFeature datum in DataFrom(cityName, biome, contextLength))
+            foreach (NgramInfo datum in DataFrom(cityName, biome, contextLength))
             {
                 if (datum.Successor == ',')
                     break;
@@ -64,8 +64,8 @@ public static class DataProcessor
             if (writeToConsole)
                 Console.WriteLine(s);
         }
-        write(BigramFeature.CsvHeader);
-        foreach(BigramFeature datum in Process(allCityData, contextLength))
+        write(NgramInfo.CsvHeader);
+        foreach(NgramInfo datum in Process(allCityData, contextLength))
             write(datum.CsvLine);
     }
 }
