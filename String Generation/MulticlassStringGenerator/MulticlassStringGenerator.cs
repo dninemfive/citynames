@@ -85,31 +85,28 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
     public CharacterPrediction Predict(NgramInfo input)
         => PredictionEngine.Predict(input);
     public string RandomChar(NgramInfo input)
-    // => KeyValueMapper[Predict(input).CharacterWeights.Argrand()];
+        => KeyValueMapper[Predict(input).CharacterWeights.Argrand() + 1];
+    /*
     {
         float[] weights = Predict(input).CharacterWeights;
         // alternatively: threshold?
-        /*
         IEnumerable<(int index, float weight)> top10 = 0.To(weights.Length)
                                                         .Zip(weights)
                                                         .OrderBy(x => x.Second)
                                                         .Take(10);
         return KeyValueMapper[top10.WeightedRandomElement(x => x.weight).index];
-        */
-    }
+    }*/
     public string RandomString(NgramInfo input, int maxLength = 100)
     {
-        string context = "", result = "";
+        string context = input.Context, result = input.Context;
         int ct = 0;
-        while (ct++ < maxLength)
+        while (++ct < maxLength)
         {
             context = $"{context}{RandomChar(input)}".Last(2);
             if (context.Contains(Characters.STOP))
                 break;
             result += context.Last();
         }
-        if (ct >= maxLength)
-            Console.WriteLine($"Reached max length {ct}: {result}");
         return result.Replace($"{Characters.STOP}", "");
     }
 }

@@ -81,23 +81,33 @@ public class Program
         int numPerBiome   = CommandLineArgs.TryParseValue<int>(nameof(numPerBiome))   ?? 10,
             minCityLength = CommandLineArgs.TryParseValue<int>(nameof(minCityLength)) ?? 5,
             maxCityLength = CommandLineArgs.TryParseValue<int>(nameof(maxCityLength)) ?? 40;
-
+        File.WriteAllText("test.txt","");
+        using FileStream fs = File.OpenWrite("test.txt");
+        using StreamWriter sw = new(fs);
+        NgramInfo query = new("Ra", "", "Temperate Broadleaf & Mixed Forests");
         if (generator is MulticlassStringGenerator mc)
         {
             // Console.WriteLine(mc.KeyValueMapper.OrderBy(x => x.Key).Select(x => $"\n{x.Key}\t{x.Value}").ListNotation());
             // Console.WriteLine(mc.KeyValueMapper.Values.Count(x => mc.KeyValueMapper.Values.Count(y => x == y) > 1));
-            CharacterPrediction prediction = mc.Predict(new("Ra", "", "Temperate Broadleaf & Mixed Forests"));
+            CharacterPrediction prediction = mc.Predict(query);
             Console.WriteLine($"Total weight: {prediction.CharacterWeights.Sum()}");
+            Console.WriteLine($"Weight Count: {prediction.CharacterWeights.Length}");
+            Console.WriteLine($"Id Count:     {mc.KeyValueMapper.Keys.Count()}");
             float max = prediction.CharacterWeights.Max();
-            foreach((int id, string character) in mc.KeyValueMapper)
+            foreach ((int id, string character) in mc.KeyValueMapper.OrderBy(x => x.Key))
             {
-                Console.WriteLine($"{id}\t{prediction.CharacterWeights[id]/max:P2}\t{character}");
+                sw.Write($"{id}\t");
+                if (id < prediction.CharacterWeights.Length)
+                    sw.Write($"{prediction.CharacterWeights[id] / max:P2}");
+                sw.WriteLine($"\t{character}");
             }
         }
         if (generator is MarkovSetStringGenerator ms)
         {
             Console.WriteLine(ms.Alphabet.Count);
         }
+        for (int i = 0; i < 10; i++)
+            Console.WriteLine(generator.RandomString(query, 20));
         return;
         foreach (string biome in DataProcessor.BiomeCache.Order())
         {
