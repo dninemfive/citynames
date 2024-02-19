@@ -99,10 +99,10 @@ public class Program
             Console.WriteLine(ms.Alphabet.Count);
         }
         for (int i = 0; i < 10; i++)
-            Console.WriteLine(generator.RandomString(query, 20));
+            Console.WriteLine(generator.RandomString(query, 5, 20));
         ISaveableStringGenerator<NgramInfo> generator2 = await BuildOrLoadGeneratorAsync<MarkovSetStringGenerator>(new($"generators_{contextLength}.json", contextLength));
         for (int i = 0; i < 10; i++)
-            Console.WriteLine(generator2.RandomString(query, 20));
+            Console.WriteLine(generator2.RandomString(query, 5, 20));
         return;
         foreach (string biome in DataProcessor.BiomeCache.Order())
         {

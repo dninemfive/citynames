@@ -96,22 +96,23 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
                                                         .Take(10);
         return KeyValueMapper[top10.WeightedRandomElement(x => x.weight).index];
     }*/
-    public string RandomString(NgramInfo input, int maxLength = 100)
+    public string RandomString(NgramInfo input, int minLength = 1, int maxLength = 100)
     {
         string context = input.Context.Last(2), result = input.Context;
         int ct = 0;
         while (++ct < maxLength)
         {
             CharacterPrediction prediction = Predict(new(context, "", input.Biome));
-            float[] weights = prediction.CharacterWeights.Select(x => x * x).ToArray();
-            IEnumerable<string> top10 = 0.To(weights.Length)
-                                         .Zip(weights)
-                                         .OrderByDescending(x => x.Second)
-                                         .Take(10)
-                                         .Select(x => $"{KeyValueMapper[x.First].FileNameSafe()}: {x.Second,7:F4}");
-            float threshold = weights.Average();
-            Console.WriteLine($"{result,20} + {top10.ListNotation()} (threshold: {threshold})");
-            context = $"{context}{KeyValueMapper[weights.Where(x => x > threshold).Argrand() + 1]}".Last(2);
+            IEnumerable<(int index, float weight)> weightedIndices = 0.To(prediction.CharacterWeights.Length)
+                                                                      .Select(x => x + 1)
+                                                                      .Zip(prediction.CharacterWeights);
+            float threshold = prediction.CharacterWeights.Min() + prediction.CharacterWeights.StandardDeviation();
+            weightedIndices = weightedIndices.Where(x => ct >= minLength || !KeyValueMapper[x.index].Contains(Characters.STOP));
+            IEnumerable<string> validIds  = weightedIndices.Where(x => x.weight > threshold)
+                                                           .OrderByDescending(x => x.weight)
+                                                           .Select(x => $"{KeyValueMapper[x.index]}/{(int)KeyValueMapper[x.index][0]}: {x.weight,7:F4}");
+            Console.WriteLine($"{result,20} + {validIds.ListNotation()} (threshold: {threshold})");
+            context = $"{context}{KeyValueMapper[weightedIndices.Where(x => x.weight > threshold).WeightedRandomElement(x => x.weight).index]}".Last(2);
             if (context.Contains(Characters.STOP))
                 break;
             result += context.Last();

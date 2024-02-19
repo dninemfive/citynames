@@ -52,12 +52,12 @@ public class MarkovStringGenerator
         if (!Data.Any())
             throw new InvalidOperationException("Attempted to generate from a markov string generator with no data!");
         string context = query.Context.Last(ContextLength), result = query.Context;
-        int ct = 0;
-        while (++ct < maxLength)
+        while (result.Length < maxLength)
         {
             if (Data.TryGetValue(context, out CountingDictionary<string, int>? dict))
             {
-                context = $"{context}{dict.WeightedRandomElement(x => x.Value).Key}".Last(ContextLength);
+                context = $"{context}{dict.WeightedRandomElement(x => x.Value).Key}"
+                                          .Last(ContextLength);
                 if (context.Contains(Characters.STOP))
                     break;
             }

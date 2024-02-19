@@ -1,7 +1,7 @@
 ﻿namespace citynames;
 public interface ISaveableStringGenerator<T>
 {
-    public string RandomString(T input, int maxLength);
+    public string RandomString(T input, int minLength, int maxLength);
     public Task SaveAsync(string path);
 }
 public static class StringGeneratorExtensions
@@ -12,7 +12,7 @@ public static class StringGeneratorExtensions
         int ct = 0;
         while (result.Length < min || result.Length > max)
         {
-            result = generator.RandomString(input, max);
+            result = generator.RandomString(input, min, max);
             if (++ct == maxAttempts)
             {
                 Console.WriteLine($"Failed to generate random string with target length [{min}..{max}] after {maxAttempts} attempts.");
