@@ -57,7 +57,7 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
             return _predictionEngine;
         }
     }
-    public static readonly TextLoader.Options CsvLoaderOptions = new() { HasHeader = true, Separators = new char[] { ','} };
+    public static readonly TextLoader.Options CsvLoaderOptions = new() { HasHeader = true, Separators = new char[] { ','}, TrimWhitespace = false };
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value [...]: only called by LoadAsync and BuildAsync,
                                // which definitely initialize Data
     private MulticlassStringGenerator()
@@ -78,6 +78,7 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
     }
     public static async Task<MulticlassStringGenerator> BuildAsync(IAsyncEnumerable<NgramInfo> ngrams, int _ = 2)
     {
+        Console.WriteLine($"{nameof(BuildAsync)}()");
         MulticlassStringGenerator result = new();
         result.Data = await Task.Run(() => result._mlContext.Data.LoadFromEnumerable(ngrams.ToBlockingEnumerable()));
         return result;
@@ -121,6 +122,6 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
                 break;
             result += context.Last();
         }
-        return result.Replace($"{Characters.STOP}", "$");
+        return result;
     }
 }

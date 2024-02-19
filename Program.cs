@@ -93,6 +93,7 @@ public class Program
                     sw.Write($"{prediction.CharacterWeights[id] / max:P2}");
                 sw.WriteLine($"\t{character}");
             }
+            Console.WriteLine(mc.KeyValueMapper.Where(x => x.Value == " ").First().Key);
         }
         if (generator is MarkovSetStringGenerator ms)
         {

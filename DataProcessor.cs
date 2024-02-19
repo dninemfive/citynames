@@ -38,6 +38,7 @@ public static class DataProcessor
     }
     public static async IAsyncEnumerable<NgramInfo> ToNgramsAsync(this IAsyncEnumerable<(string cityName, string biome)> rawData, int contextLength = 2, string breakChars = ",(")
     {
+        Console.WriteLine($"{nameof(ToNgramsAsync)}()");
         await foreach((string cityName, string biome) in rawData)
             foreach (NgramInfo ngram in cityName.ToNgramsInternal(biome, contextLength, breakChars))
                 yield return ngram;

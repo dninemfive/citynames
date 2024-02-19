@@ -11,23 +11,24 @@ public static class Querier
     private static readonly HttpClient _client = new();
     public static async IAsyncEnumerable<(string city, string biome)> GetAllCityDataAsync()
     {
+        Console.WriteLine("GetAllCityDataAsync()");
         int ct = 0;
         foreach((string city, LatLongPair coords) in GetCityData())
         {
             (string? biome, bool cacheHit) = await GetBiomeAsync(coords);
-            Console.Write($"{++ct,8}\t{(cacheHit ? "" : "MISS"),4}\t");
+            // Console.Write($"{++ct,8}\t{(cacheHit ? "" : "MISS"),4}\t");
             if (biome is null)
             {
-                Console.WriteLine($"Could not find biome for {coords} ({city})!");
+                // Console.WriteLine($"Could not find biome for {coords} ({city})!");
                 continue;
             } 
             else
             {
-                Console.WriteLine($"{city,-32}\t{coords.TableString,-24}\t{biome}");
+                // Console.WriteLine($"{city,-32}\t{coords.TableString,-24}\t{biome}");
             }
             yield return (city, biome);
-            if(ct % 100 == 0) 
-                await SaveCache();
+            // if(ct % 100 == 0) 
+            //    await SaveCache();
         }
     }
     public static IEnumerable<(string city, LatLongPair coords)> GetCityData(int threshold = 50000, int limit = 10000)
