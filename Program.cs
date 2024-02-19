@@ -40,17 +40,25 @@ public class Program
     }
     private static async Task Main()
     {
+        // DataProcessor.WriteCsv();
         MulticlassStringGenerator mcsg = await MulticlassStringGenerator.LoadAsync("transformedData.csv");
         Console.WriteLine(mcsg.Predict(NgramInfo.Query("Montane Grasslands & Shrublands")).CharacterWeights.ListNotation());
+        Console.WriteLine($"{mcsg.Data.GetRowCount()}");
         DataDebuggerPreview preview = mcsg.Model.Preview(mcsg.Data, maxRows: 10000);
         ImmutableArray<DataDebuggerPreview.ColumnInfo> columnView = preview.ColumnView;
+        IEnumerable<int> ids = columnView.First(x => x.Column.Name == "Label").Values.Select(x => int.Parse($"{x}"));
+        IEnumerable<string> characters = columnView.First(x => x.Column.Name == "Successor").Values.Select(x => $"{x}");
+        // dictionary in case this ends up sparse somehow
+        Dictionary<int, string> result = new();
+        foreach ((int key, string value) in ids.Zip(characters))
+            result[key] = value;
         Console.WriteLine(columnView.Select(x => x.Column.Name).ListNotation());
         Console.WriteLine($"{columnView[1].Column.Name}");
         Console.WriteLine($"{columnView[3].Column.Name}");
         foreach ((object successor, object label) in columnView[1].Values.Select(x => $"{x}")
-                                                                         .Zip(columnView[3].Values.Select(x => $"{x}"))
+                                                                         .Zip(columnView[3].Values.Select(x => int.Parse($"{x}")))
                                                                          .DistinctBy(x => x.First)
-                                                                         .OrderBy(x => x.First))
+                                                                         .OrderBy(x => x.Second))
             Console.WriteLine($"{successor}\t{label}");
         return;
         // DataProcessor.WriteCsv();

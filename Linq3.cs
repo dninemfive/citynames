@@ -31,4 +31,9 @@ public static class Linq3
     }
     public static string JoinWithDelim<T>(this IEnumerable<T> enumerable, string delim)
         => enumerable.Select(x => x?.ToString().PrintNull()).Aggregate((x, y) => $"{x}{delim}{y}")!;
+    public static int Argrand(this IEnumerable<float> items)
+    {
+        IEnumerable<int> indices = 0.To(items.Count());
+        return indices.Zip(items).WeightedRandomElement(t => t.Second).First;
+    }
 }

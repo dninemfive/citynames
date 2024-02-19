@@ -3,6 +3,7 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,27 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
             Model = Pipeline.Append(_mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy())
                             .Append(_mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"))
                             .Fit(Data);
+            // dirty the key-value maps in case they're sensitive to data used
+            _keyValueMapper = null;
+        }
+    }
+    private Dictionary<int, string>? _keyValueMapper = null;
+    public IReadOnlyDictionary<int, string> KeyValueMapper
+    {
+        get
+        {
+            if(_keyValueMapper is null)
+            {
+                DataDebuggerPreview preview = Model.Preview(Data, maxRows: 10000);
+                ImmutableArray<DataDebuggerPreview.ColumnInfo> columnView = preview.ColumnView;
+                IEnumerable<int> ids = columnView.First(x => x.Column.Name == "Label").Values.Select(x => int.Parse($"{x}"));
+                IEnumerable<string> characters = columnView.First(x => x.Column.Name == "Successor").Values.Select(x => $"{x}");
+                // dictionary in case this ends up sparse somehow
+                _keyValueMapper = new();
+                foreach ((int key, string value) in ids.Zip(characters))
+                    _keyValueMapper[key] = value;
+            }
+            return _keyValueMapper;
         }
     }
     public EstimatorChain<ColumnConcatenatingTransformer> Pipeline { get; private set; }
@@ -62,11 +84,8 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
     }
     public CharacterPrediction Predict(NgramInfo input)
         => PredictionEngine.Predict(input);
-    public char RandomChar(NgramInfo input)
-    {
-        // todo: find out how to map weights to their respective characters
-        throw new NotImplementedException();
-    }
+    public string RandomChar(NgramInfo input)
+        => KeyValueMapper[Predict(input).CharacterWeights.Argrand()];
     public string RandomString(NgramInfo input)
     {
         string context = "", result = "";
