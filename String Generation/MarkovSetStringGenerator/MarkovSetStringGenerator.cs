@@ -35,4 +35,5 @@ internal class MarkovSetStringGenerator : IBuildLoadAbleStringGenerator<NgramInf
         }
         return result;
     }
+    public HashSet<string> Alphabet => _dict.SelectMany(x => x.Value.Data.Values.SelectMany(y => y.Keys)).Distinct().ToHashSet();
 }

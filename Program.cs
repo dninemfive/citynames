@@ -40,7 +40,7 @@ public class Program
     }
     private static async Task Main()
     {
-        DataProcessor.WriteCsv();
+        //DataProcessor.WriteCsv();
         // PrintPreview(dataView, 250);
         // IDataView predictions = model.Transform(dataView);
         //MulticlassClassificationMetrics metrics = mlContext.MulticlassClassification.Evaluate(predictions);
@@ -83,8 +83,22 @@ public class Program
             maxCityLength = CommandLineArgs.TryParseValue<int>(nameof(maxCityLength)) ?? 40;
 
         if (generator is MulticlassStringGenerator mc)
-            Console.WriteLine(mc.KeyValueMapper.OrderBy(x => x.Key).Select(x => $"\n{x.Key}\t{x.Value}").ListNotation());
-
+        {
+            // Console.WriteLine(mc.KeyValueMapper.OrderBy(x => x.Key).Select(x => $"\n{x.Key}\t{x.Value}").ListNotation());
+            // Console.WriteLine(mc.KeyValueMapper.Values.Count(x => mc.KeyValueMapper.Values.Count(y => x == y) > 1));
+            CharacterPrediction prediction = mc.Predict(new("Ra", "", "Temperate Broadleaf & Mixed Forests"));
+            Console.WriteLine($"Total weight: {prediction.CharacterWeights.Sum()}");
+            float max = prediction.CharacterWeights.Max();
+            foreach((int id, string character) in mc.KeyValueMapper)
+            {
+                Console.WriteLine($"{id}\t{prediction.CharacterWeights[id]/max:P2}\t{character}");
+            }
+        }
+        if (generator is MarkovSetStringGenerator ms)
+        {
+            Console.WriteLine(ms.Alphabet.Count);
+        }
+        return;
         foreach (string biome in DataProcessor.BiomeCache.Order())
         {
             Console.WriteLine(biome);
