@@ -34,7 +34,7 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
         {
             if(_keyValueMapper is null)
             {
-                DataDebuggerPreview preview = Model.Preview(Data, maxRows: 10000);
+                DataDebuggerPreview preview = Model.Preview(Data, maxRows: int.MaxValue);
                 ImmutableArray<DataDebuggerPreview.ColumnInfo> columnView = preview.ColumnView;
                 IEnumerable<int> ids = columnView.First(x => x.Column.Name == "Label").Values.Select(x => int.Parse($"{x}"));
                 IEnumerable<string> characters = columnView.First(x => x.Column.Name == "Successor").Values.Select(x => $"{x}");
@@ -86,16 +86,19 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
         => PredictionEngine.Predict(input);
     public string RandomChar(NgramInfo input)
         => KeyValueMapper[Predict(input).CharacterWeights.Argrand()];
-    public string RandomString(NgramInfo input)
+    public string RandomString(NgramInfo input, int maxLength = 100)
     {
         string context = "", result = "";
-        while (true)
+        int ct = 0;
+        while (ct++ < maxLength)
         {
             context = $"{context}{RandomChar(input)}".Last(2);
             if (context.Contains(Characters.STOP))
                 break;
             result += context.Last();
         }
+        if (ct >= maxLength)
+            Console.WriteLine($"Reached max length {ct}: {result}");
         return result.Replace($"{Characters.STOP}", "");
     }
 }

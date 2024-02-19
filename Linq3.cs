@@ -33,6 +33,7 @@ public static class Linq3
         => enumerable.Select(x => x?.ToString().PrintNull()).Aggregate((x, y) => $"{x}{delim}{y}")!;
     public static int Argrand(this IEnumerable<float> items)
     {
+        //Console.WriteLine($"{nameof(Argrand)}({items.Count()} {typeof(float).Name}s)");
         IEnumerable<int> indices = 0.To(items.Count());
         return indices.Zip(items).WeightedRandomElement(t => t.Second).First;
     }

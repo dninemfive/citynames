@@ -14,7 +14,7 @@ internal class MarkovSetStringGenerator : IBuildLoadAbleStringGenerator<NgramInf
     }
     internal bool TryGetValue(string key, [NotNullWhen(true)]out MarkovStringGenerator? value)
         => _dict.TryGetValue(key, out value);
-    public string RandomString(NgramInfo input)
+    public string RandomString(NgramInfo input, int _)
         => this[input.Biome].RandomString;
     internal IEnumerable<string> Biomes => _dict.Keys;
     public static async Task<MarkovSetStringGenerator> LoadAsync(string path)

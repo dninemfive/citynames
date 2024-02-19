@@ -2,7 +2,7 @@
   "profiles": {
     "citynames": {
       "commandName": "Project",
-      "commandLineArgs": "--numPerBiome 100"
+      "commandLineArgs": "--numPerBiome 10 --generator multiclass"
     }
   }
 }
