@@ -65,7 +65,7 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
     {
         Pipeline = _mlContext.Transforms.Conversion.MapValueToKey("Label", "Successor")
                              .Append(_mlContext.Transforms.Categorical.OneHotEncoding("BiomeEncoded", "Biome"))
-                             .Append(_mlContext.Transforms.Text.FeaturizeText("ContextEncoded", "Context"))
+                             .Append(_mlContext.Transforms.Categorical.OneHotEncoding("ContextEncoded", "Context"))
                              .Append(_mlContext.Transforms.Concatenate("Features", "BiomeEncoded", "ContextEncoded"));
     }
     public async Task SaveAsync(string name = "model.zip")
@@ -98,11 +98,19 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
     }*/
     public string RandomString(NgramInfo input, int maxLength = 100)
     {
-        string context = input.Context, result = input.Context;
+        string context = input.Context.Last(2), result = input.Context;
         int ct = 0;
         while (++ct < maxLength)
         {
-            context = $"{context}{RandomChar(input)}".Last(2);
+            CharacterPrediction prediction = Predict(new(context, "", input.Biome));
+            float[] weights = prediction.CharacterWeights.Select(x => x * x).ToArray();
+            IEnumerable<string> top10 = 0.To(weights.Length)
+                                         .Zip(weights)
+                                         .OrderByDescending(x => x.Second)
+                                         .Take(10)
+                                         .Select(x => $"{KeyValueMapper[x.First].FileNameSafe(),3}: {x.Second / weights.Max():G2}");
+            Console.WriteLine($"{result,20} + {top10.ListNotation()}");
+            context = $"{context}{KeyValueMapper[weights.Argrand() + 1]}".Last(2);
             if (context.Contains(Characters.STOP))
                 break;
             result += context.Last();

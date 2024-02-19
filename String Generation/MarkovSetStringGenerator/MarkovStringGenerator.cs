@@ -51,7 +51,7 @@ public class MarkovStringGenerator
     {
         if (!Data.Any())
             throw new InvalidOperationException("Attempted to generate from a markov string generator with no data!");
-        string context = query.Context, result = query.Context;
+        string context = query.Context.Last(ContextLength), result = query.Context;
         int ct = 0;
         while (++ct < maxLength)
         {
