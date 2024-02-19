@@ -47,30 +47,27 @@ public class MarkovStringGenerator
         foreach (NgramInfo ngram in ngrams)
             Add(ngram);
     }
-    [JsonIgnore]
-    public string RandomString
+    public string RandomString(NgramInfo query, int maxLength = 100)
     {
-        get
+        if (!Data.Any())
+            throw new InvalidOperationException("Attempted to generate from a markov string generator with no data!");
+        string context = query.Context, result = query.Context;
+        int ct = 0;
+        while (++ct < maxLength)
         {
-            if (!Data.Any())
-                throw new InvalidOperationException("Attempted to generate from a markov string generator with no data!");
-            string context = "", result = "";
-            while(true)
+            if (Data.TryGetValue(context, out CountingDictionary<string, int>? dict))
             {
-                if(Data.TryGetValue(context, out CountingDictionary<string, int>? dict))
-                {
-                    context = $"{context}{dict.WeightedRandomElement(x => x.Value).Key}".Last(ContextLength);
-                    if (context.Contains(Characters.STOP))
-                        break;
-                }
-                else
-                {
+                context = $"{context}{dict.WeightedRandomElement(x => x.Value).Key}".Last(ContextLength);
+                if (context.Contains(Characters.STOP))
                     break;
-                }
-                result += context.Last();
             }
-            return result.Replace($"{Characters.STOP}","");
+            else
+            {
+                break;
+            }
+            result += context.Last();
         }
+        return result.Replace($"{Characters.STOP}", "");
     }
     [JsonIgnore]
     public string DataString

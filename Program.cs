@@ -56,20 +56,12 @@ public class Program
         };
         bool buildGenerator = CommandLineArgs.GetFlag("rebuild") || !File.Exists(generatorFilename);
 
+        BuildOrLoadInfo bli = buildGenerator ? new(() => Querier.GetAllCityDataAsync().ToNgramsAsync(contextLength), contextLength)
+                                             : new(generatorFilename, contextLength);
         ISaveableStringGenerator<NgramInfo> generator = generatorType switch
         {
-            "markov" => await BuildOrLoadGeneratorAsync<MarkovSetStringGenerator>
-                                    (!buildGenerator,
-                                      generatorFilename,
-                                      () => Querier.GetAllCityDataAsync()
-                                                   .ToNgramsAsync(contextLength),
-                                      contextLength),
-            "multiclass" => await BuildOrLoadGeneratorAsync<MulticlassStringGenerator>
-                                    (!buildGenerator,
-                                      generatorFilename,
-                                      () => Querier.GetAllCityDataAsync()
-                                                   .ToNgramsAsync(contextLength),
-                                      contextLength),
+            "markov" => await BuildOrLoadGeneratorAsync<MarkovSetStringGenerator>(bli),
+            "multiclass" => await BuildOrLoadGeneratorAsync<MulticlassStringGenerator>(bli),
             _ => throw invalidGeneratorTypeException
         };
         await Querier.SaveCache().WithMessage("Saving cache");
@@ -108,6 +100,9 @@ public class Program
         }
         for (int i = 0; i < 10; i++)
             Console.WriteLine(generator.RandomString(query, 20));
+        ISaveableStringGenerator<NgramInfo> generator2 = await BuildOrLoadGeneratorAsync<MarkovSetStringGenerator>(new($"generators_{contextLength}.json", contextLength));
+        for (int i = 0; i < 10; i++)
+            Console.WriteLine(generator2.RandomString(query, 20));
         return;
         foreach (string biome in DataProcessor.BiomeCache.Order())
         {
@@ -118,13 +113,22 @@ public class Program
                 Utils.PrintAndWrite(path, name);
         }
     }
-    public static async Task<ISaveableStringGenerator<NgramInfo>> BuildOrLoadGeneratorAsync<T>(
-            bool load, 
-            string? path = null, 
-            Func<IAsyncEnumerable<NgramInfo>>? loadData = null, 
-            int contextLength = 2)
+    public class BuildOrLoadInfo
+    {
+        public bool Build => Path is null && (LoadingMethod ?? throw new Exception()) is not null;
+        public string? Path { get; private set; } = null;
+        public Func<IAsyncEnumerable<NgramInfo>>? LoadingMethod { get; private set; } = null;
+        public int ContextLength { get; private set; }
+        private BuildOrLoadInfo(int contextLength)
+            => ContextLength = contextLength;
+        public BuildOrLoadInfo(string path, int contextLength = 2) : this(contextLength)
+            => Path = path;
+        public BuildOrLoadInfo(Func<IAsyncEnumerable<NgramInfo>> func, int contextLength = 2) : this(contextLength)
+            => LoadingMethod = func;
+    }
+    public static async Task<ISaveableStringGenerator<NgramInfo>> BuildOrLoadGeneratorAsync<T>(BuildOrLoadInfo bli)
         where T : IBuildLoadAbleStringGenerator<NgramInfo, T>
-        => await (load ? T.LoadAsync(path!)
-                       : T.BuildAsync(loadData!(), contextLength))
-                          .WithMessage($"{(load ? "Load" : "Build")}ing generator");
+        => await (bli.Build ? T.BuildAsync(bli.LoadingMethod!(), bli.ContextLength)
+                            : T.LoadAsync(bli.Path!))
+                            .WithMessage($"{(bli.Build ? "Buil" : "Loa")}ding generator");
 }
