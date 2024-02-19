@@ -108,13 +108,14 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
                                          .Zip(weights)
                                          .OrderByDescending(x => x.Second)
                                          .Take(10)
-                                         .Select(x => $"{KeyValueMapper[x.First].FileNameSafe(),3}: {x.Second / weights.Max():G2}");
-            Console.WriteLine($"{result,20} + {top10.ListNotation()}");
-            context = $"{context}{KeyValueMapper[weights.Argrand() + 1]}".Last(2);
+                                         .Select(x => $"{KeyValueMapper[x.First].FileNameSafe()}: {x.Second,7:F4}");
+            float threshold = weights.Average();
+            Console.WriteLine($"{result,20} + {top10.ListNotation()} (threshold: {threshold})");
+            context = $"{context}{KeyValueMapper[weights.Where(x => x > threshold).Argrand() + 1]}".Last(2);
             if (context.Contains(Characters.STOP))
                 break;
             result += context.Last();
         }
-        return result.Replace($"{Characters.STOP}", "");
+        return result.Replace($"{Characters.STOP}", "$");
     }
 }
