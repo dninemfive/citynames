@@ -12,7 +12,6 @@ public static class Querier
     public static async IAsyncEnumerable<(string city, string biome)> GetAllCityDataAsync()
     {
         Console.WriteLine("GetAllCityDataAsync()");
-        int ct = 0;
         foreach((string city, LatLongPair coords) in GetCityData())
         {
             (string? biome, bool cacheHit) = await GetBiomeAsync(coords);

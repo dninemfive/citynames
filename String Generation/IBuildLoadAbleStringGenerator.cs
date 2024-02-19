@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 namespace citynames;
 public interface IBuildLoadAbleStringGenerator<T, TSelf> : ISaveableStringGenerator<T>
 {
-    public static abstract Task<TSelf> BuildAsync(IAsyncEnumerable<T> input, int contextLength = 2);
-    public static abstract Task<TSelf> LoadAsync(string path);
+    public static abstract TSelf Build(IEnumerable<T> input, int contextLength = 2);
+    public static abstract TSelf Load(string path);
 }

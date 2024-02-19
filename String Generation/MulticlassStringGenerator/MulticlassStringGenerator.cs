@@ -70,17 +70,16 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
     }
     public async Task SaveAsync(string name = "model.zip")
         => await Task.Run(() => _mlContext.Model.Save(Model, Data.Schema, name));
-    public static async Task<MulticlassStringGenerator> LoadAsync(string path)
+    public static MulticlassStringGenerator Load(string path)
     {
         MulticlassStringGenerator result = new();
-        result.Data = await Task.Run(() => result._mlContext.Data.LoadFromTextFile<NgramInfo>(path, CsvLoaderOptions));
+        result.Data = result._mlContext.Data.LoadFromTextFile<NgramInfo>(path, CsvLoaderOptions);
         return result;
     }
-    public static async Task<MulticlassStringGenerator> BuildAsync(IAsyncEnumerable<NgramInfo> ngrams, int _ = 2)
+    public static MulticlassStringGenerator Build(IEnumerable<NgramInfo> ngrams, int _ = 2)
     {
-        Console.WriteLine($"{nameof(BuildAsync)}()");
         MulticlassStringGenerator result = new();
-        result.Data = await Task.Run(() => result._mlContext.Data.LoadFromEnumerable(ngrams.ToBlockingEnumerable()));
+        result.Data = result._mlContext.Data.LoadFromEnumerable(ngrams.ToList());
         return result;
     }
     public CharacterPrediction Predict(NgramInfo input)
