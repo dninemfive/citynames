@@ -38,5 +38,5 @@ public static class Linq3
         return indices.Zip(items).WeightedRandomElement(t => t.Second).First;
     }
     public static float StandardDeviation(this IEnumerable<float> items)
-        => (float)Math.Sqrt(items.Average(x => Math.Pow(x - items.Median((x, y) => (x + y) / 2), 2)));
+        => (float)Math.Sqrt(items.Average(x => Math.Pow(x - items.Average(), 2)));
 }
