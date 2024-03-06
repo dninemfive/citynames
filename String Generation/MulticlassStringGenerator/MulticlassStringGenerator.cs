@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Data;
 
 namespace citynames;
-[Generator("MultiClass", "model.zip")]
+[Generator("multiclass", "model.zip")]
 public class MulticlassStringGenerator : IBuildLoadableStringGenerator<NgramInfo, MulticlassStringGenerator>
 {
     private readonly MLContext _mlContext = new();

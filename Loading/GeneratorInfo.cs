@@ -27,7 +27,7 @@ internal class GeneratorInfo
         => TryGetByName(name, out GeneratorInfo? result) ? result : throw InvalidGeneratorTypeException(name);
     private static ArgumentException InvalidGeneratorTypeException(string name)
         => new($"--generator argument must be {_dict.Keys.Order().NaturalLanguageList()}, not {name}!");
-    private static readonly BindingFlags _staticAndPublic = BindingFlags.Static | BindingFlags.Public;
+    private static readonly BindingFlags _staticAndPublic = BindingFlags.Static | BindingFlags.Public | BindingFlags.InvokeMethod;
     public async Task<ISaveableStringGenerator<NgramInfo>> Instantiate(int contextLength = 2, IEnumerable<NgramInfo>? ngrams = null)
     {
         bool build = ngrams is null;

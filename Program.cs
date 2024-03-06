@@ -3,6 +3,7 @@ using d9.utl;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -32,36 +33,15 @@ public class Program
             minCityLength = CommandLineArgs.TryParseValue<int>(nameof(minCityLength)) ??  5,
             maxCityLength = CommandLineArgs.TryParseValue<int>(nameof(maxCityLength)) ?? 40;
 
-        File.WriteAllText("test.txt","");
-        using FileStream fs = File.OpenWrite("test.txt");
-        using StreamWriter sw = new(fs);
+        
         NgramInfo query = new("Be", "", "Temperate Broadleaf & Mixed Forests");
         if (generator is MulticlassStringGenerator mc)
-        {
-            // Console.WriteLine(mc.KeyValueMapper.OrderBy(x => x.Key).Select(x => $"\n{x.Key}\t{x.Value}").ListNotation());
-            // Console.WriteLine(mc.KeyValueMapper.Values.Count(x => mc.KeyValueMapper.Values.Count(y => x == y) > 1));
-            CharacterPrediction prediction = mc.Predict(query);
-            Console.WriteLine($"Total weight: {prediction.CharacterWeights.Sum()}");
-            Console.WriteLine($"Weight Count: {prediction.CharacterWeights.Length}");
-            Console.WriteLine($"Id Count:     {mc.KeyValueMapper.Keys.Count()}");
-            float max = prediction.CharacterWeights.Max();
-            foreach ((int id, string character) in mc.KeyValueMapper.OrderBy(x => x.Key))
-            {
-                sw.Write($"{id}\t");
-                if (id < prediction.CharacterWeights.Length)
-                    sw.Write($"{prediction.CharacterWeights[id] / max:P2}");
-                sw.WriteLine($"\t{character}");
-            }
-        }
-        if (generator is MarkovSetStringGenerator ms)
-        {
-            Console.WriteLine(ms.Alphabet.Count);
-        }
+            TestMulticlassStringGenerator(mc, query);
         for (int i = 0; i < 10; i++)
             Console.WriteLine(generator.RandomString(query, 5, 20));
-        ISaveableStringGenerator<NgramInfo> generator2 = MarkovSetStringGenerator.Load($"generators_{ContextLength}.json");
+        MarkovSetStringGenerator control = MarkovSetStringGenerator.Load($"generators_{ContextLength}.json");
         for (int i = 0; i < 10; i++)
-            Console.WriteLine(generator2.RandomString(query, 5, 20));
+            Console.WriteLine(control.RandomString(query, 5, 20));
         return;
         foreach (string biome in DataProcessor.BiomeCache.Order())
         {
@@ -70,6 +50,26 @@ public class Program
             path.CreateIfNotExists();
             foreach (string name in generator.RandomStringsOfLength(NgramInfo.Query(biome), numPerBiome, minCityLength, maxCityLength))
                 Utils.PrintAndWrite(path, name);
+        }
+    }
+    private static void TestMulticlassStringGenerator(MulticlassStringGenerator mc, NgramInfo query)
+    {
+        File.WriteAllText("test.txt", "");
+        using FileStream fs = File.OpenWrite("test.txt");
+        using StreamWriter sw = new(fs);
+        // Console.WriteLine(mc.KeyValueMapper.OrderBy(x => x.Key).Select(x => $"\n{x.Key}\t{x.Value}").ListNotation());
+        // Console.WriteLine(mc.KeyValueMapper.Values.Count(x => mc.KeyValueMapper.Values.Count(y => x == y) > 1));
+        CharacterPrediction prediction = mc.Predict(query);
+        Console.WriteLine($"Total weight: {prediction.CharacterWeights.Sum()}");
+        Console.WriteLine($"Weight Count: {prediction.CharacterWeights.Length}");
+        Console.WriteLine($"Id Count:     {mc.KeyValueMapper.Keys.Count()}");
+        float max = prediction.CharacterWeights.Max();
+        foreach ((int id, string character) in mc.KeyValueMapper.OrderBy(x => x.Key))
+        {
+            sw.Write($"{id}\t");
+            if (id < prediction.CharacterWeights.Length)
+                sw.Write($"{prediction.CharacterWeights[id] / max:P2}");
+            sw.WriteLine($"\t{character}");
         }
     }
 }
