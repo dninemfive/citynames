@@ -10,12 +10,20 @@ public class EnhancedMarkovStringGenerator
     public int ContextLength { get; private set; }
     private readonly Dictionary<string, MarkovCharacterGenerator> _dict;
     private readonly MarkovCharacterGenerator _prior;
-    public EnhancedMarkovStringGenerator(int contextLength = 2) : this(null, null, contextLength) { }
-    public EnhancedMarkovStringGenerator(Dictionary<string, MarkovCharacterGenerator>? dict = null, MarkovCharacterGenerator? prior = null, int contextLength = 2)
+    private readonly Func<float, float> _activationFunction;
+    private float DefaultActivationFunction(float input)
+        => (float)Math.Max(Math.Pow(input, 9), 0);
+    public EnhancedMarkovStringGenerator(int contextLength = 2) : this(null, null, null, contextLength) { }
+    public EnhancedMarkovStringGenerator(Dictionary<string, 
+                                         MarkovCharacterGenerator>? dict = null, 
+                                         MarkovCharacterGenerator? prior = null, 
+                                         Func<float, float>? activationFunction = null, 
+                                         int contextLength = 2)
     {
         ContextLength = contextLength;
         _dict = dict ?? new();
         _prior = prior ?? new(2);
+        _activationFunction = activationFunction ?? DefaultActivationFunction;
     }
     internal MarkovCharacterGenerator this[string key]
     {
@@ -24,15 +32,14 @@ public class EnhancedMarkovStringGenerator
     }
     internal bool TryGetValue(string key, [NotNullWhen(true)]out MarkovCharacterGenerator? value)
         => _dict.TryGetValue(key, out value);
-    private string RandomString(Dictionary<string, float> biomeWeights)
+    private string RandomString(Dictionary<string, float> biomeWeights, int minLength, int maxLength)
     {
         MarkovCharacterGenerator ensemble = biomeWeights.Select(x => _dict[x.Key] * x.Value)
                                                         .Sum();
     }
     private float CharacterWeight(MarkovCharacterGenerator ensemble, string context, string character)
     {
-        float priorProbability = _prior[context][character] / _prior[context].Values.Sum(),
-              marginalProbability = ensemble[context][character] / ensemble[context].Values.Sum();
+        float priorWeight = _activationFunction(_prior[context])
     }
     internal IEnumerable<string> Biomes => _dict.Keys;
     public static EnhancedMarkovStringGenerator Load(string path)
@@ -54,5 +61,4 @@ public class EnhancedMarkovStringGenerator
         }
         return result;
     }
-    public HashSet<string> Alphabet => _dict.SelectMany(x => x.Value.Data.Values.SelectMany(y => y.Keys)).Distinct().ToHashSet();
 }
