@@ -50,6 +50,16 @@ public class Program
         {
             throw new NotImplementedException();
         }
+        private static readonly Dictionary<string, GeneratorInfo> _dict 
+            = ReflectionUtils.AllLoadedTypesWithAttribute<GeneratorAttribute>()
+                             .Select(x => new GeneratorInfo(x, x.GetCustomAttribute<GeneratorAttribute>()!))
+                             .ToDictionary(x => x.Name);
+        public static bool TryGetByName(string name, [NotNullWhen(true)] out GeneratorInfo? info)
+            => _dict.TryGetValue(name, out info);
+        public static GeneratorInfo GetByName(string name)
+            => TryGetByName(name, out GeneratorInfo? result) ? result : throw InvalidGeneratorTypeException(name);
+        private static ArgumentException InvalidGeneratorTypeException(string name)
+            => new($"--generator argument must be {_dict.Keys.Order().NaturalLanguageList()}, not {name}!");
     }
     private static async Task Main()
     {
@@ -60,20 +70,14 @@ public class Program
         //Console.WriteLine(metrics.PrettyPrint());
         int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string generatorName = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "Markov";
-        Dictionary<string, GeneratorInfo> generators = ReflectionUtils.AllLoadedTypesWithAttribute<GeneratorAttribute>()
-                                                                                             .Select(x => new GeneratorInfo(x, x.GetCustomAttribute<GeneratorAttribute>()!))
-                                                                                             .ToDictionary(x => x.Name);
-        ArgumentException invalidGeneratorTypeException = new($"--generator argument must be {generators.Values.NaturalLanguageList()}, not {generatorName}!");
-        if (!generators.TryGetValue(generatorName, out GeneratorInfo generatorInfo))
-            throw invalidGeneratorTypeException;
+        GeneratorInfo generatorInfo = GeneratorInfo.GetByName(generatorName);
         string generatorFilename = generatorInfo.FileNameFor(contextLength);
         bool buildGenerator = CommandLineArgs.GetFlag("rebuild") || !File.Exists(generatorFilename);
-
         BuildOrLoadInfo bli = buildGenerator ? new(Querier.GetAllCityDataAsync()
                                                           .ToBlockingEnumerable()
                                                           .ToNgrams(contextLength), contextLength)
                                              : new(generatorFilename, contextLength);
-        ISaveableStringGenerator<NgramInfo> generator = BuildOrLoadGenerator(generators[generatorName].type, bli);
+        ISaveableStringGenerator<NgramInfo> generator = BuildOrLoadGenerator(generatorInfo.Type, bli);
         await Querier.SaveCache()
                      .WithMessage("Saving cache");
         if (buildGenerator)
@@ -150,8 +154,8 @@ public class Program
     public static ISaveableStringGenerator<NgramInfo> BuildOrLoadGenerator(Type t, BuildOrLoadInfo bli)
     {
         Console.WriteLine($"{(bli.Build ? "Buil" : "Loa")}ding generator...");
-        object? obj = bli.Build ? t.InvokeMember("Build", _staticAndPublic, null, null, new object?[] { bli.Ngrams!, bli.ContextLength })
-                                : t.InvokeMember("Load", _staticAndPublic, null, null, new object?[] { bli.Path! });
+        object? obj = bli.Build ? t.InvokeMember("Build", _staticAndPublic, null, null, [bli.Ngrams!, bli.ContextLength])
+                                : t.InvokeMember("Load", _staticAndPublic, null, null, [bli.Path!]);
         if(obj is ISaveableStringGenerator<NgramInfo> result)
         {
             Console.WriteLine("Done.");
