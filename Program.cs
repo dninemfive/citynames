@@ -39,6 +39,18 @@ public class Program
                 break;
         }
     }
+    internal class GeneratorInfo(Type type, GeneratorAttribute attr)
+    {
+        internal string Name = attr.Name, BaseFileName = attr.BaseFileName;
+        internal Type Type = type;
+        internal string FileNameFor(int contextLength)
+            => BaseFileName.Replace("{contextLength}", $"{contextLength}");
+        internal T Instantiate<T>()
+            where T : ISaveableStringGenerator<NgramInfo>
+        {
+            throw new NotImplementedException();
+        }
+    }
     private static async Task Main()
     {
         // DataProcessor.WriteCsv();
@@ -48,15 +60,13 @@ public class Program
         //Console.WriteLine(metrics.PrettyPrint());
         int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string generatorName = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "Markov";
-        Dictionary<string, (Type type, GeneratorAttribute attr)> generators = ReflectionUtils.AllLoadedTypesWithAttribute<GeneratorAttribute>()
-                                                                                             .Select(x => (x, x.GetCustomAttribute<GeneratorAttribute>()!))
-                                                                                             .Select(x => (x.Item2.Name, x))
-                                                                                             .ToDictionary();
-        ArgumentException invalidGeneratorTypeException = new($"--generator argument must be {generators.Values.Select(x => x.attr.Name)
-                                                                                                               .NaturalLanguageList()}, not {generatorName}!");
-        if (!generators.ContainsKey(generatorName))
+        Dictionary<string, GeneratorInfo> generators = ReflectionUtils.AllLoadedTypesWithAttribute<GeneratorAttribute>()
+                                                                                             .Select(x => new GeneratorInfo(x, x.GetCustomAttribute<GeneratorAttribute>()!))
+                                                                                             .ToDictionary(x => x.Name);
+        ArgumentException invalidGeneratorTypeException = new($"--generator argument must be {generators.Values.NaturalLanguageList()}, not {generatorName}!");
+        if (!generators.TryGetValue(generatorName, out GeneratorInfo generatorInfo))
             throw invalidGeneratorTypeException;
-        string generatorFilename = generators[generatorName].attr.FileNameFor(contextLength);
+        string generatorFilename = generatorInfo.FileNameFor(contextLength);
         bool buildGenerator = CommandLineArgs.GetFlag("rebuild") || !File.Exists(generatorFilename);
 
         BuildOrLoadInfo bli = buildGenerator ? new(Querier.GetAllCityDataAsync()
