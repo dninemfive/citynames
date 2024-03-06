@@ -55,7 +55,7 @@ public class Program
                                                           .ToBlockingEnumerable()
                                                           .ToNgrams(contextLength), contextLength)
                                              : new(generatorFilename, contextLength);
-        ISaveableStringGenerator<NgramInfo> generator = BuildOrLoadGenerator(generatorInfo.Type, bli);
+        ISaveableStringGenerator<NgramInfo> generator = generatorInfo.Instantiate(bli);
         await Querier.SaveCache()
                      .WithMessage("Saving cache");
         if (buildGenerator)
@@ -114,22 +114,5 @@ public class Program
                                                                : T.Load(bli.Path!);
         Console.WriteLine("Done.");
         return result;
-    }
-    private static readonly BindingFlags _staticAndPublic = BindingFlags.Static | BindingFlags.Public;
-    public static ISaveableStringGenerator<NgramInfo> BuildOrLoadGenerator(Type t, BuildOrLoadInfo bli)
-    {
-        Console.WriteLine($"{(bli.Build ? "Buil" : "Loa")}ding generator...");
-        object? obj = bli.Build ? t.InvokeMember("Build", _staticAndPublic, null, null, [bli.Ngrams!, bli.ContextLength])
-                                : t.InvokeMember("Load", _staticAndPublic, null, null, [bli.Path!]);
-        if(obj is ISaveableStringGenerator<NgramInfo> result)
-        {
-            Console.WriteLine("Done.");
-            return result;
-        }
-        else
-        {
-            Console.WriteLine("Failed!");
-            throw new ArgumentException($"{t.Name} does not implement IBuildLoadableStringGenerator!");
-        }
     }
 }

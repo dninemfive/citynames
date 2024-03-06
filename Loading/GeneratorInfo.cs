@@ -17,11 +17,6 @@ internal class GeneratorInfo
         => new (type, type.GetCustomAttribute<GeneratorAttribute>()!);
     internal string FileNameFor(int contextLength)
         => BaseFileName.Replace("{contextLength}", $"{contextLength}");
-    internal T Instantiate<T>()
-        where T : ISaveableStringGenerator<NgramInfo>
-    {
-        throw new NotImplementedException();
-    }
     private static readonly Dictionary<string, GeneratorInfo> _dict
             = ReflectionUtils.AllLoadedTypesWithAttribute<GeneratorAttribute>()
                              .Select(FromType)
@@ -32,4 +27,21 @@ internal class GeneratorInfo
         => TryGetByName(name, out GeneratorInfo? result) ? result : throw InvalidGeneratorTypeException(name);
     private static ArgumentException InvalidGeneratorTypeException(string name)
         => new($"--generator argument must be {_dict.Keys.Order().NaturalLanguageList()}, not {name}!");
+    private static readonly BindingFlags _staticAndPublic = BindingFlags.Static | BindingFlags.Public;
+    public ISaveableStringGenerator<NgramInfo> Instantiate(BuildOrLoadInfo bli)
+    {
+        Console.WriteLine($"{(bli.Build ? "Buil" : "Loa")}ding generator...");
+        object? obj = bli.Build ? Type.InvokeMember("Build", _staticAndPublic, null, null, [bli.Ngrams!, bli.ContextLength])
+                                : Type.InvokeMember("Load", _staticAndPublic, null, null, [bli.Path!]);
+        if (obj is ISaveableStringGenerator<NgramInfo> result)
+        {
+            Console.WriteLine("Done.");
+            return result;
+        }
+        else
+        {
+            Console.WriteLine("Failed!");
+            throw new ArgumentException($"{Type.Name} does not implement IBuildLoadableStringGenerator!");
+        }
+    }
 }
