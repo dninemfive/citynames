@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace citynames;
-[Generator("markov", "generators_{contextLength}.json")]
+[Generator("enhanced-markov", "generators_{contextLength}.json")]
 public class EnhancedMarkovStringGenerator
     : IBuildLoadableStringGenerator<NgramInfo, EnhancedMarkovStringGenerator>
 {
@@ -32,15 +32,23 @@ public class EnhancedMarkovStringGenerator
     }
     internal bool TryGetValue(string key, [NotNullWhen(true)]out MarkovCharacterGenerator? value)
         => _dict.TryGetValue(key, out value);
-    private string RandomString(Dictionary<string, float> biomeWeights, int minLength, int maxLength)
+    private MarkovCharacterGenerator WeightedEnsemble(Dictionary<string, float> biomeWeights)
     {
         MarkovCharacterGenerator ensemble = biomeWeights.Select(x => _dict[x.Key] * x.Value)
                                                         .Sum();
+        float priorWeight = _activationFunction(_prior.TotalWeight / ensemble.TotalWeight);
+        return (_prior * priorWeight) + (ensemble * (1 - priorWeight));
     }
-    private float CharacterWeight(MarkovCharacterGenerator ensemble, string context, string character)
+    private string RandomString(Dictionary<string, float> biomeWeights, int _, int maxLength)
     {
-        float priorWeight = _activationFunction(_prior[context])
+        MarkovCharacterGenerator weightedEnsemble = WeightedEnsemble(biomeWeights);
+        string result = "";
+        while(result.Length < maxLength && weightedEnsemble.RandomCharacter(result.Last(ContextLength), out string? next))
+            result += next;
+        return result;
     }
+    public string RandomString(NgramInfo query, int _, int maxLength)
+        => RandomString(new Dictionary<string, float>() { { query.Biome, 1 } }, _, maxLength);
     internal IEnumerable<string> Biomes => _dict.Keys;
     public static EnhancedMarkovStringGenerator Load(string path)
         => new(JsonSerializer.Deserialize<Dictionary<string, MarkovCharacterGenerator>>(File.ReadAllText(path))!);

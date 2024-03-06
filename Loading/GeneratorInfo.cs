@@ -28,11 +28,11 @@ internal class GeneratorInfo
     private static ArgumentException InvalidGeneratorTypeException(string name)
         => new($"--generator argument must be {_dict.Keys.Order().NaturalLanguageList()}, not {name}!");
     private static readonly BindingFlags _staticAndPublic = BindingFlags.Static | BindingFlags.Public | BindingFlags.InvokeMethod;
-    public async Task<ISaveableStringGenerator<NgramInfo>> Instantiate(int contextLength = 2, IEnumerable<NgramInfo>? ngrams = null)
+    public async Task<ISaveableStringGenerator<NgramInfo>> Instantiate(int contextLength = 2, Func<IEnumerable<NgramInfo>>? ngrams = null)
     {
         bool build = ngrams is null;
         Console.WriteLine($"{(build ? "Buil" : "Loa")}ding generator...");
-        object? obj = build ? Type.InvokeMember("Build", _staticAndPublic, null, null, [ngrams!, contextLength])
+        object? obj = build ? Type.InvokeMember("Build", _staticAndPublic, null, null, [ngrams!(), contextLength])
                             : Type.InvokeMember("Load", _staticAndPublic, null, null, [FileNameFor(contextLength)]);
         if (obj is ISaveableStringGenerator<NgramInfo> result)
         {
