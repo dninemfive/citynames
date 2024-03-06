@@ -19,8 +19,9 @@ public class Program
         // IDataView predictions = model.Transform(dataView);
         //MulticlassClassificationMetrics metrics = mlContext.MulticlassClassification.Evaluate(predictions);
         //Console.WriteLine(metrics.PrettyPrint());
-        string generatorName = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "markov";
+        Console.WriteLine(CommandLineArgs.IntermediateArgs);
         int contextLength    = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
+        string generatorName = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "markov";
         GeneratorInfo generatorInfo = GeneratorInfo.GetByName(generatorName);
         ISaveableStringGenerator<NgramInfo> test = await generatorInfo.Instantiate(contextLength,
                                                                                    () => Querier.GetAllCityData().ToNgrams(contextLength));
