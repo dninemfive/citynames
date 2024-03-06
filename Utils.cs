@@ -43,4 +43,12 @@ public static class Utils
             result += c.IsInvalidFileNameChar() ? $"`{(int)c}`" : c;
         return result;
     }
+    public static string NaturalLanguageList(this IEnumerable<string> strings, string conjunction = "or")
+        => strings.Count() switch
+        {
+            0 => "",
+            1 => strings.First(),
+            2 => $"{strings.First()} {conjunction} {strings.Last()}",
+            _ => $"{strings.SkipLast(1).Aggregate((x, y) => $"{x}, {y}")}, {conjunction} {strings.Last()}"
+        };
 }

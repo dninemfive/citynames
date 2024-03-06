@@ -2,7 +2,8 @@
 using System.Text.Json;
 
 namespace citynames;
-internal class MarkovSetStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo, MarkovSetStringGenerator>
+[Generator("Markov", "generators_{contextLength}.json")]
+public class MarkovSetStringGenerator : IBuildLoadableStringGenerator<NgramInfo, MarkovSetStringGenerator>
 {
     private readonly Dictionary<string, MarkovStringGenerator> _dict;
     internal MarkovSetStringGenerator(Dictionary<string, MarkovStringGenerator>? dict = null)

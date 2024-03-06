@@ -1,6 +1,5 @@
 ﻿using d9.utl;
 using System.Text.Json.Serialization;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace citynames;
 /// <summary>

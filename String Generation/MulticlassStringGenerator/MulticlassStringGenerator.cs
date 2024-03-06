@@ -1,16 +1,12 @@
 ﻿using d9.utl;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace citynames;
-public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo, MulticlassStringGenerator>
+[Generator("MultiClass", "model.zip")]
+public class MulticlassStringGenerator : IBuildLoadableStringGenerator<NgramInfo, MulticlassStringGenerator>
 {
     private readonly MLContext _mlContext = new();
     private IDataView _data;
@@ -72,6 +68,7 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
         => await Task.Run(() => _mlContext.Model.Save(Model, Data.Schema, name));
     public static MulticlassStringGenerator Load(string path)
     {
+        // todo: change this to load from model.zip, you idiot
         MulticlassStringGenerator result = new();
         result.Data = result._mlContext.Data.LoadFromTextFile<NgramInfo>(path, CsvLoaderOptions);
         return result;
@@ -115,7 +112,7 @@ public class MulticlassStringGenerator : IBuildLoadAbleStringGenerator<NgramInfo
             string weightString  = weightedIndices.OrderByDescending(x => x.weight)
                                                   .Select(x => $"{KeyValueMapper[x.index]}/{(int)KeyValueMapper[x.index][0]}: {x.weight,7:F4}")
                                                   .ListNotation();
-            Console.WriteLine($"{result,20} + {weightString} (threshold: {threshold})");
+            // Console.WriteLine($"{result,20} + {weightString} (threshold: {threshold})");
             context = $"{context}{KeyValueMapper[weightedIndices.WeightedRandomElement(x => x.weight).index]}".Last(2);
             if (context.Contains(Characters.STOP))
                 break;

@@ -5,6 +5,7 @@ using Microsoft.ML.Data;
 using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Text.Json;
 namespace citynames;
 public class Program
@@ -40,45 +41,43 @@ public class Program
     }
     private static async Task Main()
     {
-        //DataProcessor.WriteCsv();
+        // DataProcessor.WriteCsv();
         // PrintPreview(dataView, 250);
         // IDataView predictions = model.Transform(dataView);
         //MulticlassClassificationMetrics metrics = mlContext.MulticlassClassification.Evaluate(predictions);
         //Console.WriteLine(metrics.PrettyPrint());
         int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
-        string generatorType = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "markov";
-        ArgumentException invalidGeneratorTypeException = new($"--generator argument must be either \"markov\" or \"multiclass\", not {generatorType}!");
-        string generatorFilename = generatorType switch
-        {
-            "markov" => $"generators_{contextLength}.json",
-            "multiclass" => "transformedData.csv",
-            _ => throw invalidGeneratorTypeException
-        };
+        string generatorName = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "Markov";
+        Dictionary<string, (Type type, GeneratorAttribute attr)> generators = ReflectionUtils.AllLoadedTypesWithAttribute<GeneratorAttribute>()
+                                                                                             .Select(x => (x, x.GetCustomAttribute<GeneratorAttribute>()!))
+                                                                                             .Select(x => (x.Item2.Name, x))
+                                                                                             .ToDictionary();
+        ArgumentException invalidGeneratorTypeException = new($"--generator argument must be {generators.Values.Select(x => x.attr.Name)
+                                                                                                               .NaturalLanguageList()}, not {generatorName}!");
+        if (!generators.ContainsKey(generatorName))
+            throw invalidGeneratorTypeException;
+        string generatorFilename = generators[generatorName].attr.FileNameFor(contextLength);
         bool buildGenerator = CommandLineArgs.GetFlag("rebuild") || !File.Exists(generatorFilename);
 
         BuildOrLoadInfo bli = buildGenerator ? new(Querier.GetAllCityDataAsync()
                                                           .ToBlockingEnumerable()
                                                           .ToNgrams(contextLength), contextLength)
                                              : new(generatorFilename, contextLength);
-        ISaveableStringGenerator<NgramInfo> generator = generatorType switch
-        {
-            "markov" => BuildOrLoadGenerator<MarkovSetStringGenerator>(bli),
-            "multiclass" => BuildOrLoadGenerator<MulticlassStringGenerator>(bli),
-            _ => throw invalidGeneratorTypeException
-        };
-        await Querier.SaveCache().WithMessage("Saving cache");
+        ISaveableStringGenerator<NgramInfo> generator = BuildOrLoadGenerator(generators[generatorName].type, bli);
+        await Querier.SaveCache()
+                     .WithMessage("Saving cache");
         if (buildGenerator)
             await generator.SaveAsync(generatorFilename)
                            .WithMessage("Saving generators");
-        _ = Directory.CreateDirectory(Path.Join(OUTPUT_DIRECTORY, generatorType));
+        _ = Directory.CreateDirectory(Path.Join(OUTPUT_DIRECTORY, generatorName));
 
         int numPerBiome   = CommandLineArgs.TryParseValue<int>(nameof(numPerBiome))   ?? 10,
-            minCityLength = CommandLineArgs.TryParseValue<int>(nameof(minCityLength)) ?? 5,
+            minCityLength = CommandLineArgs.TryParseValue<int>(nameof(minCityLength)) ??  5,
             maxCityLength = CommandLineArgs.TryParseValue<int>(nameof(maxCityLength)) ?? 40;
         File.WriteAllText("test.txt","");
         using FileStream fs = File.OpenWrite("test.txt");
         using StreamWriter sw = new(fs);
-        NgramInfo query = new("Ra", "", "Temperate Broadleaf & Mixed Forests");
+        NgramInfo query = new("Be", "", "Temperate Broadleaf & Mixed Forests");
         if (generator is MulticlassStringGenerator mc)
         {
             // Console.WriteLine(mc.KeyValueMapper.OrderBy(x => x.Key).Select(x => $"\n{x.Key}\t{x.Value}").ListNotation());
@@ -95,7 +94,6 @@ public class Program
                     sw.Write($"{prediction.CharacterWeights[id] / max:P2}");
                 sw.WriteLine($"\t{character}");
             }
-            Console.WriteLine(mc.KeyValueMapper.Where(x => x.Value == " ").First().Key);
         }
         if (generator is MarkovSetStringGenerator ms)
         {
@@ -110,7 +108,7 @@ public class Program
         foreach (string biome in DataProcessor.BiomeCache.Order())
         {
             Console.WriteLine(biome);
-            string path = Path.Join(OUTPUT_DIRECTORY, generatorType, $"{biome.Replace("/", ",")}.txt");
+            string path = Path.Join(OUTPUT_DIRECTORY, generatorName, $"{biome.Replace("/", ",")}.txt");
             path.CreateIfNotExists();
             foreach (string name in generator.RandomStringsOfLength(NgramInfo.Query(biome), numPerBiome, minCityLength, maxCityLength))
                 Utils.PrintAndWrite(path, name);
@@ -130,12 +128,29 @@ public class Program
             => Ngrams = ngrams;
     }
     public static ISaveableStringGenerator<NgramInfo> BuildOrLoadGenerator<T>(BuildOrLoadInfo bli)
-        where T : IBuildLoadAbleStringGenerator<NgramInfo, T>
+        where T : IBuildLoadableStringGenerator<NgramInfo, T>
     {
         Console.WriteLine($"{(bli.Build ? "Buil" : "Loa")}ding generator...");
         ISaveableStringGenerator<NgramInfo> result = bli.Build ? T.Build(bli.Ngrams!, bli.ContextLength)
                                                                : T.Load(bli.Path!);
         Console.WriteLine("Done.");
         return result;
+    }
+    private static readonly BindingFlags _staticAndPublic = BindingFlags.Static | BindingFlags.Public;
+    public static ISaveableStringGenerator<NgramInfo> BuildOrLoadGenerator(Type t, BuildOrLoadInfo bli)
+    {
+        Console.WriteLine($"{(bli.Build ? "Buil" : "Loa")}ding generator...");
+        object? obj = bli.Build ? t.InvokeMember("Build", _staticAndPublic, null, null, new object?[] { bli.Ngrams!, bli.ContextLength })
+                                : t.InvokeMember("Load", _staticAndPublic, null, null, new object?[] { bli.Path! });
+        if(obj is ISaveableStringGenerator<NgramInfo> result)
+        {
+            Console.WriteLine("Done.");
+            return result;
+        }
+        else
+        {
+            Console.WriteLine("Failed!");
+            throw new ArgumentException($"{t.Name} does not implement IBuildLoadableStringGenerator!");
+        }
     }
 }
