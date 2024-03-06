@@ -39,28 +39,6 @@ public class Program
                 break;
         }
     }
-    internal class GeneratorInfo(Type type, GeneratorAttribute attr)
-    {
-        internal string Name = attr.Name, BaseFileName = attr.BaseFileName;
-        internal Type Type = type;
-        internal string FileNameFor(int contextLength)
-            => BaseFileName.Replace("{contextLength}", $"{contextLength}");
-        internal T Instantiate<T>()
-            where T : ISaveableStringGenerator<NgramInfo>
-        {
-            throw new NotImplementedException();
-        }
-        private static readonly Dictionary<string, GeneratorInfo> _dict 
-            = ReflectionUtils.AllLoadedTypesWithAttribute<GeneratorAttribute>()
-                             .Select(x => new GeneratorInfo(x, x.GetCustomAttribute<GeneratorAttribute>()!))
-                             .ToDictionary(x => x.Name);
-        public static bool TryGetByName(string name, [NotNullWhen(true)] out GeneratorInfo? info)
-            => _dict.TryGetValue(name, out info);
-        public static GeneratorInfo GetByName(string name)
-            => TryGetByName(name, out GeneratorInfo? result) ? result : throw InvalidGeneratorTypeException(name);
-        private static ArgumentException InvalidGeneratorTypeException(string name)
-            => new($"--generator argument must be {_dict.Keys.Order().NaturalLanguageList()}, not {name}!");
-    }
     private static async Task Main()
     {
         // DataProcessor.WriteCsv();
@@ -127,19 +105,6 @@ public class Program
             foreach (string name in generator.RandomStringsOfLength(NgramInfo.Query(biome), numPerBiome, minCityLength, maxCityLength))
                 Utils.PrintAndWrite(path, name);
         }
-    }
-    public class BuildOrLoadInfo
-    {
-        public bool Build => Path is null && (Ngrams ?? throw new Exception()) is not null;
-        public string? Path { get; private set; } = null;
-        public IEnumerable<NgramInfo>? Ngrams { get; private set; } = null;
-        public int ContextLength { get; private set; }
-        private BuildOrLoadInfo(int contextLength)
-            => ContextLength = contextLength;
-        public BuildOrLoadInfo(string path, int contextLength = 2) : this(contextLength)
-            => Path = path;
-        public BuildOrLoadInfo(IEnumerable<NgramInfo> ngrams, int contextLength = 2) : this(contextLength)
-            => Ngrams = ngrams;
     }
     public static ISaveableStringGenerator<NgramInfo> BuildOrLoadGenerator<T>(BuildOrLoadInfo bli)
         where T : IBuildLoadableStringGenerator<NgramInfo, T>
