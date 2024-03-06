@@ -9,6 +9,8 @@ public static class Querier
     public const string WikidataQueryResultPath = @"C:\Users\dninemfive\Documents\workspaces\misc\citynames\wikidata query result.json";
     public const string BiomeCacheFilename = "biomeCache.json";
     private static readonly HttpClient _client = new();
+    public static IEnumerable<(string city, string biome)> GetAllCityData()
+        => GetAllCityDataAsync().ToBlockingEnumerable();
     public static async IAsyncEnumerable<(string city, string biome)> GetAllCityDataAsync()
     {
         Console.WriteLine("GetAllCityDataAsync()");
@@ -29,6 +31,7 @@ public static class Querier
             // if(ct % 100 == 0) 
             //    await SaveCache();
         }
+        await SaveCache().WithMessage("Saving cache...");
     }
     public static IEnumerable<(string city, LatLongPair coords)> GetCityData(int threshold = 50000, int limit = 10000)
     {

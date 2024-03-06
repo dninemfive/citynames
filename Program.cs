@@ -10,35 +10,11 @@ using System.Text.Json;
 namespace citynames;
 public class Program
 {
-    public const string OUTPUT_DIRECTORY = "output";
-    
-    private static void PrintPreview(IDataView dataView, int maxRows = 100)
-    {
-        DataDebuggerPreview preview = dataView.Preview(maxRows);
-        Console.WriteLine($"{maxRows}\t{preview.ColumnView.Select(x => x.Column.Name).Aggregate((x, y) => $"{x}\t{y}")}");
-        int ct = 0;
-        foreach(DataDebuggerPreview.RowInfo row in preview.RowView)
-        {
-            Console.Write($"{ct++}");
-            foreach (object value in row.Values.Select(x => x.Value))
-            {
-                if(value is IEnumerable enumerable)
-                {
-                    foreach(object item in enumerable)
-                    {
-                        Console.Write($"\t{item}");
-                    }
-                }
-                else
-                {
-                    Console.Write($"\t{value}");
-                } 
-            }
-            Console.WriteLine();
-            if (ct > maxRows)
-                break;
-        }
-    }
+    public const string OUTPUT_DIRECTORY = "output";    
+    public static int ContextLength { get; private set; } 
+        = CommandLineArgs.TryParseValue<int>(nameof(ContextLength)) ?? 2;
+    public static string GeneratorName { get; private set; } 
+        = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "Markov";
     private static async Task Main()
     {
         // DataProcessor.WriteCsv();
@@ -46,26 +22,16 @@ public class Program
         // IDataView predictions = model.Transform(dataView);
         //MulticlassClassificationMetrics metrics = mlContext.MulticlassClassification.Evaluate(predictions);
         //Console.WriteLine(metrics.PrettyPrint());
-        int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
-        string generatorName = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "Markov";
-        GeneratorInfo generatorInfo = GeneratorInfo.GetByName(generatorName);
-        string generatorFilename = generatorInfo.FileNameFor(contextLength);
-        bool buildGenerator = CommandLineArgs.GetFlag("rebuild") || !File.Exists(generatorFilename);
-        BuildOrLoadInfo bli = buildGenerator ? new(Querier.GetAllCityDataAsync()
-                                                          .ToBlockingEnumerable()
-                                                          .ToNgrams(contextLength), contextLength)
-                                             : new(generatorFilename, contextLength);
-        ISaveableStringGenerator<NgramInfo> generator = generatorInfo.Instantiate(bli);
-        await Querier.SaveCache()
-                     .WithMessage("Saving cache");
-        if (buildGenerator)
-            await generator.SaveAsync(generatorFilename)
-                           .WithMessage("Saving generators");
-        _ = Directory.CreateDirectory(Path.Join(OUTPUT_DIRECTORY, generatorName));
+        GeneratorInfo generatorInfo = GeneratorInfo.GetByName(GeneratorName);
+        ISaveableStringGenerator<NgramInfo> generator = await generatorInfo.Instantiate(ContextLength,
+                                                                                        Querier.GetAllCityData()
+                                                                                               .ToNgrams(ContextLength));
+        _ = Directory.CreateDirectory(Path.Join(OUTPUT_DIRECTORY, GeneratorName));
 
         int numPerBiome   = CommandLineArgs.TryParseValue<int>(nameof(numPerBiome))   ?? 10,
             minCityLength = CommandLineArgs.TryParseValue<int>(nameof(minCityLength)) ??  5,
             maxCityLength = CommandLineArgs.TryParseValue<int>(nameof(maxCityLength)) ?? 40;
+
         File.WriteAllText("test.txt","");
         using FileStream fs = File.OpenWrite("test.txt");
         using StreamWriter sw = new(fs);
@@ -93,26 +59,17 @@ public class Program
         }
         for (int i = 0; i < 10; i++)
             Console.WriteLine(generator.RandomString(query, 5, 20));
-        ISaveableStringGenerator<NgramInfo> generator2 = BuildOrLoadGenerator<MarkovSetStringGenerator>(new($"generators_{contextLength}.json", contextLength));
+        ISaveableStringGenerator<NgramInfo> generator2 = MarkovSetStringGenerator.Load($"generators_{ContextLength}.json");
         for (int i = 0; i < 10; i++)
             Console.WriteLine(generator2.RandomString(query, 5, 20));
         return;
         foreach (string biome in DataProcessor.BiomeCache.Order())
         {
             Console.WriteLine(biome);
-            string path = Path.Join(OUTPUT_DIRECTORY, generatorName, $"{biome.Replace("/", ",")}.txt");
+            string path = Path.Join(OUTPUT_DIRECTORY, GeneratorName, $"{biome.Replace("/", ",")}.txt");
             path.CreateIfNotExists();
             foreach (string name in generator.RandomStringsOfLength(NgramInfo.Query(biome), numPerBiome, minCityLength, maxCityLength))
                 Utils.PrintAndWrite(path, name);
         }
-    }
-    public static ISaveableStringGenerator<NgramInfo> BuildOrLoadGenerator<T>(BuildOrLoadInfo bli)
-        where T : IBuildLoadableStringGenerator<NgramInfo, T>
-    {
-        Console.WriteLine($"{(bli.Build ? "Buil" : "Loa")}ding generator...");
-        ISaveableStringGenerator<NgramInfo> result = bli.Build ? T.Build(bli.Ngrams!, bli.ContextLength)
-                                                               : T.Load(bli.Path!);
-        Console.WriteLine("Done.");
-        return result;
     }
 }

@@ -1,4 +1,7 @@
-﻿namespace citynames;
+﻿using Microsoft.ML.Data;
+using Microsoft.ML;
+
+namespace citynames;
 public static class Utils
 {
     public static string SubstringSafe(this string str, int start, int end)
@@ -51,4 +54,32 @@ public static class Utils
             2 => $"{objects.First()} {conjunction} {objects.Last()}",
             _ => $"{objects.SkipLast(1).Aggregate((x, y) => $"{x}, {y}")}, {conjunction} {objects.Last()}"
         };
+
+    public static void PrintPreview(this IDataView dataView, int maxRows = 100)
+    {
+        DataDebuggerPreview preview = dataView.Preview(maxRows);
+        Console.WriteLine($"{maxRows}\t{preview.ColumnView.Select(x => x.Column.Name).Aggregate((x, y) => $"{x}\t{y}")}");
+        int ct = 0;
+        foreach (DataDebuggerPreview.RowInfo row in preview.RowView)
+        {
+            Console.Write($"{ct++}");
+            foreach (object value in row.Values.Select(x => x.Value))
+            {
+                if (value is IEnumerable enumerable)
+                {
+                    foreach (object item in enumerable)
+                    {
+                        Console.Write($"\t{item}");
+                    }
+                }
+                else
+                {
+                    Console.Write($"\t{value}");
+                }
+            }
+            Console.WriteLine();
+            if (ct > maxRows)
+                break;
+        }
+    }
 }
