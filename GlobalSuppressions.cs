@@ -9,3 +9,7 @@ using System.Diagnostics.CodeAnalysis;
                            Justification = "It reads better to me and i don't care about the performance impacts here", 
                            Scope = "namespaceanddescendants", 
                            Target = "~N:citynames")]
+[assembly: SuppressMessage("Style", "IDE0028:Simplify collection initialization",
+                           Justification = "new() instead of [] is more readable to me",
+                           Scope = "namespaceanddescendants",
+                           Target = "~N:citynames")]
