@@ -22,7 +22,7 @@ public static class Linq3
             .Select(x => x.First * x.Second)
             .Sum();
     public static T Sum<T>(this IEnumerable<T> enumerable)
-        where T : INumberBase<T>
+        where T : IAdditionOperators<T, T, T>
         => enumerable.Aggregate((x, y) => x + y);
     public static IEnumerable<int> To(this int a, int b)
     {
