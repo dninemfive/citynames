@@ -34,7 +34,7 @@ public class Program
             maxCityLength = CommandLineArgs.TryParseValue<int>(nameof(maxCityLength)) ?? 20;
 
         
-        NgramInfo query = new("", "", "Temperate Broadleaf & Mixed Forests");
+        NgramInfo query = new("", "", "Tundra");
         if (test is MulticlassStringGenerator mc)
             TestMulticlassStringGenerator(mc, query);
         if (test is EnhancedMarkovStringGenerator emsg)

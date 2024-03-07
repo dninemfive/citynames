@@ -12,7 +12,7 @@ public class EnhancedMarkovStringGenerator
     private readonly MarkovCharacterGenerator _prior;
     private readonly Func<float, float> _activationFunction;
     private float DefaultActivationFunction(float input)
-        => 0.5f / (256f * input + 1) + 0.01f;
+        => 0.01f;
     public EnhancedMarkovStringGenerator(int contextLength = 2) : this(null, null, null, contextLength) { }
     public EnhancedMarkovStringGenerator(Dictionary<string, 
                                          MarkovCharacterGenerator>? dict = null, 
