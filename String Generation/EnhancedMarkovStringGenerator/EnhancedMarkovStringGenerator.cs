@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace citynames;
-[Generator("enhanced-markov", "generators_{contextLength}.json")]
+[Generator("enhanced-markov", "enhanced_markov_{contextLength}.json")]
 public class EnhancedMarkovStringGenerator
     : IBuildLoadableStringGenerator<NgramInfo, EnhancedMarkovStringGenerator>
 {

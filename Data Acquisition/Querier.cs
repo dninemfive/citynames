@@ -11,21 +11,27 @@ public static class Querier
     private static readonly HttpClient _client = new();
     public static IEnumerable<(string city, string biome)> GetAllCityData()
         => GetAllCityDataAsync().ToBlockingEnumerable();
-    public static async IAsyncEnumerable<(string city, string biome)> GetAllCityDataAsync()
+    public static async IAsyncEnumerable<(string city, string biome)> GetAllCityDataAsync(bool print = false)
     {
-        Console.WriteLine("GetAllCityDataAsync()");
+        void printProgress(object? item)
+        {
+            if (print)
+                Console.WriteLine(item);
+        }
+        printProgress("GetAllCityDataAsync()");
+        int ct = 0;
         foreach((string city, LatLongPair coords) in GetCityData())
         {
             (string? biome, bool cacheHit) = await GetBiomeAsync(coords);
-            // Console.Write($"{++ct,8}\t{(cacheHit ? "" : "MISS"),4}\t");
+            printProgress($"{++ct,8}\t{(cacheHit ? "" : "MISS"),4}\t");
             if (biome is null)
             {
-                // Console.WriteLine($"Could not find biome for {coords} ({city})!");
+                printProgress($"Could not find biome for {coords} ({city})!");
                 continue;
             } 
             else
             {
-                // Console.WriteLine($"{city,-32}\t{coords.TableString,-24}\t{biome}");
+                printProgress($"{city,-32}\t{coords.TableString,-24}\t{biome}");
             }
             yield return (city, biome);
             // if(ct % 100 == 0) 

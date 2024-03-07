@@ -1,8 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace citynames;
-[Generator("markov", "generators_{contextLength}.json")]
+[Generator("markov", "markov_{contextLength}.json")]
 public class MarkovSetStringGenerator : IBuildLoadableStringGenerator<NgramInfo, MarkovSetStringGenerator>
 {
     private readonly Dictionary<string, MarkovStringGenerator> _dict;
@@ -18,8 +19,11 @@ public class MarkovSetStringGenerator : IBuildLoadableStringGenerator<NgramInfo,
     public string RandomString(NgramInfo input, int _, int maxLength)
         => this[input.Biome].RandomString(input, maxLength);
     internal IEnumerable<string> Biomes => _dict.Keys;
-    public static MarkovSetStringGenerator Load(string path)
-        => new(JsonSerializer.Deserialize<Dictionary<string, MarkovStringGenerator>>(File.ReadAllText(path))!);
+    public static MarkovSetStringGenerator? Load(string path)
+    {
+        Console.WriteLine($"{nameof(MarkovSetStringGenerator)}.Load({path})...");
+        return new(JsonSerializer.Deserialize<Dictionary<string, MarkovStringGenerator>>(File.ReadAllText(path))!);
+    }
     public async Task SaveAsync(string path)
         => await Task.Run(() => File.WriteAllText(path, JsonSerializer.Serialize(this)));
     public static MarkovSetStringGenerator Build(IEnumerable<NgramInfo> ngrams, int contextLength = 2)
@@ -36,5 +40,6 @@ public class MarkovSetStringGenerator : IBuildLoadableStringGenerator<NgramInfo,
         }
         return result;
     }
+    [JsonIgnore]
     public HashSet<string> Alphabet => _dict.SelectMany(x => x.Value.Data.Values.SelectMany(y => y.Keys)).Distinct().ToHashSet();
 }

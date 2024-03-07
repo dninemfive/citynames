@@ -21,11 +21,13 @@ public class Program
         //Console.WriteLine(metrics.PrettyPrint());
         Console.WriteLine(CommandLineArgs.IntermediateArgs);
         int contextLength    = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
-        string generatorName = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "markov";
-        GeneratorInfo generatorInfo = GeneratorInfo.GetByName(generatorName);
-        ISaveableStringGenerator<NgramInfo> test = await generatorInfo.Instantiate(contextLength,
-                                                                                   () => Querier.GetAllCityData().ToNgrams(contextLength));
-        _ = Directory.CreateDirectory(Path.Join(OUTPUT_DIRECTORY, generatorName));
+        string testGeneratorName = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "markov";
+        GeneratorInfo testGeneratorInfo = GeneratorInfo.GetByName(testGeneratorName),
+                      controlGeneratorInfo = GeneratorInfo.GetByName("markov");
+        IEnumerable<NgramInfo> buildFn() => Querier.GetAllCityData().ToNgrams(contextLength);
+        ISaveableStringGenerator<NgramInfo> test = await testGeneratorInfo.Instantiate(contextLength, buildFn, CommandLineArgs.GetFlag("rebuild")),
+                                            control = await controlGeneratorInfo.Instantiate(contextLength, buildFn, false);
+        _ = Directory.CreateDirectory(Path.Join(OUTPUT_DIRECTORY, testGeneratorName));
 
         int numPerBiome   = CommandLineArgs.TryParseValue<int>(nameof(numPerBiome))   ?? 10,
             minCityLength = CommandLineArgs.TryParseValue<int>(nameof(minCityLength)) ??  5,
@@ -41,14 +43,13 @@ public class Program
             for (int i = 0; i < numPerBiome; i++)
                 Console.WriteLine(generator.RandomString(query, minCityLength, maxCityLength));
         }
-        MarkovSetStringGenerator control = MarkovSetStringGenerator.Load($"generators_{contextLength}.json");
         writeCities(control, nameof(control));
         writeCities(test, nameof(test));
         return;
         foreach (string biome in DataProcessor.BiomeCache.Order())
         {
             Console.WriteLine(biome);
-            string path = Path.Join(OUTPUT_DIRECTORY, generatorName, $"{biome.Replace("/", ",")}.txt");
+            string path = Path.Join(OUTPUT_DIRECTORY, testGeneratorName, $"{biome.Replace("/", ",")}.txt");
             path.CreateIfNotExists();
             foreach (string name in test.RandomStringsOfLength(NgramInfo.Query(biome), numPerBiome, minCityLength, maxCityLength))
                 Utils.PrintAndWrite(path, name);

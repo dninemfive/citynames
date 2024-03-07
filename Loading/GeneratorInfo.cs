@@ -28,16 +28,35 @@ internal class GeneratorInfo
     private static ArgumentException InvalidGeneratorTypeException(string name)
         => new($"--generator argument must be {_dict.Keys.Order().NaturalLanguageList()}, not {name}!");
     private static readonly BindingFlags _staticAndPublic = BindingFlags.Static | BindingFlags.Public | BindingFlags.InvokeMethod;
-    public async Task<ISaveableStringGenerator<NgramInfo>> Instantiate(int contextLength = 2, Func<IEnumerable<NgramInfo>>? ngrams = null)
+    public async Task<ISaveableStringGenerator<NgramInfo>> Instantiate(int contextLength, Func<IEnumerable<NgramInfo>> ngramFn, bool forceRebuild = false)
     {
-        bool build = ngrams is null;
-        Console.WriteLine($"{(build ? "Buil" : "Loa")}ding generator...");
-        object? obj = build ? Type.InvokeMember("Build", _staticAndPublic, null, null, [ngrams!(), contextLength])
-                            : Type.InvokeMember("Load", _staticAndPublic, null, null, [FileNameFor(contextLength)]);
+        object? obj = null;
+        bool rebuilt = false;
+        if(!forceRebuild)
+        {
+            try
+            {
+                string filename = FileNameFor(contextLength);
+                Console.WriteLine($"Attempting to load generator {Type.Name} from {filename}...");
+                obj = Type.InvokeMember("Load", _staticAndPublic, null, null, [FileNameFor(contextLength)]);
+                Console.WriteLine("Success!");
+            } 
+            catch(Exception e)
+            {
+                Console.WriteLine($"Failed: {e.Message}");
+            }
+        }
+        if(obj is null)
+        {
+            List<NgramInfo> ngrams = ngramFn!().ToList();
+            Console.WriteLine($"Building generator {Type.Name} from {ngrams.Count} {contextLength}-grams...");
+            obj = Type.InvokeMember("Build", _staticAndPublic, null, null, [ngrams, contextLength]);
+            rebuilt = true;
+        }
         if (obj is ISaveableStringGenerator<NgramInfo> result)
         {
             Console.WriteLine("Done.");
-            if (build)
+            if (rebuilt)
                 await result.SaveAsync(FileNameFor(contextLength));
             return result;
         }
