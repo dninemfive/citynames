@@ -25,7 +25,7 @@ public class MarkovSetStringGenerator : IBuildLoadableStringGenerator<NgramInfo,
         return new(JsonSerializer.Deserialize<Dictionary<string, MarkovStringGenerator>>(File.ReadAllText(path))!);
     }
     public async Task SaveAsync(string path)
-        => await Task.Run(() => File.WriteAllText(path, JsonSerializer.Serialize(this)));
+        => await Task.Run(() => File.WriteAllText(path, JsonSerializer.Serialize(_dict)));
     public static MarkovSetStringGenerator Build(IEnumerable<NgramInfo> ngrams, int contextLength = 2)
     {
         MarkovSetStringGenerator result = new();

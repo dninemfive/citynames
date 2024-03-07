@@ -28,30 +28,43 @@ internal class GeneratorInfo
     private static ArgumentException InvalidGeneratorTypeException(string name)
         => new($"--generator argument must be {_dict.Keys.Order().NaturalLanguageList()}, not {name}!");
     private static readonly BindingFlags _staticAndPublic = BindingFlags.Static | BindingFlags.Public | BindingFlags.InvokeMethod;
+    private object? TryInvoke(string methodName, Type[] signature, object?[] args)
+    {
+        MethodInfo? loadMethod = Type.GetMethod(methodName, _staticAndPublic, signature);
+        object? result = null;
+        if (loadMethod is MethodInfo mi)
+        {
+            try
+            {
+                Console.Write($"Invoking {Type.Name}.{methodName}({args.Select(x => x.PrintNull("null")).NaturalLanguageList("")})...");
+                result = mi.Invoke(null, args);
+                Console.WriteLine("Success!");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Failed: {e.Message}");
+            }
+        }
+        else
+        {
+            string sigString = signature.Select(x => x.Name)
+                                        .Where(x => x is not null)
+                                        .NaturalLanguageList();
+            Console.WriteLine($"Unable to {methodName.ToLower()} generator {Type.Name} because it does not implement {methodName}({sigString}).");
+        }
+        return result;
+    }
     public async Task<ISaveableStringGenerator<NgramInfo>> Instantiate(int contextLength, Func<IEnumerable<NgramInfo>> ngramFn, bool forceRebuild = false)
     {
         object? obj = null;
         bool rebuilt = false;
         if(!forceRebuild)
-        {
-            try
-            {
-                string filename = FileNameFor(contextLength);
-                Console.WriteLine($"Attempting to load generator {Type.Name} from {filename}...");
-                //obj = Type.InvokeMember("Load", _staticAndPublic, null, null, [FileNameFor(contextLength)]);
-                obj = MarkovSetStringGenerator.Load(FileNameFor(contextLength));
-                Console.WriteLine("Success!");
-            } 
-            catch(Exception e)
-            {
-                Console.WriteLine($"Failed: {e.Message}");
-            }
-        }
+            obj = TryInvoke("Load", [typeof(string)], [FileNameFor(contextLength)]);
         if(obj is null)
         {
             List<NgramInfo> ngrams = ngramFn!().ToList();
             Console.WriteLine($"Building generator {Type.Name} from {ngrams.Count} {contextLength}-grams...");
-            obj = Type.InvokeMember("Build", _staticAndPublic, null, null, [ngrams, contextLength]);
+            obj = TryInvoke("Build", [typeof(IEnumerable<NgramInfo>), typeof(int)], [ngrams, contextLength]);
             rebuilt = true;
         }
         if (obj is ISaveableStringGenerator<NgramInfo> result)
@@ -64,7 +77,7 @@ internal class GeneratorInfo
         else
         {
             Console.WriteLine("Failed!");
-            throw new ArgumentException($"{Type.Name} does not implement IBuildLoadableStringGenerator!");
+            throw new ArgumentException($"Could not successfully load or build generator {Type.Name}!");
         }
     }
 }
