@@ -19,7 +19,7 @@ public class MarkovSetStringGenerator : IBuildLoadableStringGenerator<NgramInfo,
     public string RandomString(NgramInfo input, int _, int maxLength)
         => this[input.Biome].RandomString(input, maxLength);
     internal IEnumerable<string> Biomes => _dict.Keys;
-    public static MarkovSetStringGenerator? Load(string path)
+    public static MarkovSetStringGenerator Load(string path)
     {
         Console.WriteLine($"{nameof(MarkovSetStringGenerator)}.Load({path})...");
         return new(JsonSerializer.Deserialize<Dictionary<string, MarkovStringGenerator>>(File.ReadAllText(path))!);

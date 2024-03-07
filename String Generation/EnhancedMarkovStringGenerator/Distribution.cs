@@ -39,10 +39,3 @@ public class DiscreteDistribution<K, V>(CountingDictionary<K, V>? dict = null)
     public static DiscreteDistribution<K, V> operator +(DiscreteDistribution<K, V> a, DiscreteDistribution<K, V> b)
         => new(a._dict + b._dict);
 }
-public class CharacterDistribution : DiscreteDistribution<string, float>
-{
-    public static CharacterDistribution operator *(CharacterDistribution dist, float factor)
-        => dist * factor;
-    public static CharacterDistribution operator +(CharacterDistribution a, CharacterDistribution b)
-        => a + b;
-}

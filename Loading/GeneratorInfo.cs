@@ -38,7 +38,8 @@ internal class GeneratorInfo
             {
                 string filename = FileNameFor(contextLength);
                 Console.WriteLine($"Attempting to load generator {Type.Name} from {filename}...");
-                obj = Type.InvokeMember("Load", _staticAndPublic, null, null, [FileNameFor(contextLength)]);
+                //obj = Type.InvokeMember("Load", _staticAndPublic, null, null, [FileNameFor(contextLength)]);
+                obj = MarkovSetStringGenerator.Load(FileNameFor(contextLength));
                 Console.WriteLine("Success!");
             } 
             catch(Exception e)
