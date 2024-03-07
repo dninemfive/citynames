@@ -12,7 +12,7 @@ public class EnhancedMarkovStringGenerator
     private readonly MarkovCharacterGenerator _prior;
     private readonly Func<float, float> _activationFunction;
     private float DefaultActivationFunction(float input)
-        => (float)Math.Max(Math.Pow(input, 9), 0);
+        => 0.5f / (256f * input + 1) + 0.01f;
     public EnhancedMarkovStringGenerator(int contextLength = 2) : this(null, null, null, contextLength) { }
     public EnhancedMarkovStringGenerator(Dictionary<string, 
                                          MarkovCharacterGenerator>? dict = null, 
@@ -36,10 +36,11 @@ public class EnhancedMarkovStringGenerator
     {
         MarkovCharacterGenerator ensemble = biomeWeights.Select(x => _dict[x.Key] * x.Value)
                                                         .Sum();
-        float priorWeight = _activationFunction(_prior.TotalWeight / ensemble.TotalWeight);
-        return (_prior * priorWeight) + (ensemble * (1 - priorWeight));
+        float weightRatio = ensemble.TotalWeight / (_prior.TotalWeight + ensemble.TotalWeight), adjustedWeight = _activationFunction(weightRatio);
+        Console.WriteLine($"Prior weight for {biomeWeights.Select(x => $"<{x.Key}: {x.Value}>").ListNotation()}: {adjustedWeight} (total weight: {_prior.TotalWeight} / {ensemble.TotalWeight}; ratio: {weightRatio})");
+        return (_prior * adjustedWeight) + (ensemble * (1 - adjustedWeight));
     }
-    private string RandomString(Dictionary<string, float> biomeWeights, int _, int maxLength)
+    public string RandomString(Dictionary<string, float> biomeWeights, int _, int maxLength)
     {
         MarkovCharacterGenerator weightedEnsemble = WeightedEnsemble(biomeWeights);
         string result = "";
