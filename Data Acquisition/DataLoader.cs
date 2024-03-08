@@ -53,7 +53,7 @@ public static class DataLoader
         yield return (response.PrettyPrint(), 0, 0);
         */
     }
-    private static Dictionary<LatLongPair, string>? _biomeCache = null;
+    private static Cache<LatLongPair, string> _biomeCache = null;
     public static async Task<(string? result, bool cacheHit)> GetBiomeAsync(LatLongPair coords)
     {
         if (_biomeCache is null)

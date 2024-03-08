@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -12,6 +13,50 @@ internal class Cache<K, V>(string filename)
     private static readonly JsonSerializerOptions _indented = new() { WriteIndented = true };
     private Dictionary<K, V>? _dict = null;
     public string Filename { get; private set; } = filename;
+    private InvalidOperationException _notLoaded => new($"Attempted to access {this} before it was initialized.");
+    public V this[K key]
+    {
+        get => (_dict ?? throw _notLoaded)[key];
+        set => (_dict ?? throw _notLoaded)[key] = value;
+    }
+    public bool TryGetValue(K key, [NotNullWhen(true)] out V? value)
+    {
+        if(_dict is null)
+        {
+            value = default;
+            return false;
+        } 
+        else
+        {
+            return _dict!.TryGetValue(key, out value);
+        }
+    }
+    #region serialization
+    public void EnsureLoaded()
+    {
+        if (_dict is null)
+            Load();
+    }
+    public void Load()
+    {
+        LoggableAction action = new(delegate
+        {
+            bool exists = File.Exists(Filename);
+            TranslationLayer = exists ? JsonSerializer.Deserialize<List<KeyValuePair<K, V>>>(File.ReadAllText(Filename))! : new();
+            return new(exists, "file not found");
+        });
+        action.InvokeWithMessage($"Loading {this} from `{Filename}`");
+    }
+    public void Save()
+    {
+        LoggableAction action = new(delegate
+        {
+            bool result = _dict is not null;
+            if(result) File.WriteAllText(Filename, JsonSerializer.Serialize(TranslationLayer, _indented));
+            return new(result, "cache is null");
+        });
+        action.InvokeWithMessage($"Saving {this} to `{Filename}`");
+    }
     // used because LatLongPair wasn't working as a key
     // see https://stackoverflow.com/a/56351540
     private List<KeyValuePair<K, V>> TranslationLayer
@@ -19,37 +64,7 @@ internal class Cache<K, V>(string filename)
         get => _dict!.ToList();
         set => _dict = value.ToDictionary(x => x.Key, x => x.Value);
     }
-    private delegate string LogThingy();
-    private void WithMessage(string initialMsg, LogThingy thingy)
-    {
-        Console.Write($"{initialMsg}...");
-        Console.WriteLine(thingy());
-    }
-    public void Load()
-    {
-        Console.Write($"Attempting to load Cache<{typeof(K).Name}, {typeof(V).Name}> from file `{Filename}`...");
-        if (File.Exists(Filename))
-        {
-            TranslationLayer = JsonSerializer.Deserialize<List<KeyValuePair<K, V>>>(File.ReadAllText(Filename))!;
-            Console.WriteLine("Done.");
-        } 
-        else
-        {
-            _dict = new();
-            Console.WriteLine("Failed: file not found!");
-        }
-    }
-    public void Save()
-    {
-        Console.Write($"Attempting to save Cache<{typeof(K).Name}, {typeof(V).Name}> to file `{Filename}`...");
-        if (_dict is not null)
-        {
-            File.WriteAllText(Filename, JsonSerializer.Serialize(TranslationLayer, _indented));
-            Console.WriteLine("Done.");
-        }
-        else
-        {
-            Console.WriteLine("Failed: cache is null.");
-        } 
-    }
+    #endregion serialization
+    public override string ToString()
+        => $"Cache<{typeof(K).Name}, {typeof(V).Name}>";
 }
