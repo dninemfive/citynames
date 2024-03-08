@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace citynames;
 internal class Cache<K, V>(string filename)
@@ -20,17 +15,10 @@ internal class Cache<K, V>(string filename)
         set => (_dict ?? throw _notLoaded)[key] = value;
     }
     public bool TryGetValue(K key, [NotNullWhen(true)] out V? value)
-    {
-        if(_dict is null)
-        {
-            value = default;
-            return false;
-        } 
-        else
-        {
-            return _dict!.TryGetValue(key, out value);
-        }
-    }
+#pragma warning disable CS8762 // Parameter must have a non-null value when returning true: Dictionary<K,V> implements this,
+                               // and i'm fairly sure the annotation is not propagating properly because of the null-coalescing operator.
+        => (_dict ?? throw _notLoaded).TryGetValue(key, out value);
+#pragma warning restore CS8762
     #region serialization
     public void EnsureLoaded()
     {
