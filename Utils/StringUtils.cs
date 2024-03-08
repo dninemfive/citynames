@@ -3,7 +3,7 @@ using Microsoft.ML.Data;
 using System.Collections;
 
 namespace citynames;
-public static class Utils
+public static class StringUtils
 {
     public static string SubstringSafe(this string str, int start, int end)
     {
@@ -37,4 +37,12 @@ public static class Utils
             2 => $"{objects.First()} {conjunction} {objects.Last()}",
             _ => $"{objects.SkipLast(1).Aggregate((x, y) => $"{x}, {y}")}, {conjunction} {objects.Last()}"
         };
+    public static string ReplaceUsing(this string s, IReadOnlyDictionary<string, object?> dict)
+    {
+        string result = s;
+        foreach ((string key, object? value) in dict)
+            if (value is not null)
+                result = s.Replace(key, $"{value}");
+        return result;
+    }
 }
