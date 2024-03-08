@@ -2,7 +2,7 @@
 using System.Text.Json;
 
 namespace citynames;
-public static class Querier
+public static class DataLoader
 {
     public static readonly string ArcGisQueryUrl = File.ReadAllText(@"C:\Users\dninemfive\Documents\workspaces\misc\citynames\arcgis query url.txt");
     public static readonly string WikidataQueryUrl = File.ReadAllText(@"C:\Users\dninemfive\Documents\workspaces\misc\citynames\wikidata query url.txt");

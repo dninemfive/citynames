@@ -46,7 +46,7 @@ public static class DataProcessor
     public static void WriteCsv(int contextLength = 2, bool writeToConsole = false)
     {
         Console.WriteLine($"{nameof(WriteCsv)}({contextLength})");
-        List<(string cityName, string biome)> allCityData = Querier.GetAllCityDataAsync()
+        List<(string cityName, string biome)> allCityData = DataLoader.GetAllCityDataAsync()
                                                                    .ToBlockingEnumerable()
                                                                    .ToList();
         string fileName = $"transformedData.csv";

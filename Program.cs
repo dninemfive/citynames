@@ -24,7 +24,7 @@ public class Program
         string testGeneratorName = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "markov";
         GeneratorInfo testGeneratorInfo = GeneratorInfo.GetByName(testGeneratorName),
                       controlGeneratorInfo = GeneratorInfo.GetByName("markov");
-        IEnumerable<NgramInfo> buildFn() => Querier.GetAllCityData().ToNgrams(contextLength);
+        IEnumerable<NgramInfo> buildFn() => DataLoader.GetAllCityData().ToNgrams(contextLength);
         ISaveableStringGenerator<NgramInfo> test = await testGeneratorInfo.Instantiate(contextLength, buildFn, CommandLineArgs.GetFlag("rebuild")),
                                             control = await controlGeneratorInfo.Instantiate(contextLength, buildFn, false);
         _ = Directory.CreateDirectory(Path.Join(OUTPUT_DIRECTORY, testGeneratorName));
