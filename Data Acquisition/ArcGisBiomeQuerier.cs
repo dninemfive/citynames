@@ -17,7 +17,7 @@ internal class ArcGisBiomeQuerier(HttpClient _client)
                            .NullablyGetProperty("attributes")?
                            .NullablyGetProperty("BIOME_NAME")?
                            .GetString();
-    public async Task<(string? biome, bool cacheHit)> TransformAsync(LatLongPair coords)
+    public async Task<(string? biome, bool cacheHit)> GetBiomeAsync(LatLongPair coords)
     {
         _cache.EnsureLoaded();
         if (_cache!.TryGetValue(coords, out string? biome))
@@ -27,4 +27,8 @@ internal class ArcGisBiomeQuerier(HttpClient _client)
             _cache[coords] = biome!;
         return (biome, false);
     }
+    public async Task<(string? result, bool cacheHit)> GetBiomeAsync(double latitude, double longitude)
+        => await GetBiomeAsync(new(latitude, longitude));
+    public void SaveCache()
+        => _cache.Save();
 }
