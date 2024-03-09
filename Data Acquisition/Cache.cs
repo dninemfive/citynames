@@ -15,10 +15,13 @@ internal class Cache<K, V>(string filename)
         set => (_dict ?? throw _notLoaded)[key] = value;
     }
     public bool TryGetValue(K key, [NotNullWhen(true)] out V? value)
-#pragma warning disable CS8762 // Parameter must have a non-null value when returning true: Dictionary<K,V> implements this,
-                               // and i'm fairly sure the annotation is not propagating properly because of the null-coalescing operator.
+        /* "Parameter must have a non-null value when returning true": Dictionary<K,V> implements this,
+         * and i'm fairly sure the annotation is not propagating properly because of the null-coalescing operator.
+         */
+#pragma warning disable CS8762
         => (_dict ?? throw _notLoaded).TryGetValue(key, out value);
 #pragma warning restore CS8762
+
     #region serialization
     public void EnsureLoaded()
     {
@@ -40,19 +43,20 @@ internal class Cache<K, V>(string filename)
         LoggableAction action = new(delegate
         {
             bool result = _dict is not null;
-            if(result) File.WriteAllText(Filename, JsonSerializer.Serialize(TranslationLayer, _indented));
+            if(result)
+                File.WriteAllText(Filename, JsonSerializer.Serialize(TranslationLayer, _indented));
             return new(result, "cache is null");
         });
         action.InvokeWithMessage($"Saving {this} to `{Filename}`");
     }
-    // used because LatLongPair wasn't working as a key
-    // see https://stackoverflow.com/a/56351540
+    // used because LatLongPair wasn't working as a key see https://stackoverflow.com/a/56351540
     private List<KeyValuePair<K, V>> TranslationLayer
     {
         get => _dict!.ToList();
         set => _dict = value.ToDictionary(x => x.Key, x => x.Value);
     }
     #endregion serialization
+
     public override string ToString()
         => $"Cache<{typeof(K).Name}, {typeof(V).Name}>";
 }

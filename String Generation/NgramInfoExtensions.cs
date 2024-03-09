@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace citynames;
-public static class NgramInfoUtils
+public static class NgramInfoExtensions
 {
     public static IEnumerable<NgramInfo> NgramInfos(this string cityName, string biome, int contextLength = 2)
     {

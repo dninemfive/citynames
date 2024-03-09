@@ -14,7 +14,7 @@ public class MarkovSetStringGenerator : IBuildLoadableStringGenerator<NgramInfo,
         get => _dict[key];
         set => _dict[key] = value;
     }
-    internal bool TryGetValue(string key, [NotNullWhen(true)]out MarkovStringGenerator? value)
+    internal bool TryGetValue(string key, [NotNullWhen(true)] out MarkovStringGenerator? value)
         => _dict.TryGetValue(key, out value);
     public string RandomString(NgramInfo input, int _, int maxLength)
         => this[input.Biome].RandomString(input, maxLength);

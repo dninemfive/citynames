@@ -1,13 +1,8 @@
-﻿using Microsoft.ML.Data;
+﻿using d9.utl;
 using Microsoft.ML;
-using System;
+using Microsoft.ML.Data;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
-using d9.utl;
 
 namespace citynames;
 public static class LogUtils

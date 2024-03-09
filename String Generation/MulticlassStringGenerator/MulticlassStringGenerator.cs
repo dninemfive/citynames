@@ -28,7 +28,7 @@ public class MulticlassStringGenerator : IBuildLoadableStringGenerator<NgramInfo
     {
         get
         {
-            if(_keyValueMapper is null)
+            if (_keyValueMapper is null)
             {
                 DataDebuggerPreview preview = Model.Preview(Data, maxRows: int.MaxValue);
                 ImmutableArray<DataDebuggerPreview.ColumnInfo> columnView = preview.ColumnView;
@@ -53,16 +53,16 @@ public class MulticlassStringGenerator : IBuildLoadableStringGenerator<NgramInfo
             return _predictionEngine;
         }
     }
-    public static readonly TextLoader.Options CsvLoaderOptions = new() { HasHeader = true, Separators = new char[] { ','}, TrimWhitespace = false };
+    public static readonly TextLoader.Options CsvLoaderOptions = new() { HasHeader = true, Separators = new char[] { ',' }, TrimWhitespace = false };
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value [...]: only called by LoadAsync and BuildAsync,
-                               // which definitely initialize Data
+    // which definitely initialize Data
     private MulticlassStringGenerator()
 #pragma warning restore CS8618
     {
         Pipeline = _mlContext.Transforms.Conversion.MapValueToKey("Label", "Successor")
-                             .Append(_mlContext.Transforms.Categorical.OneHotEncoding("BiomeEncoded", "Biome"))
-                             .Append(_mlContext.Transforms.Categorical.OneHotEncoding("ContextEncoded", "Context"))
-                             .Append(_mlContext.Transforms.Concatenate("Features", "BiomeEncoded", "ContextEncoded"));
+                                                   .Append(_mlContext.Transforms.Categorical.OneHotEncoding("BiomeEncoded", "Biome"))
+                                                   .Append(_mlContext.Transforms.Categorical.OneHotEncoding("ContextEncoded", "Context"))
+                                                   .Append(_mlContext.Transforms.Concatenate("Features", "BiomeEncoded", "ContextEncoded"));
     }
     public async Task SaveAsync(string name = "model.zip")
         => await Task.Run(() => _mlContext.Model.Save(Model, Data.Schema, name));

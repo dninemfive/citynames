@@ -1,8 +1,4 @@
-﻿using Microsoft.ML;
-using Microsoft.ML.Data;
-using System.Collections;
-
-namespace citynames;
+﻿namespace citynames;
 public static class StringUtils
 {
     public static string SubstringSafe(this string str, int start, int end)
@@ -18,7 +14,7 @@ public static class StringUtils
     public static void CreateIfNotExists(this string path, string initialText = "")
     {
         if (!File.Exists(path))
-            File.WriteAllText(path, "");
+            File.WriteAllText(path, initialText);
     }
     private static readonly char[] _invalidFileNameChars = Path.GetInvalidFileNameChars();
     public static bool IsInvalidFileNameChar(this char c) => _invalidFileNameChars.Contains(c);

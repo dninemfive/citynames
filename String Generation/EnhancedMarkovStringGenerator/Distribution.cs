@@ -1,11 +1,6 @@
 ﻿using d9.utl;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace citynames;
 public interface IDistribution<K, V>
@@ -23,7 +18,7 @@ public class DiscreteDistribution<K, V>(CountingDictionary<K, V>? dict = null)
     public V Weight { get; private set; } = dict?.Values.Sum() ?? V.Zero;
     public void Add(K key, V? value = null)
     {
-        if(value is not null && value <= V.Zero)
+        if (value is not null && value <= V.Zero)
             throw new ArgumentOutOfRangeException(nameof(value));
         Weight += value ?? V.One;
         _dict[key] += value ?? V.One;

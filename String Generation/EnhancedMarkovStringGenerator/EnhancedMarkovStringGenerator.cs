@@ -14,10 +14,10 @@ public class EnhancedMarkovStringGenerator
     private float DefaultActivationFunction(float input)
         => 0.01f;
     public EnhancedMarkovStringGenerator(int contextLength = 2) : this(null, null, null, contextLength) { }
-    public EnhancedMarkovStringGenerator(Dictionary<string, 
-                                         MarkovCharacterGenerator>? dict = null, 
-                                         MarkovCharacterGenerator? prior = null, 
-                                         Func<float, float>? activationFunction = null, 
+    public EnhancedMarkovStringGenerator(Dictionary<string,
+                                         MarkovCharacterGenerator>? dict = null,
+                                         MarkovCharacterGenerator? prior = null,
+                                         Func<float, float>? activationFunction = null,
                                          int contextLength = 2)
     {
         ContextLength = contextLength;
@@ -30,7 +30,7 @@ public class EnhancedMarkovStringGenerator
         get => _dict[key];
         set => _dict[key] = value;
     }
-    internal bool TryGetValue(string key, [NotNullWhen(true)]out MarkovCharacterGenerator? value)
+    internal bool TryGetValue(string key, [NotNullWhen(true)] out MarkovCharacterGenerator? value)
         => _dict.TryGetValue(key, out value);
     private MarkovCharacterGenerator WeightedEnsemble(Dictionary<string, float> biomeWeights)
     {
@@ -43,7 +43,7 @@ public class EnhancedMarkovStringGenerator
     {
         MarkovCharacterGenerator weightedEnsemble = WeightedEnsemble(biomeWeights);
         string result = "";
-        while(result.Length < maxLength && weightedEnsemble.RandomCharacter(result.Last(ContextLength), out string? next))
+        while (result.Length < maxLength && weightedEnsemble.RandomCharacter(result.Last(ContextLength), out string? next))
             result += next;
         return result;
     }

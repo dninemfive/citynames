@@ -4,26 +4,30 @@ using System.Text.Json.Serialization;
 namespace citynames;
 /// <summary>
 /// Models a basic <see href="https://en.wikipedia.org/wiki/Markov_chain">Markov process</see> which
-/// takes a string of characters as input and produces a random character based on the input characters,
-/// weighted by commonality in the source corpus. 
+/// takes a string of characters as input and produces a random character based on the input
+/// characters, weighted by commonality in the source corpus.
 /// </summary>
 public class MarkovStringGenerator(int contextLength)
 {
     /// <summary>
     /// Holds the corresponding weights for each character based on a given input (sub-)string.
     /// </summary>
-    /// <remarks>This is <see langword="public"/> primarily to make serialization less tedious.
-    /// Generally, data should only be added using <see cref="Add(string)"/>.</remarks>
+    /// <remarks>
+    /// This is <see langword="public"/> primarily to make serialization less tedious. Generally,
+    /// data should only be added using <see cref="Add(string)"/>.
+    /// </remarks>
     public Dictionary<string, CountingDictionary<string, float>> Data { get; private set; } = new();
     /// <summary>
-    /// The length of input string used to determine the next character. Note that this is only
-    /// an upper bound, as substrings at the beginnings of words will be shorter.<br/><br/>
-    /// 
-    /// This can only be set when creating a new instance because the generated data will necessarily
-    /// be different for different contexts.
+    /// The length of input string used to determine the next character. Note that this is only an
+    /// upper bound, as substrings at the beginnings of words will be shorter. <br/><br/>
+    ///
+    /// This can only be set when creating a new instance because the generated data will
+    /// necessarily be different for different contexts.
     /// </summary>
-    /// <remarks>In testing, a context length of 2 appeared to be the sweet spot between barely
-    /// recognizable gibberish and just generating real-life cities.</remarks>
+    /// <remarks>
+    /// In testing, a context length of 2 appeared to be the sweet spot between barely recognizable
+    /// gibberish and just generating real-life cities.
+    /// </remarks>
     public int ContextLength { get; private set; } = contextLength;
 
     [JsonConstructor]

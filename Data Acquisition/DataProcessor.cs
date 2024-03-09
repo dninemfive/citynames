@@ -1,6 +1,6 @@
 ﻿namespace citynames;
 
-/* 
+/*
  * Input:
  * - query                  (character)
  * - context                (string or pair of characters)
@@ -29,7 +29,7 @@ public static class DataProcessor
                 Console.WriteLine(s);
         }
         write(NgramInfo.CsvHeader);
-        foreach(NgramInfo datum in allCityData.ToNgrams(contextLength))
+        foreach (NgramInfo datum in allCityData.ToNgrams(contextLength))
             write(datum.CsvLine());
     }
 }

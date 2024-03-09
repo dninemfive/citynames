@@ -1,5 +1,4 @@
-﻿using System.Net.Http.Json;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace citynames;
 internal class ArcGisBiomeQueryHandler(HttpClient client)

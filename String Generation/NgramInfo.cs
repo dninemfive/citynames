@@ -20,7 +20,7 @@ public class NgramInfo
     public static NgramInfo Query(string biome)
         => new(string.Empty, string.Empty, biome);
     public void Deconstruct(out string context, out string successor, out string biome)
-    {        
+    {
         context = Context;
         successor = Successor;
         biome = Biome;

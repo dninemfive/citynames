@@ -6,8 +6,8 @@ using System.Text.Json.Serialization;
 namespace citynames;
 /// <summary>
 /// Models a basic <see href="https://en.wikipedia.org/wiki/Markov_chain">Markov process</see> which
-/// takes a string of characters as input and produces a random character based on the input characters,
-/// weighted by commonality in the source corpus. 
+/// takes a string of characters as input and produces a random character based on the input
+/// characters, weighted by commonality in the source corpus.
 /// </summary>
 public class MarkovCharacterGenerator(int contextLength)
     : IAdditionOperators<MarkovCharacterGenerator, MarkovCharacterGenerator, MarkovCharacterGenerator>
@@ -15,18 +15,22 @@ public class MarkovCharacterGenerator(int contextLength)
     /// <summary>
     /// Holds the corresponding weights for each character based on a given input (sub-)string.
     /// </summary>
-    /// <remarks>This is <see langword="public"/> primarily to make serialization less tedious.
-    /// Generally, data should only be added using <see cref="Add(string)"/>.</remarks>
+    /// <remarks>
+    /// This is <see langword="public"/> primarily to make serialization less tedious. Generally,
+    /// data should only be added using <see cref="Add(string)"/>.
+    /// </remarks>
     public Dictionary<string, DiscreteDistribution<string, float>> Data { get; private set; } = new();
     /// <summary>
-    /// The length of input string used to determine the next character. Note that this is only
-    /// an upper bound, as substrings at the beginnings of words will be shorter.<br/><br/>
-    /// 
-    /// This can only be set when creating a new instance because the generated data will necessarily
-    /// be different for different contexts.
+    /// The length of input string used to determine the next character. Note that this is only an
+    /// upper bound, as substrings at the beginnings of words will be shorter. <br/><br/>
+    ///
+    /// This can only be set when creating a new instance because the generated data will
+    /// necessarily be different for different contexts.
     /// </summary>
-    /// <remarks>In testing, a context length of 2 appeared to be the sweet spot between barely
-    /// recognizable gibberish and just generating real-life cities.</remarks>
+    /// <remarks>
+    /// In testing, a context length of 2 appeared to be the sweet spot between barely recognizable
+    /// gibberish and just generating real-life cities.
+    /// </remarks>
     public int ContextLength { get; private set; } = contextLength;
 
     [JsonConstructor]
@@ -46,7 +50,7 @@ public class MarkovCharacterGenerator(int contextLength)
         foreach (NgramInfo ngram in ngrams)
             Add(ngram);
     }
-    public bool RandomCharacter(string context, [NotNullWhen(true)]out string? result, bool warnOnKeyFailure = false)
+    public bool RandomCharacter(string context, [NotNullWhen(true)] out string? result, bool warnOnKeyFailure = false)
     {
         result = null;
         if (!Data.Any())
@@ -65,14 +69,14 @@ public class MarkovCharacterGenerator(int contextLength)
     public static MarkovCharacterGenerator operator *(MarkovCharacterGenerator mcg, float factor)
     {
         Dictionary<string, DiscreteDistribution<string, float>> result = new();
-        foreach((string key, DiscreteDistribution<string, float> value) in mcg.Data)
+        foreach ((string key, DiscreteDistribution<string, float> value) in mcg.Data)
             result[key] = value * factor;
         return new(result);
     }
-    public static MarkovCharacterGenerator operator+(MarkovCharacterGenerator a, MarkovCharacterGenerator b)
+    public static MarkovCharacterGenerator operator +(MarkovCharacterGenerator a, MarkovCharacterGenerator b)
     {
         Dictionary<string, DiscreteDistribution<string, float>> result = new();
-        foreach(string key in a.Data.Keys.Union(b.Data.Keys))
+        foreach (string key in a.Data.Keys.Union(b.Data.Keys))
         {
             a.Data.TryGetValue(key, out DiscreteDistribution<string, float>? aDist);
             b.Data.TryGetValue(key, out DiscreteDistribution<string, float>? bDist);

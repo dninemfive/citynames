@@ -14,7 +14,7 @@ internal class GeneratorInfo
         BaseFileName = attr.BaseFileName;
     }
     private static GeneratorInfo FromType(Type type)
-        => new (type, type.GetCustomAttribute<GeneratorAttribute>()!);
+        => new(type, type.GetCustomAttribute<GeneratorAttribute>()!);
     internal string FileNameFor(int contextLength)
         => BaseFileName.Replace("{contextLength}", $"{contextLength}");
     private static readonly Dictionary<string, GeneratorInfo> _dict
@@ -58,9 +58,9 @@ internal class GeneratorInfo
     {
         object? obj = null;
         bool rebuilt = false;
-        if(!forceRebuild)
+        if (!forceRebuild)
             obj = TryInvoke("Load", [typeof(string)], [FileNameFor(contextLength)]);
-        if(obj is null)
+        if (obj is null)
         {
             List<NgramInfo> ngrams = ngramFn!().ToList();
             Console.WriteLine($"Building generator {Type.Name} from {ngrams.Count} {contextLength}-grams...");

@@ -1,7 +1,4 @@
-﻿using System.Net.Http.Json;
-using System.Text.Json;
-
-namespace citynames;
+﻿namespace citynames;
 public static class DataLoader
 {
     private static HttpClient? _client = null;
@@ -9,7 +6,7 @@ public static class DataLoader
     {
         get
         {
-            if(_client is null)
+            if (_client is null)
             {
                 _client = new();
                 _client.DefaultRequestHeaders.Add("User-Agent", "github.com/dninemfive/citynames");
@@ -32,7 +29,7 @@ public static class DataLoader
         }
         printProgress("GetAllCityDataAsync()");
         int ct = 0;
-        foreach((string city, LatLongPair coords) in _wikidataQuerier.GetCityData())
+        foreach ((string city, LatLongPair coords) in _wikidataQuerier.GetCityData())
         {
             (string? biome, bool cacheHit) = await _arcGisQuerier.GetBiomeAsync(coords);
             printProgress($"{++ct,8}\t{(cacheHit ? "" : "MISS"),4}\t");
@@ -40,7 +37,7 @@ public static class DataLoader
             {
                 printProgress($"Could not find biome for {coords} ({city})!");
                 continue;
-            } 
+            }
             else
             {
                 printProgress($"{city,-32}\t{coords.TableString,-24}\t{biome}");

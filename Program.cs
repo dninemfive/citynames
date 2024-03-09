@@ -1,13 +1,5 @@
-﻿using citynames;
-using d9.utl;
-using Microsoft.ML;
-using Microsoft.ML.Data;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using System.Text.Json;
+﻿using d9.utl;
+
 namespace citynames;
 public class Program
 {
@@ -17,8 +9,8 @@ public class Program
         // DataProcessor.WriteCsv();
         // PrintPreview(dataView, 250);
         // IDataView predictions = model.Transform(dataView);
-        //MulticlassClassificationMetrics metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-        //Console.WriteLine(metrics.PrettyPrint());
+        // MulticlassClassificationMetrics metrics = mlContext.MulticlassClassification.Evaluate(predictions);
+        // Console.WriteLine(metrics.PrettyPrint());
         Console.WriteLine(CommandLineArgs.IntermediateArgs);
         int contextLength    = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string testGeneratorName = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "markov";
@@ -33,7 +25,6 @@ public class Program
             minCityLength = CommandLineArgs.TryParseValue<int>(nameof(minCityLength)) ??  5,
             maxCityLength = CommandLineArgs.TryParseValue<int>(nameof(maxCityLength)) ?? 20;
 
-        
         NgramInfo query = new("", "", "Tundra");
         if (test is MulticlassStringGenerator mc)
             TestMulticlassStringGenerator(mc, query);
