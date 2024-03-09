@@ -6,8 +6,20 @@ public static class DataLoader
 {
     public static readonly string WikidataQueryUrl = File.ReadAllText(@"C:\Users\dninemfive\Documents\workspaces\misc\citynames\wikidata query url.txt");
     public const string WikidataQueryResultPath = @"C:\Users\dninemfive\Documents\workspaces\misc\citynames\wikidata query result.json";
-    private static readonly HttpClient _client = new();
-    private static readonly ArcGisBiomeQuerier _arcGisQuerier = new(_client);
+    private static HttpClient? _client = null;
+    public static HttpClient Client
+    {
+        get
+        {
+            if(_client is null)
+            {
+                _client = new();
+                _client.DefaultRequestHeaders.Add("User-Agent", "github.com/dninemfive/citynames");
+            }
+            return _client;
+        }
+    }
+    private static readonly ArcGisBiomeQuerier _arcGisQuerier = new(Client);
     public static IEnumerable<(string city, string biome)> GetAllCityData()
         => GetAllCityDataAsync().ToBlockingEnumerable();
     public static async IAsyncEnumerable<(string city, string biome)> GetAllCityDataAsync(bool print = false)
@@ -33,8 +45,6 @@ public static class DataLoader
                 printProgress($"{city,-32}\t{coords.TableString,-24}\t{biome}");
             }
             yield return (city, biome);
-            // if(ct % 100 == 0) 
-            //    await SaveCache();
         }
         _arcGisQuerier.SaveCache();
     }

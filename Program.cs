@@ -55,7 +55,7 @@ public class Program
             string path = Path.Join(OUTPUT_DIRECTORY, testGeneratorName, $"{biome.Replace("/", ",")}.txt");
             path.CreateIfNotExists();
             foreach (string name in test.RandomStringsOfLength(NgramInfo.Query(biome), numPerBiome, minCityLength, maxCityLength))
-                Utils.PrintAndWrite(path, name);
+                LogUtils.PrintAndWrite(path, name);
         }
     }
     private static void TestMulticlassStringGenerator(MulticlassStringGenerator mc, NgramInfo query)

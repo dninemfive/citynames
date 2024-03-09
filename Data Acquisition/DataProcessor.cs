@@ -42,7 +42,7 @@ public static class DataProcessor
         await foreach((string cityName, string biome) in rawData)
             foreach (NgramInfo ngram in cityName.ToNgramsInternal(biome, contextLength, breakChars))
                 yield return ngram;
-    } 
+    }
     public static void WriteCsv(int contextLength = 2, bool writeToConsole = false)
     {
         Console.WriteLine($"{nameof(WriteCsv)}({contextLength})");

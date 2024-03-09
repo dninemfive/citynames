@@ -2,10 +2,10 @@
 using System.Text.Json;
 
 namespace citynames;
-internal class ArcGisBiomeQuerier(HttpClient _client)
+internal class ArcGisBiomeQuerier(HttpClient client)
     : ICachedQuerier<LatLongPair, string>
 {
-    public HttpClient Client { get; set; } = _client;
+    public HttpClient Client { get; set; } = client;
     private readonly Cache<LatLongPair, string> _cache = new("biomeCache.json");
     public Cache<LatLongPair, string> Cache => _cache;
     public string BaseUrl { get; private set; } = File.ReadAllText(@"C:\Users\dninemfive\Documents\workspaces\misc\citynames\arcgis query url.txt");
