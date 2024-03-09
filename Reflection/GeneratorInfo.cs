@@ -31,54 +31,66 @@ internal class GeneratorInfo
     private static readonly BindingFlags _staticAndPublic = BindingFlags.Static | BindingFlags.Public | BindingFlags.InvokeMethod;
     private object? TryInvoke(string methodName, Type[] signature, object?[] args)
     {
-        MethodInfo? loadMethod = Type.GetMethod(methodName, _staticAndPublic, signature);
         object? result = null;
-        if (loadMethod is MethodInfo mi)
+        LoggableAction action = new(delegate
         {
-            try
+            if (Type.GetMethod(methodName, _staticAndPublic, signature) is MethodInfo mi)
             {
-                Console.Write($"Invoking {Type.Name}.{methodName}({args.Select(x => x.ReadableTypeString()).ListNotation(brackets: null)})...");
-                result = mi.Invoke(null, args);
-                Console.WriteLine("Success!");
+                try
+                {
+                    result = mi.Invoke(null, args);
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    return e.Message;
+                }
             }
-            catch (Exception e)
+            else
             {
-                Console.WriteLine($"Failed: {e.Message}");
-            }
-        }
-        else
-        {
-            string sigString = signature.Select(x => x.ReadableString())
+                string sigString = signature.Select(x => x.ReadableString())
                                         .Where(x => x is not null)
                                         .ListNotation(brackets: null);
-            Console.WriteLine($"Unable to {methodName.ToLower()} generator {Type.Name} because it does not implement {methodName}({sigString}).");
-        }
+                return $"Unable to {methodName.ToLower()} generator {Type.Name} because it does not implement {methodName}({sigString}).";
+            }
+        });
+        action.InvokeWithMessage($"Invoking {Type.Name}.{methodName}({args.Select(x => x.ReadableTypeString()).ListNotation(brackets: null)})");
         return result;
     }
     public async Task<ISaveableStringGenerator<NgramInfo>> Instantiate(int contextLength, Func<IEnumerable<NgramInfo>> ngramFn, bool forceRebuild = false)
     {
         object? obj = null;
         bool rebuilt = false;
+        string fileName = FileNameFor(contextLength);
         if (!forceRebuild)
-            obj = TryInvoke("Load", [typeof(string)], [FileNameFor(contextLength)]);
+        {
+            LoggableAction loadAction = new(delegate
+            {
+                obj = TryInvoke("Load", [typeof(string)], [fileName]);
+                return obj is not null;
+            });
+            loadAction.InvokeWithMessage($"Loading generator {Type.Name} from `{fileName}`");
+        }
         if (obj is null)
         {
-            List<NgramInfo> ngrams = ngramFn!().ToList();
-            Console.WriteLine($"Building generator {Type.Name} from {ngrams.Count} {contextLength}-grams...");
-            obj = TryInvoke("Build", [typeof(IEnumerable<NgramInfo>), typeof(int)], [ngrams, contextLength]);
-            rebuilt = true;
+            List<NgramInfo> ngrams = ngramFn!().ToList();            
+            LoggableAction buildAction = new(delegate
+            {
+                obj = TryInvoke("Build", [typeof(IEnumerable<NgramInfo>), typeof(int)], [ngrams, contextLength]);
+                rebuilt = true;
+                return obj is not null;
+            });
+            buildAction.InvokeWithMessage($"Building generator {Type.Name} from {ngrams.Count} {contextLength}-grams");
         }
         if (obj is ISaveableStringGenerator<NgramInfo> result)
         {
-            Console.WriteLine("Done.");
             if (rebuilt)
                 await result.SaveAsync(FileNameFor(contextLength));
             return result;
         }
         else
         {
-            Console.WriteLine("Failed!");
             throw new ArgumentException($"Could not successfully load or build generator {Type.Name}!");
-        }
+        }        
     }
 }

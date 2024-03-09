@@ -8,14 +8,18 @@ namespace citynames;
 public static class LogUtils
 {
     public static void InvokeWithMessage(this LoggableAction action, string initialMessage)
-        => Console.WriteLine($"{initialMessage}...{action.Invoke()}");
+    {
+        Console.Write($"{initialMessage}...");
+        Console.Out.Flush();
+        Console.WriteLine(action.Invoke());
+    }
     public static void PrintAndWrite(string path, string s)
     {
         Console.WriteLine($"\t{s}");
         File.AppendAllText(path, $"{s}\n");
     }
     public static void PrintMethodArguments([CallerMemberName] string callerName = "", params (string name, object? value)[] arguments)
-        => Console.WriteLine($"{callerName}{arguments.Select(x => $"{x.name}: {x.value}").ListNotation(brackets: ("(", ")"))}");
+        => Console.WriteLine($"{callerName}{arguments.Select(x => $"{x.name}: {x.value}").ListNotation("(", ")")}");
     public static void PrintPreview(this IDataView dataView, int maxRows = 100)
     {
         DataDebuggerPreview preview = dataView.Preview(maxRows);
