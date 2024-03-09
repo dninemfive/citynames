@@ -9,7 +9,7 @@ public static class DataLoader
             if (_client is null)
             {
                 _client = new();
-                _client.DefaultRequestHeaders.Add("User-Agent", "github.com/dninemfive/citynames");
+                _client.DefaultRequestHeaders.Add("User-Agent", "citynames/0.0 dninemfive");
             }
             return _client;
         }
