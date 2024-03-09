@@ -43,16 +43,3 @@ public class NgramInfo
     public static bool operator ==(NgramInfo a, NgramInfo b) => a.Equals(b);
     public static bool operator !=(NgramInfo a, NgramInfo b) => !(a == b);
 }
-public static class NgramExtensions
-{    
-    public static IEnumerable<NgramInfo> NgramInfos(this string cityName, string biome, int contextLength = 2)
-    {
-        cityName = cityName.AppendIfNotPresent(Characters.STOP);
-        string cur = "";
-        for (int i = 1 - contextLength; i <= cityName.Length - contextLength; i++)
-        {
-            yield return new(cur, $"{cityName[i + contextLength - 1]}", biome);
-            cur = cityName.SubstringSafe(i, i + contextLength);
-        }
-    }
-}

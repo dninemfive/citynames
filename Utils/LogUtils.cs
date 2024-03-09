@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+using d9.utl;
 
 namespace citynames;
 public static class LogUtils
@@ -17,6 +19,8 @@ public static class LogUtils
         Console.WriteLine($"\t{s}");
         File.AppendAllText(path, $"{s}\n");
     }
+    public static void PrintMethodArguments([CallerMemberName] string callerName = "", params (string name, object? value)[] arguments)
+        => Console.WriteLine($"{callerName}{arguments.Select(x => $"{x.name}: {x.value}").ListNotation(brackets: ("(", ")"))}");
     public static void PrintPreview(this IDataView dataView, int maxRows = 100)
     {
         DataDebuggerPreview preview = dataView.Preview(maxRows);

@@ -48,15 +48,6 @@ public class Program
         }
         writeCities(control, nameof(control));
         writeCities(test, nameof(test));
-        return;
-        foreach (string biome in DataProcessor.BiomeCache.Order())
-        {
-            Console.WriteLine(biome);
-            string path = Path.Join(OUTPUT_DIRECTORY, testGeneratorName, $"{biome.Replace("/", ",")}.txt");
-            path.CreateIfNotExists();
-            foreach (string name in test.RandomStringsOfLength(NgramInfo.Query(biome), numPerBiome, minCityLength, maxCityLength))
-                LogUtils.PrintAndWrite(path, name);
-        }
     }
     private static void TestMulticlassStringGenerator(MulticlassStringGenerator mc, NgramInfo query)
     {

@@ -19,33 +19,10 @@ namespace citynames;
  * - probability that the queried character will occur
  */
 public static class DataProcessor
-{
-    private static IEnumerable<NgramInfo> ToNgramsInternal(this string cityName, string biome, int contextLength = 2, string breakChars = ",(")
-    {
-        _ = _biomeCache.Add(biome);
-        foreach (NgramInfo ngram in cityName.NgramInfos(biome, contextLength))
-        {
-            if (breakChars.Contains(ngram.Successor))
-                break;
-            yield return ngram;
-        }
-    }
-    public static IEnumerable<NgramInfo> ToNgrams(this IEnumerable<(string cityName, string biome)> rawData, int contextLength = 2, string breakChars = ",(")
-    {
-        foreach ((string cityName, string biome) in rawData)
-            foreach (NgramInfo ngram in cityName.ToNgramsInternal(biome, contextLength, breakChars))
-                yield return ngram;
-    }
-    public static async IAsyncEnumerable<NgramInfo> ToNgramsAsync(this IAsyncEnumerable<(string cityName, string biome)> rawData, int contextLength = 2, string breakChars = ",(")
-    {
-        Console.WriteLine($"{nameof(ToNgramsAsync)}()");
-        await foreach((string cityName, string biome) in rawData)
-            foreach (NgramInfo ngram in cityName.ToNgramsInternal(biome, contextLength, breakChars))
-                yield return ngram;
-    }
+{    
     public static void WriteCsv(int contextLength = 2, bool writeToConsole = false)
     {
-        Console.WriteLine($"{nameof(WriteCsv)}({contextLength})");
+        LogUtils.PrintMethodArguments(arguments: [(nameof(contextLength), contextLength), (nameof(writeToConsole), writeToConsole)]);
         List<(string cityName, string biome)> allCityData = DataLoader.GetAllCityDataAsync()
                                                                    .ToBlockingEnumerable()
                                                                    .ToList();
