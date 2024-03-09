@@ -19,7 +19,7 @@ public class DataProcessor
         Console.WriteLine($"result:   {result.ListNotation()}");
         Console.WriteLine($"expected: {expected.ListNotation()}");
         Assert.AreEqual(expected.Length, result.Length);
-        for(int i = 0; i < expected.Length; i++)
+        for (int i = 0; i < expected.Length; i++)
             Assert.AreEqual(expected[i], result[i]);
     }
 }

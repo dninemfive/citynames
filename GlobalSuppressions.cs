@@ -5,9 +5,9 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Performance", "CA1860:Avoid using 'Enumerable.Any()' extension method", 
-                           Justification = "It reads better to me and i don't care about the performance impacts here", 
-                           Scope = "namespaceanddescendants", 
+[assembly: SuppressMessage("Performance", "CA1860:Avoid using 'Enumerable.Any()' extension method",
+                           Justification = "It reads better to me and i don't care about the performance impacts here",
+                           Scope = "namespaceanddescendants",
                            Target = "~N:citynames")]
 [assembly: SuppressMessage("Style", "IDE0028:Simplify collection initialization",
                            Justification = "new() instead of [] is more readable to me",
