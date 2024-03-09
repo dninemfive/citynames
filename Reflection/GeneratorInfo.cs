@@ -31,28 +31,30 @@ internal class GeneratorInfo
     private static readonly BindingFlags _staticAndPublic = BindingFlags.Static | BindingFlags.Public | BindingFlags.InvokeMethod;
     private object? TryInvoke(string methodName, Type[] signature, object?[] args)
     {
-        MethodInfo? loadMethod = Type.GetMethod(methodName, _staticAndPublic, signature);
         object? result = null;
-        if (loadMethod is MethodInfo mi)
+        LoggableAction action = new(delegate
         {
-            try
+            if (Type.GetMethod(methodName, _staticAndPublic, signature) is MethodInfo mi)
             {
-                Console.Write($"Invoking {Type.Name}.{methodName}({args.Select(x => x.ReadableTypeString()).ListNotation(brackets: null)})...");
-                result = mi.Invoke(null, args);
-                Console.WriteLine("Success!");
+                try
+                {
+                    result = mi.Invoke(null, args);
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    return e.Message;
+                }
             }
-            catch (Exception e)
+            else
             {
-                Console.WriteLine($"Failed: {e.Message}");
-            }
-        }
-        else
-        {
-            string sigString = signature.Select(x => x.ReadableString())
+                string sigString = signature.Select(x => x.ReadableString())
                                         .Where(x => x is not null)
                                         .ListNotation(brackets: null);
-            Console.WriteLine($"Unable to {methodName.ToLower()} generator {Type.Name} because it does not implement {methodName}({sigString}).");
-        }
+                return $"Unable to {methodName.ToLower()} generator {Type.Name} because it does not implement {methodName}({sigString}).";
+            }
+        });
+        action.InvokeWithMessage($"Invoking {Type.Name}.{methodName}({args.Select(x => x.ReadableTypeString()).ListNotation(brackets: null)})");
         return result;
     }
     public async Task<ISaveableStringGenerator<NgramInfo>> Instantiate(int contextLength, Func<IEnumerable<NgramInfo>> ngramFn, bool forceRebuild = false)
