@@ -1,12 +1,4 @@
-﻿using d9.utl;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace citynames;
+﻿namespace citynames;
 
 /* 
  * Input:
@@ -19,7 +11,7 @@ namespace citynames;
  * - probability that the queried character will occur
  */
 public static class DataProcessor
-{    
+{
     public static void WriteCsv(int contextLength = 2, bool writeToConsole = false)
     {
         LogUtils.PrintMethodArguments(arguments: [(nameof(contextLength), contextLength), (nameof(writeToConsole), writeToConsole)]);
@@ -40,6 +32,4 @@ public static class DataProcessor
         foreach(NgramInfo datum in allCityData.ToNgrams(contextLength))
             write(datum.CsvLine());
     }
-    private static readonly HashSet<string> _biomeCache = new();
-    public static IReadOnlySet<string> BiomeCache => _biomeCache;
 }

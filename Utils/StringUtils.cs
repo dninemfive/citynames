@@ -42,7 +42,7 @@ public static class StringUtils
         string result = s;
         foreach ((string key, object? value) in dict)
             if (value is not null)
-                result = s.Replace(key, $"{value}");
+                result = s.Replace($"{{key}}", $"{value}");
         return result;
     }
 }

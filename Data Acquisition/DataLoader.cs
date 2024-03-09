@@ -4,8 +4,6 @@ using System.Text.Json;
 namespace citynames;
 public static class DataLoader
 {
-    public static readonly string WikidataQueryUrl = File.ReadAllText(@"C:\Users\dninemfive\Documents\workspaces\misc\citynames\wikidata query url.txt");
-    public const string WikidataQueryResultPath = @"C:\Users\dninemfive\Documents\workspaces\misc\citynames\wikidata query result.json";
     private static HttpClient? _client = null;
     public static HttpClient Client
     {
@@ -19,7 +17,10 @@ public static class DataLoader
             return _client;
         }
     }
-    private static readonly ArcGisBiomeQuerier _arcGisQuerier = new(Client);
+    private static readonly HashSet<string> _biomeCache = new();
+    public static IReadOnlySet<string> AllBiomes => _biomeCache;
+    private static readonly ArcGisBiomeQueryHandler _arcGisQuerier = new(Client);
+    private static readonly WikidataCityListQueryHandler _wikidataQuerier = new(Client);
     public static IEnumerable<(string city, string biome)> GetAllCityData()
         => GetAllCityDataAsync().ToBlockingEnumerable();
     public static async IAsyncEnumerable<(string city, string biome)> GetAllCityDataAsync(bool print = false)
@@ -31,7 +32,7 @@ public static class DataLoader
         }
         printProgress("GetAllCityDataAsync()");
         int ct = 0;
-        foreach((string city, LatLongPair coords) in GetCityData())
+        foreach((string city, LatLongPair coords) in _wikidataQuerier.GetCityData())
         {
             (string? biome, bool cacheHit) = await _arcGisQuerier.GetBiomeAsync(coords);
             printProgress($"{++ct,8}\t{(cacheHit ? "" : "MISS"),4}\t");
@@ -44,22 +45,9 @@ public static class DataLoader
             {
                 printProgress($"{city,-32}\t{coords.TableString,-24}\t{biome}");
             }
+            _biomeCache.Add(biome);
             yield return (city, biome);
         }
         _arcGisQuerier.SaveCache();
-    }
-    public static IEnumerable<(string city, LatLongPair coords)> GetCityData(int threshold = 50000, int limit = 10000)
-    {
-        return JsonSerializer.Deserialize<List<WikidataResultItem>>(File.ReadAllText(WikidataQueryResultPath))!
-                             .Select(x => x.ToData())
-                             .DistinctBy(x => x.name)
-                             .OrderBy(x => x.name);
-        /* todo: get the proper permissions or whatever to do this in code
-        HttpResponseMessage? response = await _client.GetAsync(WikidataQueryUrl.Replace("{threshold}", $"{threshold}")
-                                                                               .Replace("{limit}", $"{limit}"));
-        if (response is null)
-            yield break;
-        yield return (response.PrettyPrint(), 0, 0);
-        */
     }
 }

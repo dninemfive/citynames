@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Json;
-using System.Text;
+﻿using System.Net.Http.Json;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace citynames;
-internal interface ICachedQuerier<T, U>
+internal interface IQueryHandlerWithCache<T, U>
     where T : IDictionaryable
 {
     protected HttpClient Client { get; }
@@ -16,7 +11,7 @@ internal interface ICachedQuerier<T, U>
     public async Task<JsonDocument?> QueryApiFor(T query)
         => await Client.GetFromJsonAsync<JsonDocument>(BaseUrl.ReplaceUsing(query.ToDictionary()));
     public U? TryParse(JsonDocument? doc);
-    public async Task<(U? biome, bool cacheHit)> TransformAsync(T query)
+    public async Task<(U? item, bool cacheHit)> TransformAsync(T query)
     {
         Cache.EnsureLoaded();
         if (Cache!.TryGetValue(query, out U? result))
