@@ -31,7 +31,6 @@ internal class GeneratorInfo
     private static readonly BindingFlags _staticAndPublic = BindingFlags.Static | BindingFlags.Public | BindingFlags.InvokeMethod;
     private object? TryInvoke(string methodName, Type[] signature, object?[] args)
     {
-        Console.Write($"{$"{methodName}ing generator: ",20}");
         object? result = null;
         LoggableAction action = new(delegate
         {
@@ -55,7 +54,7 @@ internal class GeneratorInfo
                 return $"{Type.Name} does not implement {methodName}({sigString}).";
             }
         });
-        action.InvokeWithMessage($"Invoking {Type.Name}.{methodName}({args.Select(x => x.ShortString()).ListNotation(brackets: null)})");
+        action.InvokeWithMessage($"{methodName}ing {Type.Name} with args {args.Select(x => x.ShortString()).ListNotation()}");
         return result;
     }
     public async Task<ISaveableStringGenerator<NgramInfo>> Instantiate(int contextLength, Func<IEnumerable<NgramInfo>> ngramFn, bool forceRebuild = false)

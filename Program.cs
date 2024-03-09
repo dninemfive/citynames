@@ -31,7 +31,7 @@ public class Program
         {
             Console.WriteLine($"{name}:");
             for (int i = 0; i < numPerBiome; i++)
-                Console.WriteLine(generator.RandomString(query, minCityLength, maxCityLength));
+                Console.WriteLine($"\t{generator.RandomString(query, minCityLength, maxCityLength)}");
         }
         writeCities(control, nameof(control));
         writeCities(test, nameof(test));

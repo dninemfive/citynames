@@ -53,6 +53,18 @@ public static class LogUtils
     public static string ReadableTypeString(this object? obj)
         => obj?.GetType().ReadableString()?.PrintNull()!;
     public static string ShortString(this object? obj)
-        => obj is IEnumerable enumerable ? $"{enumerable.ReadableTypeString()}({enumerable.Cast<object>().Count()})"
-                                         : obj.PrintNull();
+    {
+        if(obj is string s)
+        {
+            return $"\"{s}\"";
+        } 
+        else if(obj is IEnumerable enumerable)
+        {
+            return $"{enumerable.ReadableTypeString()}({enumerable.Cast<object>().Count()})";
+        }
+        else
+        {
+            return obj.PrintNull();
+        } 
+    }
 }
