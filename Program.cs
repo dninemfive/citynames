@@ -6,19 +6,15 @@ public class Program
     public const string OUTPUT_DIRECTORY = "output";
     private static async Task Main()
     {
-        // DataProcessor.WriteCsv();
-        // PrintPreview(dataView, 250);
-        // IDataView predictions = model.Transform(dataView);
-        // MulticlassClassificationMetrics metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-        // Console.WriteLine(metrics.PrettyPrint());
-        Console.WriteLine(CommandLineArgs.IntermediateArgs);
-        int contextLength    = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
+        int contextLength        = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string testGeneratorName = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "markov";
-        GeneratorInfo testGeneratorInfo = GeneratorInfo.GetByName(testGeneratorName),
+
+        GeneratorInfo testGeneratorInfo    = GeneratorInfo.GetByName(testGeneratorName),
                       controlGeneratorInfo = GeneratorInfo.GetByName("markov");
         IEnumerable<NgramInfo> buildFn() => DataLoader.GetAllCityData().ToNgrams(contextLength);
-        ISaveableStringGenerator<NgramInfo> test = await testGeneratorInfo.Instantiate(contextLength, buildFn, CommandLineArgs.GetFlag("rebuild")),
+        ISaveableStringGenerator<NgramInfo> test    = await testGeneratorInfo.Instantiate(contextLength, buildFn, CommandLineArgs.GetFlag("rebuild")),
                                             control = await controlGeneratorInfo.Instantiate(contextLength, buildFn, false);
+
         _ = Directory.CreateDirectory(Path.Join(OUTPUT_DIRECTORY, testGeneratorName));
 
         int numPerBiome   = CommandLineArgs.TryParseValue<int>(nameof(numPerBiome))   ?? 10,

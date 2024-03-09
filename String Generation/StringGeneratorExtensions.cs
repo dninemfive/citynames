@@ -1,7 +1,11 @@
 ﻿namespace citynames;
 public static class StringGeneratorExtensions
 {
-    public static string RandomStringOfLength<T>(this ISaveableStringGenerator<T> generator, T input, int min = 1, int max = int.MaxValue, int maxAttempts = 100)
+    public static string RandomStringOfLength<T>(this ISaveableStringGenerator<T> generator,
+                                                      T input,
+                                                      int min = 1,
+                                                      int max = int.MaxValue,
+                                                      int maxAttempts = 100)
     {
         string result = "";
         int ct = 0;
