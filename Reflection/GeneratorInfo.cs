@@ -1,6 +1,7 @@
 ﻿using d9.utl;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace citynames;
 internal class GeneratorInfo
@@ -36,7 +37,7 @@ internal class GeneratorInfo
         {
             try
             {
-                Console.Write($"Invoking {Type.Name}.{methodName}({args.Select(x => x.PrintNull("null")).NaturalLanguageList("")})...");
+                Console.Write($"Invoking {Type.Name}.{methodName}({args.Select(x => x.ReadableTypeString()).ListNotation(brackets: null)})...");
                 result = mi.Invoke(null, args);
                 Console.WriteLine("Success!");
             }
@@ -47,9 +48,9 @@ internal class GeneratorInfo
         }
         else
         {
-            string sigString = signature.Select(x => x.Name)
+            string sigString = signature.Select(x => x.ReadableString())
                                         .Where(x => x is not null)
-                                        .NaturalLanguageList();
+                                        .ListNotation(brackets: null);
             Console.WriteLine($"Unable to {methodName.ToLower()} generator {Type.Name} because it does not implement {methodName}({sigString}).");
         }
         return result;

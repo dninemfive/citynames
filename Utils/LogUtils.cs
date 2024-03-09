@@ -43,4 +43,13 @@ public static class LogUtils
                 break;
         }
     }
+    public static string ReadableString(this Type type)
+    {
+        string result = type.Name;
+        if (type.IsGenericType)
+            result += type.GenericTypeArguments.Select(x => x.ReadableString()).ListNotation("<", ">");
+        return result;
+    }
+    public static string ReadableTypeString(this object? obj)
+        => obj?.GetType().ReadableString()?.PrintNull()!;
 }
