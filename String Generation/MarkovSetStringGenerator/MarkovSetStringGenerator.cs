@@ -20,10 +20,7 @@ public class MarkovSetStringGenerator : IBuildLoadableStringGenerator<NgramInfo,
         => this[input.Biome].RandomString(input, maxLength);
     internal IEnumerable<string> Biomes => _dict.Keys;
     public static MarkovSetStringGenerator Load(string path)
-    {
-        Console.WriteLine($"{nameof(MarkovSetStringGenerator)}.Load({path})...");
-        return new(JsonSerializer.Deserialize<Dictionary<string, MarkovStringGenerator>>(File.ReadAllText(path))!);
-    }
+        => new(JsonSerializer.Deserialize<Dictionary<string, MarkovStringGenerator>>(File.ReadAllText(path))!);
     public async Task SaveAsync(string path)
         => await Task.Run(() => File.WriteAllText(path, JsonSerializer.Serialize(_dict)));
     public static MarkovSetStringGenerator Build(IEnumerable<NgramInfo> ngrams, int contextLength = 2)

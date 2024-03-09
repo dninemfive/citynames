@@ -45,11 +45,14 @@ public static class LogUtils
     }
     public static string ReadableString(this Type type)
     {
-        string result = type.Name;
+        string result = type.Name.Split('`').First();
         if (type.IsGenericType)
             result += type.GenericTypeArguments.Select(x => x.ReadableString()).ListNotation("<", ">");
         return result;
     }
     public static string ReadableTypeString(this object? obj)
         => obj?.GetType().ReadableString()?.PrintNull()!;
+    public static string ShortString(this object? obj)
+        => obj is IEnumerable enumerable ? $"{enumerable.ReadableTypeString()}({enumerable.Cast<object>().Count()})"
+                                         : obj.PrintNull();
 }
