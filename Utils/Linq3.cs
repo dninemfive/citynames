@@ -29,14 +29,10 @@ public static class Linq3
         for (int i = a; i < b; i++)
             yield return i;
     }
-    public static string JoinWithDelim<T>(this IEnumerable<T> enumerable, string delim)
-        => enumerable.Select(x => x?.ToString().PrintNull()).Aggregate((x, y) => $"{x}{delim}{y}")!;
     public static int Argrand(this IEnumerable<float> items)
     {
         //Console.WriteLine($"{nameof(Argrand)}({items.Count()} {typeof(float).Name}s)");
         IEnumerable<int> indices = 0.To(items.Count());
         return indices.Zip(items).WeightedRandomElement(t => t.Second).First;
     }
-    public static float StandardDeviation(this IEnumerable<float> items)
-        => (float)Math.Sqrt(items.Average(x => Math.Pow(x - items.Average(), 2)));
 }

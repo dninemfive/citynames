@@ -34,8 +34,8 @@ public class NgramInfo
                     yield return fi;
         }
     }
-    public static string CsvHeader => FieldsInColumnOrder.Select(x => x.Name).JoinWithDelim(",");
-    public string CsvLine() => FieldsInColumnOrder.Select(x => x.GetValue(this)).JoinWithDelim(",");
+    public static string CsvHeader => FieldsInColumnOrder.Select(x => x.Name).ListNotation(brackets: null, delimiter: ",");
+    public string CsvLine() => FieldsInColumnOrder.Select(x => x.GetValue(this)).ListNotation(brackets: null, delimiter: ",");
     public override bool Equals(object? obj)
         => obj is NgramInfo d && d.Biome == Biome && d.Context == Context && d.Successor == Successor;
     public override int GetHashCode()

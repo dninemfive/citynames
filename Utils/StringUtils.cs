@@ -1,4 +1,6 @@
-﻿namespace citynames;
+﻿using d9.utl;
+
+namespace citynames;
 public static class StringUtils
 {
     public static string SubstringSafe(this string str, int start, int end)
@@ -31,7 +33,7 @@ public static class StringUtils
             0 => "",
             1 => $"{objects.First()}",
             2 => $"{objects.First()} {conjunction} {objects.Last()}",
-            _ => $"{objects.SkipLast(1).Aggregate((x, y) => $"{x}, {y}")}, {conjunction} {objects.Last()}"
+            _ => $"{objects.SkipLast(1).ListNotation(brackets: null)}, {conjunction} {objects.Last()}"
         };
     public static string ReplaceUsing(this string s, IReadOnlyDictionary<string, object?> dict)
     {
