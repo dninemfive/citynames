@@ -24,14 +24,23 @@ public static class Linq3
     public static T Sum<T>(this IEnumerable<T> enumerable)
         where T : IAdditionOperators<T, T, T>
         => enumerable.Aggregate((x, y) => x + y);
-    public static IEnumerable<int> To(this int a, int b)
+    public static IEnumerable<T> To<T>(this T start, T end, T? step = null)
+        where T : struct, INumberBase<T>, IComparisonOperators<T, T, bool>
     {
-        for (int i = a; i < b; i++)
+        step ??= T.One;
+        Func<T, T> increment  = start < end ? x => x + step.Value 
+                                            : x => x - step.Value;
+        Func<T, bool> compare = start < end ? x => x < end 
+                                            : x => x > end;
+        T i = start;
+        while (compare(i))
+        {
             yield return i;
+            i = increment(i);
+        }
     }
     public static int Argrand(this IEnumerable<float> items)
     {
-        //Console.WriteLine($"{nameof(Argrand)}({items.Count()} {typeof(float).Name}s)");
         IEnumerable<int> indices = 0.To(items.Count());
         return indices.Zip(items).WeightedRandomElement(t => t.Second).First;
     }
