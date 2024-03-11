@@ -14,25 +14,25 @@ public class LatLongPair(double latitude, double longitude) : IDictionaryable
     /// <remarks>
     /// Rounded to the nearest hundredths place so it can be usefully used as a dictionary key.
     /// </remarks>
-    public double Latitude { get; private set; } = Math.Round(latitude, 2);
+    public double Latitude { get; private set; } = latitude is >= -90 and <= 90 ? Math.Round(latitude, 2)
+                                                                                : throw new ArgumentOutOfRangeException(nameof(latitude));
     /// <summary>
     /// Position wrt East-West, i.e. equivalent to "x".
     /// </summary>
     /// <remarks>
     /// Rounded to the nearest hundredths place so it can be usefully used as a dictionary key.
     /// </remarks>
-    public double Longitude { get; private set; } = Math.Round(longitude, 2);
-
+    public double Longitude { get; private set; } = longitude is > -180 and <= 180 ? Math.Round(longitude, 2)
+                                                                                   : throw new ArgumentOutOfRangeException(nameof(longitude));
     public void Deconstruct(out double latitude, out double longitude)
     {
         latitude = Latitude;
         longitude = Longitude;
     }
+    private static string DegreeNotation(double d, char positive, char negative)
+        => $"{Math.Abs(d),6:F2}°{(d < 0 ? negative : positive)}";
     public override string ToString()
-        => $"({Latitude}°N {Longitude}°E)";
-    [JsonIgnore]
-    public string TableString
-        => $"{Latitude,6:F2}°N {Longitude,6:F2}°E";
+        => $"({DegreeNotation(latitude, 'N', 'S'),8}, {DegreeNotation(longitude, 'E', 'W'),8}";
     public override bool Equals(object? obj)
         => obj is LatLongPair other && Latitude == other.Latitude && Longitude == other.Longitude;
     public override int GetHashCode()
