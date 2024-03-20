@@ -41,4 +41,19 @@ public static class StringUtils
                 result = s.Replace($"{{key}}", $"{value}");
         return result;
     }
+    // "a",  2 -> ["",  "a"]
+    // "ab", 2 -> ["a", "b"]
+    // "a",  3 -> ["",  "",  "a"]
+    // "ab", 3 -> ["",  "a", "b"]
+    public static string[] ToContextVector(this string str, int totalLength = 2)
+    {
+        string[] result = new string[totalLength];
+        string context = str.Last(totalLength);
+        int padLength = totalLength - context.Length;
+        for (int i = 0; i < totalLength; i++)
+        {
+            result[i] = i < padLength ? "" : $"{context[i - padLength]}";
+        }
+        return result;
+    }
 }
