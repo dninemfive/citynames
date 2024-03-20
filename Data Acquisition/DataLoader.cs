@@ -40,7 +40,7 @@ public static class DataLoader
             }
             else
             {
-                printProgress($"{city,-32}\t{coords.TableString,-24}\t{biome}");
+                printProgress($"{city,-32}\t{coords,-24}\t{biome}");
             }
             _biomeCache.Add(biome);
             yield return (city, biome);

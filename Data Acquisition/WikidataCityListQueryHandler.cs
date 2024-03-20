@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 
 namespace citynames;
-internal class WikidataCityListQueryHandler(HttpClient client)
+public class WikidataCityListQueryHandler(HttpClient client)
 {
     public static readonly string QueryUrl = File.ReadAllText(@"C:\Users\dninemfive\Documents\workspaces\misc\citynames\wikidata query url.txt");
     public const string QueryResultPath = @"C:\Users\dninemfive\Documents\workspaces\misc\citynames\wikidata query result.json";

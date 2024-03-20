@@ -67,7 +67,7 @@ public class MarkovStringGenerator(int contextLength)
             }
             result += context.Last();
         }
-        return result.Replace($"{Characters.STOP}", "");
+        return result;
     }
     [JsonIgnore]
     public string DataString

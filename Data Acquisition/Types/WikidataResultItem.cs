@@ -10,12 +10,12 @@ public class WikidataResultItem
     /// The city's Wikidata identifier.
     /// </summary>
     [JsonPropertyName("item")]
-    public string Item { get; set; }
+    public required string Item { get; set; }
     /// <summary>
     /// The city's Wikidata article name.
     /// </summary>
     [JsonPropertyName("itemLabel")]
-    public string Name { get; set; }
+    public required string Name { get; set; }
     /// <summary>
     /// The city's geographic coordinates, interpreted according to the GPS (wkid 4326) <see
     /// href="https://developers.arcgis.com/documentation/spatial-references/">spatial reference</see>.
@@ -25,12 +25,12 @@ public class WikidataResultItem
     /// reversed to fit the latitude-longitude ordering used by ArcGIS.
     /// </remarks>
     [JsonPropertyName("coords")]
-    public string Coordinates { get; set; }
+    public required string Coordinates { get; set; }
     /// <summary>
     /// The population of the city in question.
     /// </summary>
     [JsonPropertyName("pop")]
-    public string Population { get; set; }
+    public required string Population { get; set; }
     /// <summary>
     /// Converts the string describing the city's <see cref="Coordinates"/> to a <see
     /// cref="LatLongPair"/> and returns it with the name.

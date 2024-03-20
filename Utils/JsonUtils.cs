@@ -1,11 +1,11 @@
 ﻿using System.Text.Json;
 
 namespace citynames;
-internal static class JsonUtils
+public static class JsonUtils
 {
-    internal static JsonElement? NullablyGetProperty(this JsonElement el, string propertyName)
+    public static JsonElement? NullablyGetProperty(this JsonElement el, string propertyName)
         => el.TryGetProperty(propertyName, out JsonElement result) ? result : null;
-    internal static JsonElement? FirstArrayElement(this JsonElement el)
+    public static JsonElement? FirstArrayElement(this JsonElement el)
     {
         try
         {

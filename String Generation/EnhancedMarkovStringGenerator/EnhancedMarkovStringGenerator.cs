@@ -24,12 +24,12 @@ public class EnhancedMarkovStringGenerator
         _prior = prior ?? new(2);
         _activationFunction = activationFunction ?? DefaultActivationFunction;
     }
-    internal MarkovCharacterGenerator this[string key]
+    public MarkovCharacterGenerator this[string key]
     {
         get => _dict[key];
         set => _dict[key] = value;
     }
-    internal bool TryGetValue(string key, [NotNullWhen(true)] out MarkovCharacterGenerator? value)
+    public bool TryGetValue(string key, [NotNullWhen(true)] out MarkovCharacterGenerator? value)
         => _dict.TryGetValue(key, out value);
     private MarkovCharacterGenerator WeightedEnsemble(Dictionary<string, float> biomeWeights)
     {
@@ -48,7 +48,7 @@ public class EnhancedMarkovStringGenerator
     }
     public string RandomString(NgramInfo query, int _, int maxLength)
         => RandomString(new Dictionary<string, float>() { { query.Biome, 1 } }, _, maxLength);
-    internal IEnumerable<string> Biomes => _dict.Keys;
+    public IEnumerable<string> Biomes => _dict.Keys;
     public static EnhancedMarkovStringGenerator Load(string path)
         => new(JsonSerializer.Deserialize<Dictionary<string, MarkovCharacterGenerator>>(File.ReadAllText(path))!);
     public async Task SaveAsync(string path)

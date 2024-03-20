@@ -60,7 +60,10 @@ public static class LogUtils
         } 
         else if(obj is IEnumerable enumerable)
         {
-            return $"{enumerable.ReadableTypeString()}({enumerable.Cast<object>().Count()})";
+            int ct = 0;
+            foreach (object? _ in enumerable)
+                ct++;
+            return $"{enumerable.ReadableTypeString()}({ct})";
         }
         else
         {

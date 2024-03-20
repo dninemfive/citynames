@@ -31,4 +31,6 @@ internal static class Statistics
         AssertValidProbability(aWeight, nameof(aWeight));
         return a * aWeight + (T.One - aWeight) * b;
     }
+    public static float StandardDeviation(this IEnumerable<float> items)
+        => (float)Math.Sqrt(items.Average(x => Math.Pow(x - items.Average(), 2)));
 }
