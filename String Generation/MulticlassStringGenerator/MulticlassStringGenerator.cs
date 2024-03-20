@@ -53,7 +53,7 @@ public class MulticlassStringGenerator : IBuildLoadableStringGenerator<NgramInfo
             return _predictionEngine;
         }
     }
-    public static readonly TextLoader.Options CsvLoaderOptions = new() { HasHeader = true, Separators = new char[] { ',' }, TrimWhitespace = false };
+    public static readonly TextLoader.Options CsvLoaderOptions = new() { HasHeader = true, Separators = [','], TrimWhitespace = false };
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value [...]: only called by LoadAsync and BuildAsync,
     // which definitely initialize Data
     private MulticlassStringGenerator()
