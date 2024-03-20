@@ -1,13 +1,12 @@
 ﻿using d9.utl;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace citynames;
-internal class GeneratorInfo
+public class GeneratorInfo
 {
-    internal readonly string Name, BaseFileName;
-    internal readonly Type Type;
+    public readonly string Name, BaseFileName;
+    public readonly Type Type;
     private GeneratorInfo(Type type, GeneratorAttribute attr)
     {
         Type = type;
@@ -16,7 +15,7 @@ internal class GeneratorInfo
     }
     private static GeneratorInfo FromType(Type type)
         => new(type, type.GetCustomAttribute<GeneratorAttribute>()!);
-    internal string FileNameFor(int contextLength)
+    public string FileNameFor(int contextLength)
         => BaseFileName.Replace("{contextLength}", $"{contextLength}");
     private static readonly Dictionary<string, GeneratorInfo> _dict
             = ReflectionUtils.AllLoadedTypesWithAttribute<GeneratorAttribute>()

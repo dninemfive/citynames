@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace citynames;
-internal class Cache<K, V>(string filename)
+public class Cache<K, V>(string filename)
     : IEnumerable<KeyValuePair<K, V>>
     where K : notnull
 {

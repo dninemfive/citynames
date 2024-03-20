@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 
 namespace citynames;
-internal class ArcGisBiomeQueryHandler(HttpClient client)
+public class ArcGisBiomeQueryHandler(HttpClient client)
     : IQueryHandlerWithCache<LatLongPair, string>
 {
     public HttpClient Client { get; set; } = client;

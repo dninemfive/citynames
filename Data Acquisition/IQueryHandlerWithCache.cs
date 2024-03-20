@@ -2,7 +2,7 @@
 using System.Text.Json;
 
 namespace citynames;
-internal interface IQueryHandlerWithCache<T, U>
+public interface IQueryHandlerWithCache<T, U>
     where T : IDictionaryable
 {
     protected HttpClient Client { get; }
@@ -24,7 +24,7 @@ internal interface IQueryHandlerWithCache<T, U>
     public void SaveCache()
         => Cache.Save();
 }
-internal interface IDictionaryable
+public interface IDictionaryable
 {
     public IReadOnlyDictionary<string, object?> ToDictionary();
 }
