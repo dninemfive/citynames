@@ -3,20 +3,15 @@ using Microsoft.ML.Data;
 using System.Reflection;
 
 namespace citynames;
-public class NgramInfo
+public class NgramInfo(string context, string successor, string biome)
 {
     [LoadColumn(0)]
-    public string Context;
+    public string Context = context;
     [LoadColumn(1)]
-    public string Successor;
+    public string Successor = successor;
     [LoadColumn(2)]
-    public string Biome;
-    public NgramInfo(string context, string successor, string biome)
-    {
-        Context = context;
-        Successor = successor;
-        Biome = biome;
-    }
+    public string Biome = biome;
+
     public static NgramInfo Query(string biome)
         => new(string.Empty, string.Empty, biome);
     public void Deconstruct(out string context, out string successor, out string biome)
