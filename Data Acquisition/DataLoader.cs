@@ -1,7 +1,13 @@
 ﻿namespace citynames;
+/// <summary>
+/// Loads and integrates all the data used by the string generators.
+/// </summary>
 public static class DataLoader
 {
     private static HttpClient? _client = null;
+    /// <summary>
+    /// The client used to do all the requisite queries.
+    /// </summary>
     public static HttpClient Client
     {
         get
@@ -15,11 +21,21 @@ public static class DataLoader
         }
     }
     private static readonly HashSet<string> _biomeCache = new();
+    /// <summary>
+    /// Every unique biome string seen during loading.
+    /// </summary>
     public static IReadOnlySet<string> AllBiomes => _biomeCache;
     private static readonly ArcGisBiomeQueryHandler _arcGisQuerier = new(Client);
     private static readonly WikidataCityListQueryHandler _wikidataQuerier = new(Client);
+    /// <summary>
+    /// Gets all the cities in the wikidata dataset and their corresponding biomes.
+    /// </summary>
+    /// <returns>An enumerable of said data.</returns>
     public static IEnumerable<(string city, string biome)> GetAllCityData()
         => GetAllCityDataAsync().ToBlockingEnumerable();
+    /// <summary><inheritdoc cref="GetAllCityData" path="/summary"/></summary>
+    /// <param name="print">If <see langword="true"/>, prints information as the data is loaded.</param>
+    /// <returns><inheritdoc cref="GetAllCityData" path="/returns"/></returns>
     public static async IAsyncEnumerable<(string city, string biome)> GetAllCityDataAsync(bool print = false)
     {
         void printProgress(object? item)

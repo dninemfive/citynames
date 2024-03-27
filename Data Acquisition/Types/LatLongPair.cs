@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace citynames;
+﻿namespace citynames;
 /// <summary>
 /// Basically a wrapper for a ( <see langword="double"/>, <see langword="double"/>) tuple which lets
 /// me compare latitude and longitude more coarsely and prevents being mixed up between the
