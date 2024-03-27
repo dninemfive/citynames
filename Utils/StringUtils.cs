@@ -58,4 +58,8 @@ public static class StringUtils
         }
         return result;
     }
+    public static Dictionary<string, float> ToWeightVector(this string str) => new()
+    {
+        {str, 1 }
+    };
 }
