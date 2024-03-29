@@ -14,7 +14,7 @@ public static class DataProcessor
 {
     public static void WriteCsv(int contextLength = 2, bool writeToConsole = false)
     {
-        LogUtils.PrintMethodArguments(arguments: [(nameof(contextLength), contextLength), (nameof(writeToConsole), writeToConsole)]);
+        Console.WriteLine(LogUtils.MethodArguments(arguments: [(nameof(contextLength), contextLength), (nameof(writeToConsole), writeToConsole)]));
         List<(string cityName, string biome)> allCityData = DataLoader.GetAllCityDataAsync()
                                                                    .ToBlockingEnumerable()
                                                                    .ToList();

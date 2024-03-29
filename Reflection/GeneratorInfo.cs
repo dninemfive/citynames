@@ -41,7 +41,7 @@ public class GeneratorInfo
     public string FileNameFor(int contextLength)
         => BaseFileName.Replace("{contextLength}", $"{contextLength}");
     private static readonly Dictionary<string, GeneratorInfo> _dict
-            = LogUtils.AllLoadedTypesWithAttribute<GeneratorAttribute>()
+            = ReflectionUtils.AllLoadedTypesWithAttribute<GeneratorAttribute>()
                              .Select(FromType)
                              .ToDictionary(x => x.Name);
     /// <summary>

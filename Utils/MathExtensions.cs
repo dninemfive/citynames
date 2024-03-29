@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace citynames.Utils;
+namespace citynames;
 
 public static class MathExtensions
 {
