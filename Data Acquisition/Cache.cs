@@ -81,7 +81,7 @@ public class Cache<K, V>(string filename)
                 File.WriteAllText(Filename, JsonSerializer.Serialize(TranslationLayer, _indented));
             return new(result, "cache is null");
         });
-        action.InvokeWithMessage($"Saving {this.ShortString()} to `{Filename}`");
+        action.InvokeWithMessage($"Saving {this.Summary()} to `{Filename}`");
     }
     /// <summary>
     /// Converts the internal dictionary to and from a list for serialization purposes.

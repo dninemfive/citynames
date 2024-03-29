@@ -41,7 +41,7 @@ public class GeneratorInfo
     public string FileNameFor(int contextLength)
         => BaseFileName.Replace("{contextLength}", $"{contextLength}");
     private static readonly Dictionary<string, GeneratorInfo> _dict
-            = ReflectionUtils.AllLoadedTypesWithAttribute<GeneratorAttribute>()
+            = LogUtils.AllLoadedTypesWithAttribute<GeneratorAttribute>()
                              .Select(FromType)
                              .ToDictionary(x => x.Name);
     /// <summary>
@@ -93,7 +93,7 @@ public class GeneratorInfo
                 return $"{Type.Name} does not implement {methodName}({sigString}).";
             }
         });
-        action.InvokeWithMessage($"{methodName}ing {Type.Name} with args {args.Select(x => x.ShortString()).ListNotation()}");
+        action.InvokeWithMessage($"{methodName}ing {Type.Name} with args {args.Select(x => x.Summary()).ListNotation()}");
         return result;
     }
     /// <summary>
