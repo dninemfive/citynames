@@ -82,7 +82,7 @@ public class MulticlassStringGenerator : IBuildLoadableStringGenerator<NgramInfo
     public CharacterPrediction Predict(NgramInfo input)
         => PredictionEngine.Predict(input);
     public string RandomChar(NgramInfo input)
-        => KeyValueMapper[Predict(input).CharacterWeights.Argrand() + 1];
+        => KeyValueMapper[Predict(input).CharacterWeights.WeightedRandomIndex() + 1];
     /*
     {
         float[] weights = Predict(input).CharacterWeights;

@@ -12,6 +12,11 @@ public delegate ActionResult LoggableActionDelegate();
 public class LoggableAction(LoggableActionDelegate @delegate)
 {
     public ActionResult Invoke() => @delegate();
+    /// <summary>
+    /// Logs the initial message and then the result of invoking this action in the following format:
+    /// <para><paramref name="initialMessage"/>...&lt;result of invocation&gt;</para>
+    /// </summary>
+    /// <param name="initialMessage">The message to print before invoking this action.</param>
     public void InvokeWithMessage(string initialMessage)
         => Console.WriteLine($"{initialMessage}...{Invoke()}");
     public static implicit operator LoggableAction(LoggableActionDelegate @delegate)
