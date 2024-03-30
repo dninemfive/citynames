@@ -1,6 +1,4 @@
-﻿using d9.utl;
-using Microsoft.ML.Data;
-using System.Reflection;
+﻿using Microsoft.ML.Data;
 
 namespace citynames;
 public class NgramInfo(string context, string successor, string biome)
@@ -11,7 +9,6 @@ public class NgramInfo(string context, string successor, string biome)
     public string Successor = successor;
     [LoadColumn(2)]
     public string Biome = biome;
-
     public static NgramInfo Query(string biome)
         => new(string.Empty, string.Empty, biome);
     public void Deconstruct(out string context, out string successor, out string biome)
@@ -20,17 +17,6 @@ public class NgramInfo(string context, string successor, string biome)
         successor = Successor;
         biome = Biome;
     }
-    public static IEnumerable<FieldInfo> FieldsInColumnOrder
-    {
-        get
-        {
-            foreach (MemberInfo mi in typeof(NgramInfo).MembersWithAttribute<LoadColumnAttribute>().OrderBy(x => x.attr.TypeId).Select(x => x.member))
-                if (mi is FieldInfo fi)
-                    yield return fi;
-        }
-    }
-    public static string CsvHeader => FieldsInColumnOrder.Select(x => x.Name).ListNotation(brackets: null, delimiter: ",");
-    public string CsvLine() => FieldsInColumnOrder.Select(x => x.GetValue(this)).ListNotation(brackets: null, delimiter: ",");
     public override bool Equals(object? obj)
         => obj is NgramInfo d && d.Biome == Biome && d.Context == Context && d.Successor == Successor;
     public override int GetHashCode()
