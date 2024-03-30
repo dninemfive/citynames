@@ -7,6 +7,36 @@ namespace citynames;
 public static class MathExtensions
 {
     /// <summary>
+    /// Returns whether <paramref name="t"/> is between <paramref name="min"/> and 
+    /// <paramref name="max"/>. If <paramref name="min"/> and <paramref name="max"/> are out of
+    /// order, this is corrected before continuing.
+    /// </summary>
+    /// <typeparam name="T">The type of item to compare.</typeparam>
+    /// <param name="t">The item whose value to check.</param>
+    /// <param name="min">The minimum acceptable value, which may or may not be inclusive depending
+    ///                   on the value of the <paramref name="inclusive"/> argument.</param>
+    /// <param name="max">The maximum acceptable value, which may or may not be inclusive depending
+    ///                   on the value of the <paramref name="inclusive"/> argument.</param>
+    /// <param name="inclusive">
+    ///     If <see langword="true"/>, the result will be true if <paramref name="t"/> is equal
+    ///     to either <paramref name="min"/> or <paramref name="max"/>; otherwise, 
+    ///     <paramref name="t"/> must be strictly greater than <paramref name="min"/> and strictly
+    ///     less than <paramref name="max"/>.
+    /// </param>
+    /// <returns>
+    ///     <see langword="true"/> if <paramref name="t"/> is between <paramref name="min"/> and 
+    ///     <paramref name="max"/>, as modified by <paramref name="inclusive"/>; otherwise,
+    ///     <see langword="false"/>.
+    /// </returns>
+    public static bool Between<T>(this T t, T min, T max, bool inclusive = true)
+        where T : IComparisonOperators<T, T, bool>
+    {
+        if (min > max)
+            (min, max) = (max, min);
+        return inclusive ? t >= min && t <= max
+                         : t >  min && t < max;
+    }
+    /// <summary>
     /// Produces the <see href="https://en.wikipedia.org/wiki/Dot_product">dot product</see> of two
     /// specified collections of numbers.
     /// </summary>
