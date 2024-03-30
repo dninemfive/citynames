@@ -64,7 +64,7 @@ public class CharPair(char ancestor, char successor, int offset, QueryInfo data)
     public static IEnumerable<CharPair> From(IEnumerable<(string cityName, string biome)> tuples, int maxOffset = 4)
         => tuples.SelectMany(x => From(x, maxOffset)).ToList();
 }
-public class QueryInfo(Dictionary<string, float> biomeWeights)
+public class QueryInfo(IReadOnlyDictionary<string, float> biomeWeights)
 {
     public IReadOnlyDictionary<string, float> BiomeWeights = biomeWeights;
     public QueryInfo(string biome) : this(biome.ToWeightVector()) { }
