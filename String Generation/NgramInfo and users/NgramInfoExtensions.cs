@@ -44,10 +44,16 @@ public static class NgramInfoExtensions
     ///                         <c>NgramInfo</c>s and the method will continue to the next item.</param>
     /// <returns>A collection of <c>NgramInfo</c>s describing the ngrams found in the
     ///          <paramref name="rawData"/>.</returns>
-    public static IEnumerable<NgramInfo> ToNgrams(this IEnumerable<(string cityName, string biome)> rawData, int contextLength = 2, string breakChars = ",(")
+    public static IEnumerable<NgramInfo> ToNgrams(this IEnumerable<(string cityName, string biome)> rawData,
+                                                  int contextLength = 2,
+                                                  string breakChars = ",(")
     {
         foreach ((string cityName, string biome) in rawData)
             foreach (NgramInfo ngram in cityName.NgramInfos(biome, contextLength, breakChars))
                 yield return ngram;
     }
+    public static IEnumerable<NgramInfo> ToNgrams(this IEnumerable<(string city, CityInfo info)> rawData,
+                                                  int contextLength = 2,
+                                                  string breakChars = ",(")
+        => ToNgrams(rawData.Select(x => (x.city, x.info.Biome)), contextLength, breakChars);
 }

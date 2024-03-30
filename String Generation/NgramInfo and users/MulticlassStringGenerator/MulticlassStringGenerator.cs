@@ -6,7 +6,7 @@ using System.Data;
 
 namespace citynames;
 [Generator("multiclass", "model.zip")]
-public class MulticlassStringGenerator : IBuildLoadableStringGenerator<NgramInfo, MulticlassStringGenerator>
+public class MulticlassStringGenerator : IBuildLoadableStringGenerator<CityInfo, MulticlassStringGenerator>
 {
     private readonly MLContext _mlContext = new();
     private IDataView _data;
@@ -69,11 +69,12 @@ public class MulticlassStringGenerator : IBuildLoadableStringGenerator<NgramInfo
     public static MulticlassStringGenerator Load(string path)
     {
         // todo: change this to load from model.zip, you idiot
-        MulticlassStringGenerator result = new();
-        result.Data = result._mlContext.Data.LoadFromTextFile<NgramInfo>(path, CsvLoaderOptions);
-        return result;
+        // eh, too lazy (for now?)
+        throw new NotImplementedException();
     }
-    public static MulticlassStringGenerator Build(IEnumerable<NgramInfo> ngrams, int _ = 2)
+    public static MulticlassStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> corpus, int _ = 2)
+        => BuildInternal(corpus.ToNgrams());
+    public static MulticlassStringGenerator BuildInternal(IEnumerable<NgramInfo> ngrams)
     {
         MulticlassStringGenerator result = new();
         result.Data = result._mlContext.Data.LoadFromEnumerable(ngrams.ToList());

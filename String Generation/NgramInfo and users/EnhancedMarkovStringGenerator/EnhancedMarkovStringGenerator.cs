@@ -4,7 +4,7 @@ using System.Text.Json;
 namespace citynames;
 [Generator("enhanced-markov", "enhanced_markov_{contextLength}.json")]
 public class EnhancedMarkovStringGenerator
-    : IBuildLoadableStringGenerator<NgramInfo, EnhancedMarkovStringGenerator>
+    : IBuildLoadableStringGenerator<CityInfo, EnhancedMarkovStringGenerator>
 {
     public int ContextLength { get; private set; }
     private readonly Dictionary<string, MarkovCharacterGenerator> _dict;
@@ -53,7 +53,9 @@ public class EnhancedMarkovStringGenerator
         => new(JsonSerializer.Deserialize<Dictionary<string, MarkovCharacterGenerator>>(File.ReadAllText(path))!);
     public async Task SaveAsync(string path)
         => await Task.Run(() => File.WriteAllText(path, JsonSerializer.Serialize(this)));
-    public static EnhancedMarkovStringGenerator Build(IEnumerable<NgramInfo> ngrams, int contextLength = 2)
+    public static EnhancedMarkovStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> corpus, int contextLength = 2)
+        => BuildInternal(corpus.ToNgrams(contextLength), contextLength);
+    private static EnhancedMarkovStringGenerator BuildInternal(IEnumerable<NgramInfo> ngrams, int contextLength = 2)
     {
         EnhancedMarkovStringGenerator result = new(contextLength);
         foreach (NgramInfo ngram in ngrams)
