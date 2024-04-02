@@ -12,7 +12,7 @@ public readonly struct Probability(double d)
     public static implicit operator double(Probability p) => p.Value;
     public Probability Inverse => 1 - this;
     public Probability Or(Probability other, Probability? pBoth = null)
-        => this + other - (pBoth ?? 0);
+        => Math.Clamp(this + other - (pBoth ?? 0), 0, 1);
     public Probability And(Probability pOtherGivenThis)
         => this * pOtherGivenThis;
     public Probability Given(Probability other, Probability? pOtherGivenThis = null)
