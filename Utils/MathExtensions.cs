@@ -60,4 +60,13 @@ public static class MathExtensions
     public static T Sum<T>(this IEnumerable<T> enumerable)
         where T : IAdditionOperators<T, T, T>
         => enumerable.Aggregate((x, y) => x + y);
+    public static double[] AugmentWith(this double[] left, double[] right)
+    {
+        double[] result = new double[left.Length + right.Length];
+        for(int i = 0; i < left.Length; i++)
+            result[i] = left[i];
+        for (int i = 0; i < right.Length; i++)
+            result[i + left.Length] = right[i];
+        return result;
+    }
 }
