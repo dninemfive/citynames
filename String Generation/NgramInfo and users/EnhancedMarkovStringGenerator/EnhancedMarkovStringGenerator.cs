@@ -31,14 +31,14 @@ public class EnhancedMarkovStringGenerator
     }
     public bool TryGetValue(string key, [NotNullWhen(true)] out MarkovCharacterGenerator? value)
         => _dict.TryGetValue(key, out value);
-    private MarkovCharacterGenerator WeightedEnsemble(Dictionary<string, float> biomeWeights)
+    private MarkovCharacterGenerator WeightedEnsemble(IReadOnlyDictionary<string, float> biomeWeights)
     {
         MarkovCharacterGenerator ensemble = biomeWeights.Select(x => _dict[x.Key] * x.Value)
                                                         .Sum();
         float weightRatio = ensemble.TotalWeight / (_prior.TotalWeight + ensemble.TotalWeight), adjustedWeight = _activationFunction(weightRatio);
         return _prior + (ensemble * (_prior.TotalWeight / ensemble.TotalWeight));
     }
-    public string RandomString(Dictionary<string, float> biomeWeights, int _, int maxLength)
+    public string RandomString(IReadOnlyDictionary<string, float> biomeWeights, int _, int maxLength)
     {
         MarkovCharacterGenerator weightedEnsemble = WeightedEnsemble(biomeWeights);
         string result = "";
@@ -46,8 +46,8 @@ public class EnhancedMarkovStringGenerator
             result += next;
         return result;
     }
-    public string RandomString(NgramInfo query, int _, int maxLength)
-        => RandomString(new Dictionary<string, float>() { { query.Biome, 1 } }, _, maxLength);
+    public string RandomString(CityInfo query, int _, int maxLength)
+        => RandomString(query.Biome.ToWeightVector(), _, maxLength);
     public IEnumerable<string> Biomes => _dict.Keys;
     public static EnhancedMarkovStringGenerator Load(string path)
         => new(JsonSerializer.Deserialize<Dictionary<string, MarkovCharacterGenerator>>(File.ReadAllText(path))!);
