@@ -60,13 +60,11 @@ public class BiomeCharacterRegression(OneHotEncoding<string> biomeEncoding, OneH
             if(_coefficients is null)
             {
                 _coefficients = new();
-                Dictionary<char, List<double[]>> encodedDataByCharacter = EncodedData.GroupBy(x => x.result)
-                                                                                     .Select(x => new KeyValuePair<char, List<double[]>>(x.Key, x.Select(x => x.xs)
-                                                                                                                                                 .ToList()))
-                                                                                     .ToDictionary();
-                foreach((char character, List <double[]> data) in encodedDataByCharacter)
+                List <(double[] xs, char result)> encodedData = EncodedData.ToList();
+                foreach(char character in encodedData.Select(x => x.result).Distinct().Order())
                 {
-                    _coefficients[character] = 
+                    List<(double[] xs, double weight)> relativeData = encodedData.Select(x => (x.xs, x.result == character ? 1.0 : 0)).ToList();
+                    _coefficients[character] = Fit.MultiDim(relativeData.Select(x => x.xs).ToArray(), relativeData.Select(x => x.weight).ToArray());
                 }
             }
             return _coefficients;
