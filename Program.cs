@@ -26,7 +26,7 @@ public class Program
             TestMulticlassStringGenerator(mc, query);
         if (test is EnhancedMarkovStringGenerator emsg)
             for (int i = 0; i < 10; i++)
-                Console.WriteLine(emsg.RandomString(new Dictionary<string, float>() { { "Temperate Conifer Forests", 0.1f }, { "Tundra", 0.9f } }, 0, 20));
+                Console.WriteLine(emsg.RandomString(new Dictionary<string, double>() { { "Temperate Conifer Forests", 0.1f }, { "Tundra", 0.9f } }, 0, 20));
         void writeCities(ISaveableStringGenerator<NgramInfo> generator, string name)
         {
             Console.WriteLine($"{name}:");

@@ -1,29 +1,46 @@
 ﻿using MathNet.Numerics;
+using System.Text.Json.Serialization;
 
 namespace citynames;
 public class BiomeCharacterRegression(OneHotEncoding<string> biomeEncoding, OneHotEncoding<char> characterEncoding, int offset)
 {
+    [JsonInclude]
     public OneHotEncoding<string> BiomeEncoding { get; private set; } = biomeEncoding;
+    [JsonInclude]
     public OneHotEncoding<char> CharacterEncoding { get; private set; } = characterEncoding;
+    [JsonInclude]
     public int Offset { get; private set; } = offset;
+    [JsonIgnore]
     public int DimensionCount => BiomeEncoding.DimensionCount + CharacterEncoding.DimensionCount;
     public double[] Encode(string biome, char character)
         => BiomeEncoding.Encode(biome).AugmentWith(CharacterEncoding.Encode(character));
-    private readonly List<(string biome, char ancestor, char result)> _data = new();
-    public void Add(string biome, char ancestor, char result)
+    public double[] Encode(IReadOnlyDictionary<string, double> biomeWeights, char character)
+        => BiomeEncoding.Encode(biomeWeights).AugmentWith(CharacterEncoding.Encode(character));
+    private readonly List<CharPair> _data = new();
+    public void Add(CharPair pair)
     {
-        _data.Add((biome, ancestor, result));
+        if(pair.Offset == Offset)
+        {
+            _data.Add(pair);
+            _model = null;
+        }
+    }
+    public void AddMany(IEnumerable<CharPair> data)
+    {
+        foreach (CharPair pair in data)
+            _data.Add(pair);
         _model = null;
     }
     public IEnumerable<(double[] xs, char result)> EncodedData
     {
         get
         {
-            foreach ((string biome, char ancestor, char result) in _data)
-                yield return (Encode(biome, ancestor), result);
+            foreach (CharPair pair in _data)
+                yield return (Encode(pair.Data.BiomeWeights, pair.Ancestor), pair.Result);
         }
     }
     private Dictionary<char, Func<double[], double>>? _model = null;
+    [JsonIgnore]
     public Dictionary<char, Func<double[], double>> Model
     {
         get

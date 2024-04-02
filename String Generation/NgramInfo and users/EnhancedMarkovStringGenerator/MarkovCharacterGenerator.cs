@@ -19,7 +19,7 @@ public class MarkovCharacterGenerator(int contextLength)
     /// This is <see langword="public"/> primarily to make serialization less tedious. Generally,
     /// data should only be added using <see cref="Add(string)"/>.
     /// </remarks>
-    public Dictionary<string, DiscreteDistribution<string, float>> Data { get; private set; } = new();
+    public Dictionary<string, DiscreteDistribution<string, double>> Data { get; private set; } = new();
     /// <summary>
     /// The length of input string used to determine the next character. Note that this is only an
     /// upper bound, as substrings at the beginnings of words will be shorter. <br/><br/>
@@ -34,7 +34,7 @@ public class MarkovCharacterGenerator(int contextLength)
     public int ContextLength { get; private set; } = contextLength;
 
     [JsonConstructor]
-    public MarkovCharacterGenerator(Dictionary<string, DiscreteDistribution<string, float>> data, int contextLength = 2) : this(contextLength)
+    public MarkovCharacterGenerator(Dictionary<string, DiscreteDistribution<string, double>> data, int contextLength = 2) : this(contextLength)
     {
         Data = data;
     }
@@ -55,7 +55,7 @@ public class MarkovCharacterGenerator(int contextLength)
         result = null;
         if (!Data.Any())
             throw new InvalidOperationException($"Attempted to generate from a {nameof(MarkovCharacterGenerator)} with no data!");
-        Data.TryGetValue(context, out DiscreteDistribution<string, float>? weights);
+        Data.TryGetValue(context, out DiscreteDistribution<string, double>? weights);
         if (weights is not null)
         {
             result = weights.WeightedRandomElement(x => x.Value).Key;
@@ -65,25 +65,25 @@ public class MarkovCharacterGenerator(int contextLength)
             Console.WriteLine($"Key lookup failure in {nameof(MarkovCharacterGenerator)}: {context} was not found!");
         return false;
     }
-    public DiscreteDistribution<string, float> this[string context] => Data[context];
-    public static MarkovCharacterGenerator operator *(MarkovCharacterGenerator mcg, float factor)
+    public DiscreteDistribution<string, double> this[string context] => Data[context];
+    public static MarkovCharacterGenerator operator *(MarkovCharacterGenerator mcg, double factor)
     {
-        Dictionary<string, DiscreteDistribution<string, float>> result = new();
-        foreach ((string key, DiscreteDistribution<string, float> value) in mcg.Data)
+        Dictionary<string, DiscreteDistribution<string, double>> result = new();
+        foreach ((string key, DiscreteDistribution<string, double> value) in mcg.Data)
             result[key] = value * factor;
         return new(result);
     }
     public static MarkovCharacterGenerator operator +(MarkovCharacterGenerator a, MarkovCharacterGenerator b)
     {
-        Dictionary<string, DiscreteDistribution<string, float>> result = new();
+        Dictionary<string, DiscreteDistribution<string, double>> result = new();
         foreach (string key in a.Data.Keys.Union(b.Data.Keys))
         {
-            a.Data.TryGetValue(key, out DiscreteDistribution<string, float>? aDist);
-            b.Data.TryGetValue(key, out DiscreteDistribution<string, float>? bDist);
+            a.Data.TryGetValue(key, out DiscreteDistribution<string, double>? aDist);
+            b.Data.TryGetValue(key, out DiscreteDistribution<string, double>? bDist);
             result[key] = (aDist ?? new()) + (bDist ?? new());
         }
         return new(result);
     }
-    public float TotalWeight
+    public double TotalWeight
         => Data.Select(x => x.Value.Weight).Sum();
 }

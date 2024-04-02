@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace citynames;
+﻿namespace citynames;
 public interface IProbabilityDensityFunction
 {
     public Probability Between(double minValue, double maxValue)

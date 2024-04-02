@@ -1,21 +1,26 @@
-﻿
-using citynames.Utils;
-using d9.utl;
+﻿using d9.utl;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace citynames;
+[Generator("regression", "regression_{contextLength}.json")]
 public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo, RegressionStringGenerator>
 {
+    [JsonInclude]
     public BiomeCharacterRegressionSet Model { get; private set; }
-    private RegressionStringGenerator(BiomeCharacterRegressionSet model)
+    [JsonInclude]
+    public int MaxOffset { get; private set; }
+    private RegressionStringGenerator(BiomeCharacterRegressionSet model, int maxOffset)
     {
         Model = model;
+        MaxOffset = maxOffset;
     }
     public static RegressionStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> input, int contextLength)
     {
         OneHotEncoding<string> biomeEncoding = new(input.Select(x => x.metadata.Biome));
-        OneHotEncoding<char> characterEncoding = new(input.SelectMany(x => x.item));
-        BiomeCharacterRegressionSet model = new(biomeEncoding, characterEncoding, contextLength);
-        return new(model);
+        OneHotEncoding<char> characterEncoding = new(input.SelectMany(x => x.item.SandwichWith(Characters.START, Characters.STOP)));
+        BiomeCharacterRegressionSet model = new(biomeEncoding, characterEncoding, contextLength);        
+        return new(model, contextLength);
     }
     public static RegressionStringGenerator Load(string path)
     {
@@ -46,6 +51,7 @@ public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo,
     }
     public Task SaveAsync(string path)
     {
-        throw new NotImplementedException();
+        File.WriteAllText(path, JsonSerializer.Serialize(this));
+        return Task.CompletedTask;
     }
 }

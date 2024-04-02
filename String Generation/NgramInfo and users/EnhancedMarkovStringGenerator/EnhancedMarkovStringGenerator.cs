@@ -9,14 +9,14 @@ public class EnhancedMarkovStringGenerator
     public int ContextLength { get; private set; }
     private readonly Dictionary<string, MarkovCharacterGenerator> _dict;
     private readonly MarkovCharacterGenerator _prior;
-    private readonly Func<float, float> _activationFunction;
-    private float DefaultActivationFunction(float input)
+    private readonly Func<double, double> _activationFunction;
+    private double DefaultActivationFunction(double input)
         => 0.01f;
     public EnhancedMarkovStringGenerator(int contextLength = 2) : this(null, null, null, contextLength) { }
     public EnhancedMarkovStringGenerator(Dictionary<string,
                                          MarkovCharacterGenerator>? dict = null,
                                          MarkovCharacterGenerator? prior = null,
-                                         Func<float, float>? activationFunction = null,
+                                         Func<double, double>? activationFunction = null,
                                          int contextLength = 2)
     {
         ContextLength = contextLength;
@@ -31,14 +31,14 @@ public class EnhancedMarkovStringGenerator
     }
     public bool TryGetValue(string key, [NotNullWhen(true)] out MarkovCharacterGenerator? value)
         => _dict.TryGetValue(key, out value);
-    private MarkovCharacterGenerator WeightedEnsemble(IReadOnlyDictionary<string, float> biomeWeights)
+    private MarkovCharacterGenerator WeightedEnsemble(IReadOnlyDictionary<string, double> biomeWeights)
     {
         MarkovCharacterGenerator ensemble = biomeWeights.Select(x => _dict[x.Key] * x.Value)
                                                         .Sum();
-        float weightRatio = ensemble.TotalWeight / (_prior.TotalWeight + ensemble.TotalWeight), adjustedWeight = _activationFunction(weightRatio);
+        double weightRatio = ensemble.TotalWeight / (_prior.TotalWeight + ensemble.TotalWeight), adjustedWeight = _activationFunction(weightRatio);
         return _prior + (ensemble * (_prior.TotalWeight / ensemble.TotalWeight));
     }
-    public string RandomString(IReadOnlyDictionary<string, float> biomeWeights, int _, int maxLength)
+    public string RandomString(IReadOnlyDictionary<string, double> biomeWeights, int _, int maxLength)
     {
         MarkovCharacterGenerator weightedEnsemble = WeightedEnsemble(biomeWeights);
         string result = "";

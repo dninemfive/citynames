@@ -4,6 +4,8 @@
 /// </summary>
 public static class StringExtensions
 {
+    public static string PrependIfNotPresent(this string s, char c) => s.StartsWith(c) ? s : $"{c}{s}";
+    public static string SandwichWith(this string s, char start, char end) => s.PrependIfNotPresent(start).AppendIfNotPresent(end);
     /// <summary>
     /// Appends <paramref name="c"/> to the end of <paramref name="s"/> if <paramref name="s"/>
     /// does not already end with <paramref name="c"/>.
@@ -65,9 +67,9 @@ public static class StringExtensions
     /// <param name="otherKeys">The other keys, whose weights will be encoded as 0. If not specified,
     /// no other keys will be included.</param>
     /// <returns>A dictionary representing the above-described encoding.</returns>
-    public static IReadOnlyDictionary<string, float> ToWeightVector(this string s, IEnumerable<string>? otherKeys = null)
+    public static IReadOnlyDictionary<string, double> ToWeightVector(this string s, IEnumerable<string>? otherKeys = null)
     {
-        Dictionary<string, float> result = new()
+        Dictionary<string, double> result = new()
         {
             { s, 1 }
         };

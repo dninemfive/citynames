@@ -1,8 +1,8 @@
 ﻿namespace citynames;
-public class CharPair(char ancestor, char successor, int offset, QueryInfo data)
+public class CharPair(char ancestor, char result, int offset, QueryInfo data)
 {
-    public readonly char Ancestor = ancestor, Successor = successor;
-    // e.g. 1 = {ancestor}{successor}, 2 = {ancestor}.{successor}, 3 = {ancestor}..{successor}
+    public readonly char Ancestor = ancestor, Result = result;
+    // e.g. 1 = {ancestor}{result}, 2 = {ancestor}.{result}, 3 = {ancestor}..{result}
     public readonly int Offset = offset;
     public readonly QueryInfo Data = data;
     public static IEnumerable<CharPair> From(string cityName, string biome, int maxOffset = 4)

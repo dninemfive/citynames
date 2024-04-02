@@ -1,10 +1,12 @@
 ﻿using MathNet.Numerics;
+using System.Text.Json.Serialization;
 
 namespace citynames;
 public class OneHotEncoding<T>(IEnumerable<T> items)
     where T : IEquatable<T>
 {
     private readonly List<T> _alphabet = [.. items.Distinct().Order()];
+    [JsonInclude]
     public IEnumerable<T> Alphabet => _alphabet;
     public double[] Encode(T item)
     {
@@ -31,5 +33,6 @@ public class OneHotEncoding<T>(IEnumerable<T> items)
             throw new ArgumentException($"OneHotEncoding.Decode can only decode vectors with exactly one 1-valued item; all others must be 0!", nameof(encoded));
         return _alphabet[encoded.IndexOfMaxValue()];
     }
+    [JsonIgnore]
     public int DimensionCount => _alphabet.Count;
 }
