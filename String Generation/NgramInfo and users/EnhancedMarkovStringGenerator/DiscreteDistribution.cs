@@ -1,5 +1,6 @@
 ﻿using d9.utl;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 namespace citynames;
@@ -11,7 +12,7 @@ namespace citynames;
 /// <param name="dict">A dictionary containing data for this distribution. If <see langword="null"/>,
 ///                    an empty distribution is initialized.</param>
 public class DiscreteDistribution<K, V>(CountingDictionary<K, V>? dict = null)
-    : IDistribution<K, V>, IEnumerable<KeyValuePair<K, V>>
+    : IDistribution<K, V>, IEnumerable<KeyValuePair<K, V>>, IReadOnlyDictionary<K, V>
     where K : notnull
     where V : struct, IFloatingPoint<V>
 {
@@ -20,6 +21,13 @@ public class DiscreteDistribution<K, V>(CountingDictionary<K, V>? dict = null)
     /// The total weight of data points in this distribution.
     /// </summary>
     public V Weight { get; private set; } = dict?.Values.Sum() ?? V.Zero;
+
+    public IEnumerable<K> Keys => throw new NotImplementedException();
+
+    public IEnumerable<V> Values => throw new NotImplementedException();
+
+    public int Count => throw new NotImplementedException();
+
     /// <summary>
     /// Adds an item to this distribution.
     /// </summary>
@@ -37,6 +45,10 @@ public class DiscreteDistribution<K, V>(CountingDictionary<K, V>? dict = null)
         => ((IEnumerable<KeyValuePair<K, V>>)_dict).GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator()
         => ((IEnumerable)_dict).GetEnumerator();
+
+    public bool ContainsKey(K key) => _dict.ContainsKey(key);
+
+    public bool TryGetValue(K key, [MaybeNullWhen(false)] out V value) => _dict.TryGetValue(key, out value);
     /// <summary>
     /// Gets the probability that the specified <paramref name="key"/> would occur if this distribution were randomly sampled. 
     /// </summary>
@@ -60,6 +72,6 @@ public class DiscreteDistribution<K, V>(CountingDictionary<K, V>? dict = null)
     /// <returns>A new distribution where each variable has been added pairwise. If there is not a
     ///          corresponding variable in one or the other distribution, the variable will be included
     ///          unchanged, i.e. the set of variables is the union of the input variable sets.</returns>
-    public static DiscreteDistribution<K, V> operator +(DiscreteDistribution<K, V> a, DiscreteDistribution<K, V> b)
-        => new(a._dict + b._dict);
+    public static DiscreteDistribution<K, V> operator +(DiscreteDistribution<K, V> a, IReadOnlyDictionary<K, V> b)
+        => new(a._dict + b);
 }

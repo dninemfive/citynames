@@ -1,28 +1,39 @@
 ﻿
+using citynames.Utils;
+using d9.utl;
+
 namespace citynames;
-public class MarginalProbabilityStringGenerator
+public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo, RegressionStringGenerator>
 {
-    public static MarginalProbabilityStringGenerator Build(IEnumerable<CharPair> input, int contextLength)
+    public BiomeCharacterRegressionSet Model { get; private set; }
+    private RegressionStringGenerator(BiomeCharacterRegressionSet model)
+    {
+        Model = model;
+    }
+    public static RegressionStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> input, int contextLength)
+    {
+        OneHotEncoding<string> biomeEncoding = new(input.Select(x => x.metadata.Biome));
+        OneHotEncoding<char> characterEncoding = new(input.SelectMany(x => x.item));
+        BiomeCharacterRegressionSet model = new(biomeEncoding, characterEncoding, contextLength);
+        return new(model);
+    }
+    public static RegressionStringGenerator Load(string path)
     {
         throw new NotImplementedException();
     }
-    public static MarginalProbabilityStringGenerator Load(string path)
+    private char RandomChar(CityInfo input, string context)
     {
-        throw new NotImplementedException();
+        DiscreteDistribution<char, double> distribution = new();
+        for(int offset = 1; offset <= Model.MaxOffset; offset++)
+        {
+            int i = context.Length - offset;
+            if (i <= 0)
+                break;
+            distribution += Model.WeightsFor(input.Biome, context[i]);
+        }
+        return distribution.WeightedRandomElement();
     }
-    public char RandomChar(QueryInfo input, string context)
-    {
-        // map characters to weights:
-        //  prior probability:
-        //      for each (ancestor, offset) in ancestors,
-        //          probability = (1/offset)(P(character|ancestor)
-        //              **: could simply do an EWMA
-        //  add marginal probabilities:
-        //      for each (biome, weight) in input.biomeWeights,
-        //          probability += (weight)(P(character|ancestors, biome))
-        throw new NotImplementedException();
-    }
-    public string RandomString(QueryInfo input, int minLength, int maxLength)
+    public string RandomString(CityInfo input, int minLength, int maxLength)
     {
         string result = "";
         char cur = RandomChar(input, result);
