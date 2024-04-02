@@ -17,15 +17,14 @@ public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo,
     }
     public static RegressionStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> input, int contextLength)
     {
+        LogUtils.MethodArguments("", (nameof(input), input), (nameof(contextLength), contextLength));
         OneHotEncoding<string> biomeEncoding = new(input.Select(x => x.metadata.Biome));
         OneHotEncoding<char> characterEncoding = new(input.SelectMany(x => x.item.SandwichWith(Characters.START, Characters.STOP)));
         BiomeCharacterRegressionSet model = new(biomeEncoding, characterEncoding, contextLength);        
         return new(model, contextLength);
     }
     public static RegressionStringGenerator Load(string path)
-    {
-        throw new NotImplementedException();
-    }
+        => JsonSerializer.Deserialize<RegressionStringGenerator>(File.ReadAllText(path))!;
     private char RandomChar(CityInfo input, string context)
     {
         DiscreteDistribution<char, double> distribution = new();

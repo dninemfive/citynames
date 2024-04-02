@@ -23,6 +23,8 @@ public class GeneratorInfo
         Name = attr.Name;
         BaseFileName = attr.BaseFileName;
     }
+    public override string ToString()
+        => $"{Name}/{Type.ReadableString()}";
     /// <summary>
     /// Gets the <see cref="GeneratorInfo"/> for a specified <paramref name="type"/>, if any.
     /// </summary>
@@ -100,13 +102,13 @@ public class GeneratorInfo
     /// Tries to build or load a specified string generator.
     /// </summary>
     /// <param name="contextLength">The context length of the specific generator to build.</param>
-    /// <param name="ngramFn">A function which, when called, will provide the required ngrams to build the generator.</param>
+    /// <param name="dataFunction">A function which, when called, will provide the required data to build the generator.</param>
     /// <param name="forceRebuild">If <see langword="true"/>, loading will not be attempted and the
     ///        generator will always be built.</param>
     /// <returns>The generator as defined above.</returns>
     /// <exception cref="ArgumentException">Thrown if both loading and building fail, usually because
     ///            the type does not implement the required methods.</exception>
-    public async Task<ISaveableStringGenerator<NgramInfo>> Instantiate(int contextLength, Func<IEnumerable<NgramInfo>> ngramFn, bool forceRebuild = false)
+    public async Task<ISaveableStringGenerator<CityInfo>> Instantiate(int contextLength, Func<IEnumerable<(string cityName, CityInfo metadata)>> dataFunction, bool forceRebuild = false)
     {
         object? obj = null;
         bool rebuilt = false;
@@ -114,11 +116,11 @@ public class GeneratorInfo
             obj = TryInvoke("Load", [typeof(string)], [FileNameFor(contextLength)]);
         if (obj is null)
         {
-            List<NgramInfo> ngrams = ngramFn!().ToList();
-            obj = TryInvoke("Build", [typeof(IEnumerable<NgramInfo>), typeof(int)], [ngrams, contextLength]);
+            List<(string cityName, CityInfo metadata)> data = dataFunction!().ToList();
+            obj = TryInvoke("Build", [typeof(IEnumerable<(string, CityInfo)>), typeof(int)], [data, contextLength]);
             rebuilt = true;
         }
-        if (obj is ISaveableStringGenerator<NgramInfo> result)
+        if (obj is ISaveableStringGenerator<CityInfo> result)
         {
             if (rebuilt)
                 await result.SaveAsync(FileNameFor(contextLength));
