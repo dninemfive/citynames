@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MathNet.Numerics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,7 @@ public class OneHotEncoding<T>(IEnumerable<T> items)
     where T : IEquatable<T>
 {
     private readonly List<T> _alphabet = [.. items.Distinct().Order()];
+    public IEnumerable<T> Alphabet => _alphabet;
     public double[] Encode(T item)
     {
         if (!_alphabet.Contains(item))
@@ -28,19 +30,65 @@ public class OneHotEncoding<T>(IEnumerable<T> items)
     }
     public int DimensionCount => _alphabet.Count;
 }
-public class BiomeCharacterRegression(OneHotEncoding<string> biomeEncoding, OneHotEncoding<char> ancestorEncoding, int offset)
+public class BiomeCharacterRegression(OneHotEncoding<string> biomeEncoding, OneHotEncoding<char> characterEncoding, int offset)
 {
     public OneHotEncoding<string> BiomeEncoding { get; private set; } = biomeEncoding;
-    public OneHotEncoding<char> AncestorEncoding { get; private set; } = ancestorEncoding;
+    public OneHotEncoding<char> CharacterEncoding { get; private set; } = characterEncoding;
     public int Offset { get; private set; } = offset;
-    public int DimensionCount => BiomeEncoding.DimensionCount + AncestorEncoding.DimensionCount;
+    public int DimensionCount => BiomeEncoding.DimensionCount + CharacterEncoding.DimensionCount;
     public double[] Encode(string biome, char character)
-        => BiomeEncoding.Encode(biome).AugmentWith(AncestorEncoding.Encode(character));
+        => BiomeEncoding.Encode(biome).AugmentWith(CharacterEncoding.Encode(character));
+    private readonly List<(string biome, char ancestor, char result)> _data = new();
+    public void Add(string biome, char ancestor, char result)
+    {
+        _data.Add((biome, ancestor, result));
+        _coefficients = null;
+    }
+    public IEnumerable<(double[] xs, char result)> EncodedData
+    {
+        get
+        {
+            foreach ((string biome, char ancestor, char result) in _data)
+                yield return (Encode(biome, ancestor), result);
+        }
+    }
+    private Dictionary<char, double[]>? _coefficients = null;
+    public Dictionary<char, double[]> Coefficiencts
+    {
+        get
+        {
+            if(_coefficients is null)
+            {
+                _coefficients = new();
+                Dictionary<char, List<double[]>> encodedDataByCharacter = EncodedData.GroupBy(x => x.result)
+                                                                                     .Select(x => new KeyValuePair<char, List<double[]>>(x.Key, x.Select(x => x.xs)
+                                                                                                                                                 .ToList()))
+                                                                                     .ToDictionary();
+                foreach((char character, List <double[]> data) in encodedDataByCharacter)
+                {
+                    _coefficients[character] = 
+                }
+            }
+            return _coefficients;
+        }
+    }
 }
-public class BiomeCharacterRegressionSet(OneHotEncoding<string> biomeEncoding, OneHotEncoding<char> ancestorEncoding, int maxOffset)
+public class BiomeCharacterRegressionSet
 {
-    public OneHotEncoding<string> BiomeEncoding { get; private set; } = biomeEncoding;
-    public OneHotEncoding<char> AncestorEncoding { get; private set; } = ancestorEncoding;
-    public int MaxOffset { get; private set; } = maxOffset;
-    private Dictionary<int, BiomeCharacterRegression> _regressions = [.. 1.To(maxOffset).Select(x => new KeyValuePair<int, BiomeCharacterRegression>(x, new BiomeCharacterRegression(biomeEncoding, ancestorEncoding, x)))];
+    public OneHotEncoding<string> BiomeEncoding { get; private set; }
+    public OneHotEncoding<char> AncestorEncoding { get; private set; }
+    public int MaxOffset { get; private set; }
+    private readonly Dictionary<int, BiomeCharacterRegression> _regressions = new();
+    public BiomeCharacterRegressionSet(OneHotEncoding<string> biomeEncoding, OneHotEncoding<char> ancestorEncoding, int maxOffset)
+    {
+        BiomeEncoding = biomeEncoding;
+        AncestorEncoding = ancestorEncoding;
+        MaxOffset = maxOffset;
+        for (int i = 1; i < maxOffset; i++)
+            _regressions[i] = new(biomeEncoding, ancestorEncoding, i);
+    }
+    public void Add(CharPair pair, string biome)
+    {
+
+    }
 }
