@@ -72,7 +72,7 @@ public class GeneratorInfo
     private static readonly BindingFlags _staticAndPublic = BindingFlags.Static | BindingFlags.Public | BindingFlags.InvokeMethod;
     private object? TryInvoke(string methodName, Type[] signature, object?[] args)
     {
-        Console.WriteLine(LogUtils.MethodArguments("", (nameof(signature), signature), (nameof(args), args)));
+        Console.WriteLine(LogUtils.MethodArguments(arguments: [(nameof(signature), signature), (nameof(args), args)]));
         object? result = null;
         LoggableAction action = new(delegate
         {
@@ -111,7 +111,7 @@ public class GeneratorInfo
     ///            the type does not implement the required methods.</exception>
     public async Task<ISaveableStringGenerator<CityInfo>> Instantiate(int contextLength, Func<IEnumerable<(string cityName, CityInfo metadata)>> dataFunction, bool forceRebuild = false)
     {
-        Console.WriteLine(LogUtils.MethodArguments("", (nameof(contextLength), contextLength), (nameof(dataFunction), dataFunction), (nameof(forceRebuild), forceRebuild)));
+        Console.WriteLine(LogUtils.MethodArguments(arguments: [(nameof(contextLength), contextLength), (nameof(dataFunction), dataFunction), (nameof(forceRebuild), forceRebuild)]));
         object? obj = null;
         bool rebuilt = false;
         if (!forceRebuild)

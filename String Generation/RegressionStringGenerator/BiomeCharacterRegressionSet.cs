@@ -26,7 +26,7 @@ public class BiomeCharacterRegressionSet
             foreach ((char character, double weight) in regression.WeightsFor(biome, ancestor))
                 result[character] += weight;
         }
-        return (IReadOnlyDictionary<char, double>)result;
+        return result;
     }
     public void AddMany(IEnumerable<(string city, string biome)> data)
     {

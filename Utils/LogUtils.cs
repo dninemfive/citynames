@@ -17,7 +17,7 @@ public static class LogUtils
     /// <param name="arguments">The arguments of the method, as described above.</param>
     /// <returns>A string which summarizes the method call, as described above.</returns>
     public static string MethodArguments([CallerMemberName] string callerName = "", params (string name, object? value)[] arguments)
-        => $"{callerName}{arguments.Select(x => $"{x.name}: {x.value}").ListNotation(brackets: ("(", ")"))}";
+        => $"{callerName}{arguments.Select(x => $"{x.name}: {x.value.Summary()}").ListNotation(brackets: ("(", ")"))}";
     /// <summary>
     /// Prints the specified objects as a list in natural English, with the specified conjunction.
     /// </summary>

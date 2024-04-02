@@ -17,7 +17,7 @@ public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo,
     }
     public static RegressionStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> input, int contextLength)
     {
-        LogUtils.MethodArguments("", (nameof(input), input), (nameof(contextLength), contextLength));
+        Console.WriteLine(LogUtils.MethodArguments(arguments: [(nameof(input), input), (nameof(contextLength), contextLength)]));
         OneHotEncoding<string> biomeEncoding = new(input.Select(x => x.metadata.Biome));
         OneHotEncoding<char> characterEncoding = new(input.SelectMany(x => x.item.SandwichWith(Characters.START, Characters.STOP)));
         BiomeCharacterRegressionSet model = new(biomeEncoding, characterEncoding, contextLength);        
@@ -27,19 +27,20 @@ public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo,
         => JsonSerializer.Deserialize<RegressionStringGenerator>(File.ReadAllText(path))!;
     private char RandomChar(CityInfo input, string context)
     {
-        DiscreteDistribution<char, double> distribution = new();
+        Console.WriteLine(LogUtils.MethodArguments(arguments: [(nameof(input), input), (nameof(context), context)]));
+        CountingDictionary<char, double> dict = new();
         for(int offset = 1; offset <= Model.MaxOffset; offset++)
         {
             int i = context.Length - offset;
-            if (i <= 0)
+            if (i < 0)
                 break;
-            distribution += Model.WeightsFor(input.Biome, context[i]);
+            dict += Model.WeightsFor(input.Biome, context[i]);
         }
-        return distribution.WeightedRandomElement();
+        return dict.WeightedRandomElement();
     }
     public string RandomString(CityInfo input, int minLength, int maxLength)
     {
-        string result = "";
+        string result = $"{Characters.START}";
         char cur = RandomChar(input, result);
         while(result.Length < maxLength && cur != Characters.STOP)
         {

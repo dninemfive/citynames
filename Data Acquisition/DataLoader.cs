@@ -36,19 +36,19 @@ public static class DataLoader
     /// <summary><inheritdoc cref="GetAllCityData" path="/summary"/></summary>
     /// <param name="print">If <see langword="true"/>, prints information as the data is loaded.</param>
     /// <returns><inheritdoc cref="GetAllCityData" path="/returns"/></returns>
-    public static async IAsyncEnumerable<(string city, string biome)> GetAllCityDataAsync(bool print = false)
+    public static async IAsyncEnumerable<(string city, string biome)> GetAllCityDataAsync(bool print = true)
     {
-        void printProgress(object? item)
+        void printProgress(object? item, bool newLine = true)
         {
             if (print)
-                Console.WriteLine(item);
+                Console.Write($"{item}{(newLine ? "\n" : "")}");
         }
         printProgress("GetAllCityDataAsync()");
         int ct = 0;
         foreach ((string city, LatLongPair coords) in _wikidataQuerier.GetCityData())
         {
             (string? biome, bool cacheHit) = await _arcGisQuerier.GetBiomeAsync(coords);
-            printProgress($"{++ct,8}\t{(cacheHit ? "" : "MISS"),4}\t");
+            printProgress($"{++ct,8}\t{(cacheHit ? "" : "MISS"),4}\t", false);
             if (biome is null)
             {
                 printProgress($"Could not find biome for {coords} ({city})!");
