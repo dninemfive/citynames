@@ -76,7 +76,7 @@ public class BiomeCharacterRegression(OneHotEncoding<string> biomeEncoding, OneH
         => Model[character](Encode(biome, ancestor));
     public IReadOnlyDictionary<char, double> WeightsFor(string biome, char ancestor)
     {
-        Console.WriteLine(LogUtils.MethodArguments(arguments: [(nameof(biome), biome), (nameof(ancestor), ancestor)]));
+        Console.WriteLine(LogUtils.Method(args: [(nameof(biome), biome), (nameof(ancestor), ancestor)]));
         Dictionary<char, double> result = new();
         foreach ((char c, Func<double[], double> weight) in Model)
         {

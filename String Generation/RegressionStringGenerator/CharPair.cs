@@ -5,9 +5,9 @@ public class CharPair(char ancestor, char result, int offset, QueryInfo data)
     // e.g. 1 = {ancestor}{result}, 2 = {ancestor}.{result}, 3 = {ancestor}..{result}
     public readonly int Offset = offset;
     public readonly QueryInfo Data = data;
-    public static IEnumerable<CharPair> From(string cityName, string biome, int maxOffset = 4)
+    public static IEnumerable<CharPair> From(string cityName, CityInfo metadata, int maxOffset = 4)
     {
-        Console.WriteLine(LogUtils.MethodArguments(arguments: [(nameof(cityName), cityName), (nameof(biome), biome)]));
+        Console.WriteLine(LogUtils.Method(args: [(nameof(cityName), cityName), (nameof(metadata), metadata)]));
         for (int i = 1; i < cityName.Length; i++)
         {
             char successor = cityName[i];
@@ -18,12 +18,12 @@ public class CharPair(char ancestor, char result, int offset, QueryInfo data)
                 Console.WriteLine($"\t{i},{j}: {ancestor}/{(int)ancestor},{successor}/{(int)successor}");
                 if (offset > maxOffset)
                     break;
-                yield return new(ancestor, successor, offset, new(biome));
+                yield return new(ancestor, successor, offset, new(metadata.Biome));
             }
         }
     }
-    public static IEnumerable<CharPair> From((string cityName, string biome) tuple, int maxOffset = 4)
-        => From(tuple.cityName, tuple.biome, maxOffset);
-    public static IEnumerable<CharPair> From(IEnumerable<(string cityName, string biome)> tuples, int maxOffset = 4)
+    public static IEnumerable<CharPair> From((string cityName, CityInfo metadata) tuple, int maxOffset = 4)
+        => From(tuple.cityName, tuple.metadata, maxOffset);
+    public static IEnumerable<CharPair> From(IEnumerable<(string cityName, CityInfo metadata)> tuples, int maxOffset = 4)
         => tuples.SelectMany(x => From(x, maxOffset)).ToList();
 }

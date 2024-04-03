@@ -18,7 +18,7 @@ public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo,
     }
     public static RegressionStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> input, int contextLength)
     {
-        Console.WriteLine(LogUtils.MethodArguments(arguments: [(nameof(input), input), (nameof(contextLength), contextLength)]));
+        Console.WriteLine(LogUtils.Method(args: [(nameof(input), input), (nameof(contextLength), contextLength)]));
         OneHotEncoding<string> biomeEncoding = OneHotEncoding<string>.From(input.Select(x => x.metadata.Biome));
         List<(string item, string biome)> processedInput = input.Select(x => (x.item.SandwichWith(Characters.START, Characters.STOP),
                                                                               x.metadata.Biome)).ToList();
@@ -31,7 +31,7 @@ public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo,
         => JsonSerializer.Deserialize<RegressionStringGenerator>(File.ReadAllText(path))!;
     private char RandomChar(CityInfo input, string context)
     {
-        Console.WriteLine(LogUtils.MethodArguments(arguments: [(nameof(input), input), (nameof(context), context)]));
+        Console.WriteLine(LogUtils.Method(args: [(nameof(input), input), (nameof(context), context)]));
         CountingDictionary<char, double> dict = new();
         for(int offset = 1; offset <= Model.MaxOffset; offset++)
         {

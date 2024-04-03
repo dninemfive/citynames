@@ -14,10 +14,10 @@ public static class LogUtils
     /// </summary>
     /// <param name="callerName">The name of the calling method. This is automatically set by 
     /// compiler services.</param>
-    /// <param name="arguments">The arguments of the method, as described above.</param>
+    /// <param name="args">The arguments of the method, as described above.</param>
     /// <returns>A string which summarizes the method call, as described above.</returns>
-    public static string MethodArguments([CallerMemberName] string callerName = "", params (string name, object? value)[] arguments)
-        => $"{callerName}{arguments.Select(x => $"{x.name}: {x.value.Summary()}").ListNotation(brackets: ("(", ")"))}";
+    public static string Method([CallerMemberName] string callerName = "", params (string name, object? value)[] args)
+        => $"{callerName}{args.Select(x => $"{x.name}: {x.value.Summary()}").ListNotation(brackets: ("(", ")"))}";
     /// <summary>
     /// Prints the specified items as a list in natural English, with the specified conjunction.
     /// </summary>
@@ -83,5 +83,12 @@ public static class LogUtils
         {
             return obj.PrintNull();
         }
+    }
+    public static T LogInvocation<T>(string initialMessage, Func<T> function, string finalMessage = "Done!")
+    {
+        Console.Write($"{initialMessage}...");
+        T result = function();
+        Console.WriteLine(finalMessage);
+        return result;
     }
 }

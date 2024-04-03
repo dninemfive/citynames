@@ -1,4 +1,5 @@
-﻿namespace citynames;
+﻿using d9.utl;
+namespace citynames;
 /// <summary>
 /// Extensions which make working with strings easier.
 /// </summary>
@@ -78,4 +79,6 @@ public static class StringExtensions
                 result[key] = 0;
         return result;
     }
+    public static string Tabs(this int n, string tab = "  ")
+        => "  ".Repeated(n);
 }
