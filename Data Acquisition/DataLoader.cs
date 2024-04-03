@@ -45,6 +45,9 @@ public static class DataLoader
         }
         printProgress("GetAllCityDataAsync()");
         int ct = 0;
+        using FileStream fs = File.OpenWrite("biome errors.csv");
+        using StreamWriter sw = new(fs);
+        sw.WriteLine($"WKT,name,description");
         foreach ((string city, LatLongPair coords) in _wikidataQuerier.GetCityData())
         {
             (string? biome, bool cacheHit) = await _arcGisQuerier.GetBiomeAsync(coords);
@@ -52,6 +55,7 @@ public static class DataLoader
             if (biome is null)
             {
                 printProgress($"Could not find biome for {coords} ({city})!");
+                sw.WriteLine(coords.ToWkt(city));
                 continue;
             }
             else

@@ -6,6 +6,11 @@ public class Program
     public const string OUTPUT_DIRECTORY = "output";
     private static async Task Main()
     {
+        @"{y} {x}".ReplaceUsing(new Dictionary<string, object?>
+        {
+            { "x", 69 }, {"y", 666}
+        });
+        return;
         int contextLength        = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string testGeneratorName = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "markov";
 

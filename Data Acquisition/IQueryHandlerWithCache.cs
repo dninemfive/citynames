@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using d9.utl;
+using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace citynames;
@@ -36,9 +37,12 @@ public interface IQueryHandlerWithCache<T, U>
         Cache.EnsureLoaded();
         if (Cache!.TryGetValue(query, out U? result))
             return (result, true);
-        result = TryParse(await QueryApiFor(query));
+        Console.WriteLine($"Querying for {query}");
+        JsonDocument? response = await QueryApiFor(query);
+        result = TryParse(response);
         if (result is not null)
             Cache[query] = result!;
+        File.WriteAllText($"{DateTime.Now:s}@{query}.json".FileNameSafe(), response?.RootElement.ToString());
         return (result, false);
     }
     public void SaveCache()

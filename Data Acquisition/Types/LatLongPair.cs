@@ -47,4 +47,6 @@ public class LatLongPair(double latitude, double longitude) : IDictionaryable, I
             { "x", Longitude },
             { "y", Latitude }
         };
+    public string ToWkt(string name)
+        => $"\"POINT ({Longitude} {Latitude})\",{name},";
 }

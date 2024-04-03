@@ -38,7 +38,8 @@ public static class StringExtensions
         string result = s;
         foreach ((string key, object? value) in dict)
             if (value is not null)
-                result = s.Replace($"{{{key}}}", $"{value}");
+                result = result.Replace($"{{{key}}}", $"{value}");
+        Console.WriteLine($"ReplaceUsing: {s} -> {result}");
         return result;
     }
     /// <summary>
