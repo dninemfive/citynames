@@ -1,5 +1,6 @@
 ﻿using d9.utl;
 using MathNet.Numerics;
+using MathNet.Numerics.LinearRegression;
 using System.Text.Json.Serialization;
 
 namespace citynames;
@@ -65,7 +66,7 @@ public class BiomeCharacterRegression(OneHotEncoding<string> biomeEncoding, OneH
                             sw.Write($"{x},");
                         sw.WriteLine($"{weight}");
                     }
-                    _model[character] = Fit.MultiDimFunc(relativeData.Select(x => x.xs).ToArray(), relativeData.Select(x => x.weight).ToArray());
+                    _model[character] = Fit.MultiDimFunc(relativeData.Select(x => x.xs).ToArray(), relativeData.Select(x => x.weight).ToArray(), method: DirectRegressionMethod.QR);
                 }
             }
             return _model;

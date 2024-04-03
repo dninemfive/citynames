@@ -19,21 +19,21 @@ public static class LogUtils
     public static string MethodArguments([CallerMemberName] string callerName = "", params (string name, object? value)[] arguments)
         => $"{callerName}{arguments.Select(x => $"{x.name}: {x.value.Summary()}").ListNotation(brackets: ("(", ")"))}";
     /// <summary>
-    /// Prints the specified objects as a list in natural English, with the specified conjunction.
+    /// Prints the specified items as a list in natural English, with the specified conjunction.
     /// </summary>
-    /// <param name="objects">The objects to print.</param>
+    /// <param name="items">The items to print.</param>
     /// <param name="conjunction">The conjunction at the end of the string, just before the last
     /// item.</param>
     /// <returns>The items in the list separated by commas as appropriate, with a conjunction
     ///          between the last two items.</returns>
     /// <remarks>Uses the Oxford comma, which is the correct way to write such lists.</remarks>
-    public static string NaturalLanguageList(this IEnumerable<object> objects, string conjunction = "or")
-        => objects.Count() switch
+    public static string NaturalLanguageList<T>(this IEnumerable<T> items, string conjunction = "or")
+        => items.Count() switch
         {
             0 => "",
-            1 => $"{objects.First()}",
-            2 => $"{objects.First()} {conjunction} {objects.Last()}",
-            _ => $"{objects.SkipLast(1).ListNotation(brackets: null)}, {conjunction} {objects.Last()}"
+            1 => $"{items.First()}",
+            2 => $"{items.First()} {conjunction} {items.Last()}",
+            _ => $"{items.SkipLast(1).ListNotation(brackets: null)}, {conjunction} {items.Last()}"
         };
     /// <summary>
     /// Produces a string which describes the specified type as it would be written in code.
