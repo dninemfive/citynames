@@ -4,7 +4,7 @@
 /// me compare latitude and longitude more coarsely and prevents being mixed up between the
 /// conflicting Wikidata and ArcGIS coordinate notation.
 /// </summary>
-public class LatLongPair(double latitude, double longitude) : IDictionaryable
+public class LatLongPair(double latitude, double longitude) : IDictionaryable, IEquatable<LatLongPair>
 {
     /// <summary>
     /// Position wrt North-South, i.e. equivalent to "y".
@@ -31,8 +31,14 @@ public class LatLongPair(double latitude, double longitude) : IDictionaryable
         => $"{Math.Abs(d),6:F2}°{(d < 0 ? negative : positive)}";
     public override string ToString()
         => $"({DegreeNotation(latitude, 'N', 'S')}, {DegreeNotation(longitude, 'E', 'W')})";
+    public static bool operator ==(LatLongPair a, LatLongPair b)
+        => a.Latitude == b.Latitude && a.Longitude == b.Longitude;
+    public static bool operator !=(LatLongPair a, LatLongPair b)
+        => !(a == b);
     public override bool Equals(object? obj)
-        => obj is LatLongPair other && Latitude == other.Latitude && Longitude == other.Longitude;
+        => obj is LatLongPair other && this == other;
+    bool IEquatable<LatLongPair>.Equals(LatLongPair? other)
+        => other is not null && this == other;
     public override int GetHashCode()
         => HashCode.Combine(Latitude, Longitude);
     public IReadOnlyDictionary<string, object?> ToDictionary()
