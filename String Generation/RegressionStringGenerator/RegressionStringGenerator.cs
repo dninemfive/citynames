@@ -45,9 +45,14 @@ public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo,
         }
         return result.Replace($"{Characters.START}","");
     }
+    private static readonly JsonSerializerOptions _options = new()
+    {
+        WriteIndented = true,
+        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
+    };
     public Task SaveAsync(string path)
     {
-        File.WriteAllText(path, JsonSerializer.Serialize(this));
+        File.WriteAllText(path, JsonSerializer.Serialize(this, _options));
         return Task.CompletedTask;
     }
 }

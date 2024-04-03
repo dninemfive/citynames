@@ -30,8 +30,8 @@ public class AncestorCharacterRegression(OneHotEncoding<string> biomeEncoding,
         OneHotEncoding<string> biomeEncoding = OneHotEncoding<string>.From(data.Select(x => x.metadata.Biome));
         OneHotEncoding<char> characterEncoding = OneHotEncoding<char>.From(data.SelectMany(x => x.city));
         List<CharPair> pairs = CharPair.From(data, maxOffset).ToList();
-        List<double[]> encodedData = LogUtils.LogAndTime($"{1.Tabs()}Encoding data",
-                                                         () => pairs.Select(x => Encode(x, biomeEncoding, characterEncoding)).ToList());
+        double[][] encodedData = LogUtils.LogAndTime($"{1.Tabs()}Encoding data",
+                                                         () => pairs.Select(x => Encode(x, biomeEncoding, characterEncoding)).ToArray());
         Dictionary<int, Dictionary<char, double[]>> coefficientDict = new();
         for(int i = 1; i <= maxOffset; i++)
         {
@@ -39,9 +39,8 @@ public class AncestorCharacterRegression(OneHotEncoding<string> biomeEncoding,
             coefficientDict[i] = new();
             foreach(char c in characterEncoding.Alphabet)
             {
-                Console.WriteLine($"{3.Tabs()}{c}/{(int)c}:");
-                double[] coefs = LogUtils.LogAndTime($"{4.Tabs()}Fitting", 
-                                                     () => Fit.MultiDim(encodedData.ToArray(), 
+                double[] coefs = LogUtils.LogAndTime($"{2.Tabs()} Fitting{c}/{(int)c}", 
+                                                     () => Fit.MultiDim(encodedData,
                                                                         pairs.Select(x => x.Result == c ? 1.0 : 0.0).ToArray(),
                                                                         intercept: true, 
                                                                         method: DirectRegressionMethod.QR));
