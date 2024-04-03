@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace citynames;
 /// <summary>
@@ -39,9 +40,9 @@ public class WikidataResultItem
     /// The city's <see cref="Name"/> and a <see cref="LatLongPair"/> describing its coordinates.
     /// </returns>
     /// <remarks><inheritdoc cref="Coordinates" path="/remarks"/></remarks>
-    public (string name, LatLongPair coordinates) ToData()
+    public CityCoordPair ToData()
     {
         string[] split = Coordinates.Replace("Point(","").Replace(")","").Split(" ");
-        return (Name, new(double.Parse(split[1]), double.Parse(split[0])));
+        return new(Name, new(double.Parse(split[1]), double.Parse(split[0])));
     }
 }

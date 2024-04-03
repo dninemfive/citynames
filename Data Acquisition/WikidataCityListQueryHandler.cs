@@ -21,12 +21,12 @@ public class WikidataCityListQueryHandler(HttpClient client)
     /// <param name="limit">Currently unused.</param>
     /// <returns>An enumerable of the city names in the dataset and their respective geospatial
     ///          coordinates.</returns>
-    public IEnumerable<(string city, LatLongPair coords)> GetCityData(int minPopulation = 50000, int limit = 10000)
+    public IEnumerable<CityCoordPair> GetCityData(int minPopulation = 50000, int limit = 10000)
     {
         return JsonSerializer.Deserialize<List<WikidataResultItem>>(File.ReadAllText(QueryResultPath))!
                              .Select(x => x.ToData())
-                             // .DistinctBy(x => x.name)
-                             .OrderBy(x => x.name);
+                             .Distinct()
+                             .OrderBy(x => x.Name);
         /* todo: get the proper permissions or whatever to do this in code
         HttpResponseMessage? response = await Client.GetAsync(WikidataQueryUrl.Replace("{threshold}", $"{threshold}")
                                                                                .Replace("{limit}", $"{limit}"));

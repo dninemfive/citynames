@@ -16,6 +16,7 @@ public class OneHotEncoding<T>
         => new([.. items.Distinct().Order()]);
     public double[] Encode(T item)
     {
+        //Console.WriteLine(LogUtils.MethodArguments(arguments: [(nameof(item), item)]));
         if (!Alphabet.Contains(item))
             throw new ArgumentOutOfRangeException(nameof(item));
         double[] result = new double[DimensionCount];

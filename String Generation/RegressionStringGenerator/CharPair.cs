@@ -7,6 +7,7 @@ public class CharPair(char ancestor, char result, int offset, QueryInfo data)
     public readonly QueryInfo Data = data;
     public static IEnumerable<CharPair> From(string cityName, string biome, int maxOffset = 4)
     {
+        Console.WriteLine(LogUtils.MethodArguments(arguments: [(nameof(cityName), cityName), (nameof(biome), biome)]));
         for (int i = 0; i < cityName.Length; i++)
         {
             char ancestor = cityName[i];
@@ -14,6 +15,7 @@ public class CharPair(char ancestor, char result, int offset, QueryInfo data)
             {
                 char successor = cityName[j];
                 int offset = j - i;
+                Console.WriteLine($"\t{i},{j}: {ancestor}/{(int)ancestor},{successor}/{(int)successor}");
                 if (offset > maxOffset)
                     break;
                 yield return new(ancestor, successor, offset, new(biome));
