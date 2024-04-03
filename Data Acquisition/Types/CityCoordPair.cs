@@ -12,7 +12,7 @@ public readonly struct CityCoordPair(string name, LatLongPair coordinates)
     public readonly string Name = name;
     public readonly LatLongPair Coordinates = coordinates;
     public override bool Equals([NotNullWhen(true)] object? obj)
-        => obj is CityCoordPair pair && Name == pair.Name && Coordinates == pair.Coordinates;
+        => obj is CityCoordPair pair && this == pair;
     public override int GetHashCode()
         => HashCode.Combine(Name, Coordinates);
     public override string ToString()
@@ -27,7 +27,7 @@ public readonly struct CityCoordPair(string name, LatLongPair coordinates)
         coordinates = Coordinates;
     }
     public bool Equals(CityCoordPair other)
-        => this == other;
+        => Name == other.Name && Coordinates == other.Coordinates;
     public static implicit operator (string name, LatLongPair coords)(CityCoordPair pair)
         => (pair.Name, pair.Coordinates);
 }
