@@ -7,6 +7,8 @@ public class OneHotEncoding<T>
 {
     [JsonInclude]
     public IReadOnlyList<T> Alphabet { get; private set; }
+    [JsonIgnore]
+    private readonly Dictionary<T, double[]> _encodingCache = new();
     [JsonConstructor]
     private OneHotEncoding(IReadOnlyList<T>  alphabet)
     {
@@ -16,6 +18,8 @@ public class OneHotEncoding<T>
         => new([.. items.Distinct().Order()]);
     public double[] Encode(T item)
     {
+        if (_encodingCache.TryGetValue(item, out double[]? cachedResult))
+            return cachedResult;
         //Console.WriteLine(LogUtils.MethodArguments(arguments: [(nameof(item), item)]));
         if (!Alphabet.Contains(item))
             throw new ArgumentOutOfRangeException(nameof(item));

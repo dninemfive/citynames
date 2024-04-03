@@ -1,5 +1,6 @@
 ﻿using d9.utl;
 using System.Collections;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace citynames;
@@ -89,6 +90,16 @@ public static class LogUtils
         Console.Write($"{initialMessage}...");
         T result = function();
         Console.WriteLine(finalMessage);
+        return result;
+    }
+    public static T LogAndTime<T>(string initialMessage, Func<T> function, string finalMessage = "Done! Time elapsed: ")
+    {
+        Stopwatch stopwatch = new();
+        Console.Write($"{initialMessage}...");
+        stopwatch.Start();
+        T result = function();
+        stopwatch.Stop();
+        Console.WriteLine($"{finalMessage}{stopwatch.Elapsed:g}");
         return result;
     }
 }
