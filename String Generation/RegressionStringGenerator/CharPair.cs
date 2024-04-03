@@ -11,7 +11,7 @@ public class CharPair(char ancestor, char result, int offset, QueryInfo data)
         for (int i = 0; i < cityName.Length; i++)
         {
             char ancestor = cityName[i];
-            for (int j = i + 1; i < cityName.Length; i++)
+            for (int j = i + 1; j < cityName.Length; j++)
             {
                 char successor = cityName[j];
                 int offset = j - i;
