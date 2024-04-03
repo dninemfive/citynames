@@ -10,6 +10,7 @@ public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo,
     public BiomeCharacterRegressionSet Model { get; private set; }
     [JsonInclude]
     public int MaxOffset { get; private set; }
+    [JsonConstructor]
     private RegressionStringGenerator(BiomeCharacterRegressionSet model, int maxOffset)
     {
         Model = model;
@@ -18,8 +19,8 @@ public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo,
     public static RegressionStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> input, int contextLength)
     {
         Console.WriteLine(LogUtils.MethodArguments(arguments: [(nameof(input), input), (nameof(contextLength), contextLength)]));
-        OneHotEncoding<string> biomeEncoding = new(input.Select(x => x.metadata.Biome));
-        OneHotEncoding<char> characterEncoding = new(input.SelectMany(x => x.item.SandwichWith(Characters.START, Characters.STOP)));
+        OneHotEncoding<string> biomeEncoding = OneHotEncoding<string>.From(input.Select(x => x.metadata.Biome));
+        OneHotEncoding<char> characterEncoding = OneHotEncoding<char>.From(input.SelectMany(x => x.item.SandwichWith(Characters.START, Characters.STOP)));
         BiomeCharacterRegressionSet model = new(biomeEncoding, characterEncoding, contextLength);        
         return new(model, contextLength);
     }
@@ -32,11 +33,18 @@ public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo,
         for(int offset = 1; offset <= Model.MaxOffset; offset++)
         {
             int i = context.Length - offset;
+            Console.WriteLine($"\t{offset} ({i})");
             if (i < 0)
                 break;
             dict += Model.WeightsFor(input.Biome, context[i]);
         }
-        return dict.WeightedRandomElement();
+        if(dict.Any())
+        {
+            Console.WriteLine($"{dict.Select(x => $"{x.Key}: {x.Value}").ListNotation()}");
+            return dict.WeightedRandomElement();
+        }
+        Console.WriteLine($"No weights found.");
+        return Characters.STOP;
     }
     public string RandomString(CityInfo input, int minLength, int maxLength)
     {

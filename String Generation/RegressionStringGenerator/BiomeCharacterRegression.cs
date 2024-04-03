@@ -2,6 +2,7 @@
 using System.Text.Json.Serialization;
 
 namespace citynames;
+[method: JsonConstructor]
 public class BiomeCharacterRegression(OneHotEncoding<string> biomeEncoding, OneHotEncoding<char> characterEncoding, int offset)
 {
     [JsonInclude]
@@ -62,9 +63,13 @@ public class BiomeCharacterRegression(OneHotEncoding<string> biomeEncoding, OneH
         => Model[character](Encode(biome, ancestor));
     public IReadOnlyDictionary<char, double> WeightsFor(string biome, char ancestor)
     {
+        Console.WriteLine(LogUtils.MethodArguments(arguments: [(nameof(biome), biome), (nameof(ancestor), ancestor)]));
         Dictionary<char, double> result = new();
         foreach ((char c, Func<double[], double> weight) in Model)
+        {
+            Console.WriteLine($"\t{c}");
             result[c] = weight(Encode(biome, ancestor)) / Offset;
+        }
         return result;
     }
 }

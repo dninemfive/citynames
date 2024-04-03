@@ -2,19 +2,25 @@
 using System.Text.Json.Serialization;
 
 namespace citynames;
-public class OneHotEncoding<T>(IEnumerable<T> items)
+public class OneHotEncoding<T>
     where T : IEquatable<T>
 {
-    private readonly List<T> _alphabet = [.. items.Distinct().Order()];
     [JsonInclude]
-    public IEnumerable<T> Alphabet => _alphabet;
+    public IReadOnlyList<T> Alphabet { get; private set; }
+    [JsonConstructor]
+    private OneHotEncoding(IReadOnlyList<T>  alphabet)
+    {
+        Alphabet = alphabet;
+    }
+    public static OneHotEncoding<T> From(IEnumerable<T> items)
+        => new([.. items.Distinct().Order()]);
     public double[] Encode(T item)
     {
-        if (!_alphabet.Contains(item))
+        if (!Alphabet.Contains(item))
             throw new ArgumentOutOfRangeException(nameof(item));
         double[] result = new double[DimensionCount];
         for (int i = 0; i < result.Length; i++)
-            result[i] = item.Equals(_alphabet[i]) ? 1 : 0;
+            result[i] = item.Equals(Alphabet[i]) ? 1 : 0;
         return result;
     }
     public double[] Encode(IReadOnlyDictionary<T, double> weights)
@@ -22,17 +28,17 @@ public class OneHotEncoding<T>(IEnumerable<T> items)
         double totalWeight = weights.Where(x => Alphabet.Contains(x.Key)).Sum(x => x.Value);
         double[] result = new double[DimensionCount];
         for (int i = 0; i < result.Length; i++)
-            result[i] = weights.TryGetValue(_alphabet[i], out double value) ? value / totalWeight : 0;
+            result[i] = weights.TryGetValue(Alphabet[i], out double value) ? value / totalWeight : 0;
         return result;
     }
     public T Decode(double[] encoded)
     {
-        if (encoded.Length != _alphabet.Count)
+        if (encoded.Length != Alphabet.Count)
             throw new ArgumentException($"Encoded vector has {encoded.Length} dimensions, but this encoding requires {DimensionCount}!", nameof(encoded));
         if (encoded.Any(x => x is not (0 or 1)) || encoded.Count(x => x == 1) != 1)
             throw new ArgumentException($"OneHotEncoding.Decode can only decode vectors with exactly one 1-valued item; all others must be 0!", nameof(encoded));
-        return _alphabet[encoded.IndexOfMaxValue()];
+        return Alphabet[encoded.IndexOfMaxValue()];
     }
     [JsonIgnore]
-    public int DimensionCount => _alphabet.Count;
+    public int DimensionCount => Alphabet.Count;
 }

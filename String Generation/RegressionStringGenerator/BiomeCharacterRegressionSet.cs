@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using d9.utl;
+using System.Text.Json.Serialization;
 
 namespace citynames;
 public class BiomeCharacterRegressionSet
@@ -21,6 +22,7 @@ public class BiomeCharacterRegressionSet
     public IReadOnlyDictionary<char, double> WeightsFor(string biome, char ancestor)
     {
         DefaultDict<char, double> result = new(0);
+        Console.WriteLine($"Regressions: {_regressions.Select(x => $"{x.Key}: {x.Value}").ListNotation()}");
         foreach ((int offset, BiomeCharacterRegression regression) in _regressions)
         {
             foreach ((char character, double weight) in regression.WeightsFor(biome, ancestor))
