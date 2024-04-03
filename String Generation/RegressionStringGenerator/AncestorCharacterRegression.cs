@@ -63,6 +63,8 @@ public class AncestorCharacterRegression(OneHotEncoding<string> biomeEncoding,
         Dictionary<char, double> result = new();
         foreach(int offset in Coefficients.Keys)
         {
+            if (offset >= context.Length)
+                continue;
             char ancestor = context[^offset];
             foreach (char c in Coefficients[offset].Keys)
                 result[c] = WeightFor(c, offset, query) / offset;

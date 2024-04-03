@@ -37,7 +37,6 @@ public interface IQueryHandlerWithCache<T, U>
         Cache.EnsureLoaded();
         if (Cache!.TryGetValue(query, out U? result))
             return (result, true);
-        Console.WriteLine($"Querying for {query}");
         JsonDocument? response = await QueryApiFor(query);
         result = TryParse(response);
         if (result is not null)
