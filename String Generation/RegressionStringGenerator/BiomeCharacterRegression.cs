@@ -1,4 +1,5 @@
-﻿using MathNet.Numerics;
+﻿using d9.utl;
+using MathNet.Numerics;
 using System.Text.Json.Serialization;
 
 namespace citynames;
@@ -53,6 +54,17 @@ public class BiomeCharacterRegression(OneHotEncoding<string> biomeEncoding, OneH
                 foreach (char character in encodedData.Select(x => x.result).Distinct().Order())
                 {
                     List<(double[] xs, double weight)> relativeData = encodedData.Select(x => (x.xs, x.result == character ? 1.0 : 0)).ToList();
+                    string debugFileName = $"{character},{Offset};{DateTime.Now:s}.csv".FileNameSafe();
+                    using FileStream fs = File.OpenWrite(debugFileName);
+                    using StreamWriter sw = new(fs);
+                    string header = $"{BiomeEncoding.Alphabet.Select(x => x.Replace(",", "&")).ListNotation(brackets: null)},{CharacterEncoding.Alphabet.Select(x => $"\\{(int)x}").ListNotation(brackets: null)}";
+                    sw.WriteLine(header);
+                    foreach ((double[] xs, double weight) in relativeData)
+                    {
+                        foreach (double x in xs)
+                            sw.Write($"{x},");
+                        sw.WriteLine($"{weight}");
+                    }
                     _model[character] = Fit.MultiDimFunc(relativeData.Select(x => x.xs).ToArray(), relativeData.Select(x => x.weight).ToArray());
                 }
             }

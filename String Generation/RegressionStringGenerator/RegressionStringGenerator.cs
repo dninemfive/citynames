@@ -20,8 +20,11 @@ public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo,
     {
         Console.WriteLine(LogUtils.MethodArguments(arguments: [(nameof(input), input), (nameof(contextLength), contextLength)]));
         OneHotEncoding<string> biomeEncoding = OneHotEncoding<string>.From(input.Select(x => x.metadata.Biome));
-        OneHotEncoding<char> characterEncoding = OneHotEncoding<char>.From(input.SelectMany(x => x.item.SandwichWith(Characters.START, Characters.STOP)));
-        BiomeCharacterRegressionSet model = new(biomeEncoding, characterEncoding, contextLength);        
+        List<(string item, string biome)> processedInput = input.Select(x => (x.item.SandwichWith(Characters.START, Characters.STOP),
+                                                                              x.metadata.Biome)).ToList();
+        OneHotEncoding<char> characterEncoding = OneHotEncoding<char>.From(processedInput.SelectMany(x => x.item));
+        BiomeCharacterRegressionSet model = new(biomeEncoding, characterEncoding, contextLength);
+        model.AddMany(processedInput);
         return new(model, contextLength);
     }
     public static RegressionStringGenerator Load(string path)
