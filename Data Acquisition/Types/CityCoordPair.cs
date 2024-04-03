@@ -7,6 +7,7 @@ namespace citynames;
 /// <param name="name">The name of the city.</param>
 /// <param name="coordinates">The geospacial coordinates of the city.</param>
 public readonly struct CityCoordPair(string name, LatLongPair coordinates)
+    : IEquatable<CityCoordPair>
 {
     public readonly string Name = name;
     public readonly LatLongPair Coordinates = coordinates;
@@ -25,6 +26,8 @@ public readonly struct CityCoordPair(string name, LatLongPair coordinates)
         name = Name;
         coordinates = Coordinates;
     }
+    public bool Equals(CityCoordPair other)
+        => this == other;
     public static implicit operator (string name, LatLongPair coords)(CityCoordPair pair)
         => (pair.Name, pair.Coordinates);
 }

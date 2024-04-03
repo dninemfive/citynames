@@ -39,7 +39,7 @@ public class AncestorCharacterRegression(OneHotEncoding<string> biomeEncoding,
             coefficientDict[i] = new();
             foreach(char c in characterEncoding.Alphabet)
             {
-                double[] coefs = LogUtils.LogAndTime($"{2.Tabs()} Fitting{c}/{(int)c}", 
+                double[] coefs = LogUtils.LogAndTime($"{2.Tabs()} Fitting {c}/{(int)c}", 
                                                      () => Fit.MultiDim(encodedData,
                                                                         pairs.Select(x => x.Result == c ? 1.0 : 0.0).ToArray(),
                                                                         intercept: true, 
