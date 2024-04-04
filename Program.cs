@@ -6,6 +6,22 @@ public class Program
     public const string OUTPUT_DIRECTORY = "output";
     private static async Task Main()
     {
+        List<(string cityName, CityInfo info)> corpus = [
+            ("Aarhus", new("fuck")),
+            ("Rio de Janeiro", new("fuck")),
+            ("6th of June 1944 City", new("fuck")),
+            ("Alexandria", new("fuck")),
+            ("Berlin", new("fuck")),
+            ("Ahmedabad", new("fuck")),
+            ("Jordan", new("fuck")),
+            ("Paris", new("fuck")),
+            ("Phoenix", new("fuck")),
+            ("Persepolis", new("fuck"))
+        ];
+        RegressionStringGenerator rsg = RegressionStringGenerator.Build(corpus, 2);
+        await rsg.SaveAsync("regression test.json");
+        // Console.WriteLine(rsg.RandomString(new("fuck"), 5, 10));
+        return;
         int contextLength        = CommandLineArgs.TryParseValue<int>(nameof(contextLength)) ?? 2;
         string testGeneratorName = CommandLineArgs.TryGet("generator", CommandLineArgs.Parsers.FirstNonNullOrEmptyString) ?? "markov";
 

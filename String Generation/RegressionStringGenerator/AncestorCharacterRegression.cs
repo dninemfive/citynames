@@ -1,4 +1,5 @@
-﻿using MathNet.Numerics;
+﻿using d9.utl;
+using MathNet.Numerics;
 using MathNet.Numerics.LinearRegression;
 using System.Text.Json.Serialization;
 
@@ -21,6 +22,7 @@ public class AncestorCharacterRegression(OneHotEncoding<string> biomeEncoding,
                                   char ancestor,
                                   OneHotEncoding<string> biomeEncoding,
                                   OneHotEncoding<char> characterEncoding)
+        //=> characterEncoding.Encode(ancestor).AugmentWith(biomeEncoding.Encode(biomeWeights));
         => biomeEncoding.Encode(biomeWeights).AugmentWith(characterEncoding.Encode(ancestor));
     public static double[] Encode(CharPair pair, OneHotEncoding<string> biomeEncoding, OneHotEncoding<char> characterEncoding)
         => Encode(pair.Data.BiomeWeights, pair.Ancestor, biomeEncoding, characterEncoding);
@@ -32,6 +34,8 @@ public class AncestorCharacterRegression(OneHotEncoding<string> biomeEncoding,
         List<CharPair> pairs = CharPair.From(data, maxOffset).ToList();
         double[][] encodedData = LogUtils.LogAndTime($"{1.Tabs()}Encoding data",
                                                          () => pairs.Select(x => Encode(x, biomeEncoding, characterEncoding)).ToArray());
+        foreach (double[] row in encodedData)
+            Console.WriteLine(row.ListNotation());
         Dictionary<int, Dictionary<char, double[]>> coefficientDict = new();
         for(int i = 1; i <= maxOffset; i++)
         {
@@ -39,6 +43,7 @@ public class AncestorCharacterRegression(OneHotEncoding<string> biomeEncoding,
             coefficientDict[i] = new();
             foreach(char c in characterEncoding.Alphabet)
             {
+                Console.WriteLine($"{c}/{(int)c}: {pairs.Select(x => x.Result == c ? 1.0 : 0.0).ListNotation()}");
                 double[] coefs = LogUtils.LogAndTime($"{2.Tabs()} Fitting {c}/{(int)c}", 
                                                      () => Fit.MultiDim(encodedData,
                                                                         pairs.Select(x => x.Result == c ? 1.0 : 0.0).ToArray(),
@@ -51,8 +56,11 @@ public class AncestorCharacterRegression(OneHotEncoding<string> biomeEncoding,
     }
     public double WeightFor(char ancestor, int offset, QueryInfo query)
     {
+        Console.WriteLine(LogUtils.Method(args: [(nameof(ancestor), ancestor), (nameof(offset), offset), (nameof(query), query)]));
         double[] coefficients = Coefficients[offset][ancestor];
+        Console.WriteLine($"Coefficients ({coefficients.Length,-3}): {coefficients}");
         double[] inputs = Encode(query, ancestor);
+        Console.WriteLine($"Inputs       ({inputs.Length,-3}): {inputs}");
         double result = coefficients[0];
         for(int i = 0; i < inputs.Length; i++)
             result += coefficients[i + 1] * inputs[i];
