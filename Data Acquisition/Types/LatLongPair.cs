@@ -28,9 +28,9 @@ public class LatLongPair(double latitude, double longitude) : IDictionaryable, I
         longitude = Longitude;
     }
     private static string DegreeNotation(double d, char positive, char negative)
-        => $"{Math.Abs(d),6:F2}°{(d < 0 ? negative : positive)}";
+        => $"{Math.Abs(d):F2}°{(d < 0 ? negative : positive)}";
     public override string ToString()
-        => $"({DegreeNotation(latitude, 'N', 'S')}, {DegreeNotation(longitude, 'E', 'W')})";
+        => $"({DegreeNotation(latitude, 'N', 'S'),7}, {DegreeNotation(longitude, 'E', 'W'),8})";
     public static bool operator ==(LatLongPair a, LatLongPair b)
         => a.Latitude == b.Latitude && a.Longitude == b.Longitude;
     public static bool operator !=(LatLongPair a, LatLongPair b)

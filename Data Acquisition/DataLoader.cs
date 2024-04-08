@@ -51,7 +51,7 @@ public static class DataLoader
         foreach ((string city, LatLongPair coords) in _wikidataQuerier.GetCityData())
         {
             (string? biome, bool cacheHit) = await _arcGisQuerier.GetBiomeAsync(coords);
-            printProgress($"{++ct,8}\t{(cacheHit ? "" : "MISS"),4}\t{city,-32}\t{coords,-24}\t{biome ?? "NOT FOUND"}");
+            printProgress($"{++ct,8}\t{(cacheHit ? "" : "MISS"),4}\t{city,-32}\t{coords,-24}\t{biome ?? "~"}");
             if (biome is null)
             {
                 sw.WriteLine(coords.ToWkt(city));

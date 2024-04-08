@@ -42,6 +42,7 @@ public class GeneratorInfo
     /// <returns>The file name to save this generator to or load the same from.</returns>
     public string FileNameFor(int contextLength)
         => BaseFileName.Replace("{contextLength}", $"{contextLength}");
+    public static IEnumerable<GeneratorInfo> All => _dict.Values.OrderBy(x => x.Name);
     private static readonly Dictionary<string, GeneratorInfo> _dict
             = ReflectionUtils.AllLoadedTypesWithAttribute<GeneratorAttribute>()
                              .Select(FromType)
