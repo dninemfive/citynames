@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace citynames;
+public delegate IEnumerable<(string cityName, T metadata)> CityDataProvider<T>();
 /// <summary>
 /// Defines and automates instantiation of specific string generators marked with 
 /// <see cref="GeneratorAttribute"/>.
@@ -41,7 +42,7 @@ public class GeneratorInfo
     /// <param name="contextLength">The context length used to produce this particular generator instance.</param>
     /// <returns>The file name to save this generator to or load the same from.</returns>
     public string FileNameFor(int contextLength)
-        => BaseFileName.Replace("{contextLength}", $"{contextLength}");
+        => Path.Join("generators", BaseFileName.Replace("{contextLength}", $"{contextLength}"));
     public static IEnumerable<GeneratorInfo> All => _dict.Values.OrderBy(x => x.Name);
     private static readonly Dictionary<string, GeneratorInfo> _dict
             = ReflectionUtils.AllLoadedTypesWithAttribute<GeneratorAttribute>()
@@ -73,7 +74,7 @@ public class GeneratorInfo
     private static readonly BindingFlags _staticAndPublic = BindingFlags.Static | BindingFlags.Public | BindingFlags.InvokeMethod;
     private object? TryInvoke(string methodName, Type[] signature, object?[] args)
     {
-        Console.WriteLine(LogUtils.Method(args: [(nameof(signature), signature), (nameof(args), args)]));
+        // Console.WriteLine(LogUtils.Method(args: [(nameof(signature), signature), (nameof(args), args)]));
         object? result = null;
         LoggableAction action = new(delegate
         {
@@ -84,9 +85,10 @@ public class GeneratorInfo
                     result = mi.Invoke(null, args);
                     return true;
                 }
-                catch (Exception e)
+                // https://stackoverflow.com/a/4117437
+                catch (TargetInvocationException tie)
                 {
-                    return e.Message;
+                    return tie.InnerException?.Message?.PrintNull()!;
                 }
             }
             else
@@ -97,7 +99,8 @@ public class GeneratorInfo
                 return $"{Type.Name} does not implement {methodName}({sigString}).";
             }
         });
-        action.InvokeWithMessage($"{methodName}ing {Type.Name} with args {args.Select(x => x.Summary()).ListNotation()}");
+        // action.InvokeWithMessage($"{methodName}ing {Type.Name} with args {args.Select(x => x.Summary()).ListNotation()}");
+        action.Invoke();
         return result;
     }
     /// <summary>
@@ -110,20 +113,22 @@ public class GeneratorInfo
     /// <returns>The generator as defined above.</returns>
     /// <exception cref="ArgumentException">Thrown if both loading and building fail, usually because
     ///            the type does not implement the required methods.</exception>
-    public async Task<ISaveableStringGenerator<CityInfo>> Instantiate(int contextLength, Func<IEnumerable<(string cityName, CityInfo metadata)>> dataFunction, bool forceRebuild = false)
+    public async Task<ISaveableStringGenerator<T>> Instantiate<T>(CityDataProvider<T> dataFunction,
+                                                                  int contextLength = 2,
+                                                                  bool forceRebuild = false)
     {
-        Console.WriteLine(LogUtils.Method(args: [(nameof(contextLength), contextLength), (nameof(dataFunction), dataFunction), (nameof(forceRebuild), forceRebuild)]));
+        // Console.WriteLine(LogUtils.Method(args: [(nameof(contextLength), contextLength), (nameof(dataFunction), dataFunction), (nameof(forceRebuild), forceRebuild)]));
         object? obj = null;
         bool rebuilt = false;
         if (!forceRebuild)
             obj = TryInvoke("Load", [typeof(string)], [FileNameFor(contextLength)]);
         if (obj is null)
         {
-            List<(string cityName, CityInfo metadata)> data = dataFunction!().ToList();
-            obj = TryInvoke("Build", [typeof(IEnumerable<(string, CityInfo)>), typeof(int)], [data, contextLength]);
+            List<(string cityName, T metadata)> data = dataFunction!().ToList();
+            obj = TryInvoke("Build", [typeof(IEnumerable<(string, T)>), typeof(int)], [data, contextLength]);
             rebuilt = true;
-        }
-        if (obj is ISaveableStringGenerator<CityInfo> result)
+        }        
+        if (obj is ISaveableStringGenerator<T> result)
         {
             if (rebuilt)
                 await result.SaveAsync(FileNameFor(contextLength));
@@ -131,7 +136,13 @@ public class GeneratorInfo
         }
         else
         {
-            throw new ArgumentException($"Could not successfully load or build generator {Type.Name}!");
+            throw ExceptionFor(obj, typeof(ISaveableStringGenerator<T>));
         }
+    }
+    private Exception ExceptionFor(object? obj, Type expectedType)
+    {
+        if (obj is null)
+            return new($"Neither Load nor Build were successfully invoked on type {Type}!");
+        return new($"Type {obj.GetType().ReadableString()} does not match expected type {expectedType.ReadableString()}!");
     }
 }

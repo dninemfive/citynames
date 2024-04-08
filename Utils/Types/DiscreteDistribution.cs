@@ -22,11 +22,11 @@ public class DiscreteDistribution<K, V>(CountingDictionary<K, V>? dict = null)
     /// </summary>
     public V Weight { get; private set; } = dict?.Values.Sum() ?? V.Zero;
 
-    public IEnumerable<K> Keys => throw new NotImplementedException();
+    public IEnumerable<K> Keys => _dict.Keys;
 
-    public IEnumerable<V> Values => throw new NotImplementedException();
+    public IEnumerable<V> Values => _dict.Values;
 
-    public int Count => throw new NotImplementedException();
+    public int Count => _dict.Count;
 
     /// <summary>
     /// Adds an item to this distribution.

@@ -4,7 +4,7 @@ using System.Text.Json;
 using citynames;
 
 namespace citynames;
-[Generator("regression", "regression_{contextLength}.json")]
+// [Generator("regression", "regression_{contextLength}.json")]
 public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo, RegressionStringGenerator>
 {
     [JsonInclude]
