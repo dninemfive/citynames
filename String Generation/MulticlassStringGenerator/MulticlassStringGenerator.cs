@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Data;
 
 namespace citynames;
-[Generator("multiclass", "model.zip")]
+[Generator("multiclass", "multiclass.zip")]
 public class MulticlassStringGenerator : IBuildLoadableStringGenerator<CityInfo, MulticlassStringGenerator>
 {
     private readonly MLContext _mlContext = new();
@@ -72,9 +72,12 @@ public class MulticlassStringGenerator : IBuildLoadableStringGenerator<CityInfo,
         // eh, too lazy (for now?)
         throw new NotImplementedException();
     }
-    public static MulticlassStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> corpus, int _ = 2)
-        => BuildInternal(corpus.ToNgrams());
-    public static MulticlassStringGenerator BuildInternal(IEnumerable<NgramInfo> ngrams)
+    public static MulticlassStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> corpus, int contextLength = 2)
+    {
+        VectorEncoding<string, float> biomeEncoding = VectorEncoding<string, float>.From(corpus.Select(x => x.metadata.Biome));
+        return BuildInternal(MulticlassFeatures.From(corpus, biomeEncoding, contextLength));
+    }
+    public static MulticlassStringGenerator BuildInternal(IEnumerable<MulticlassFeatures> data)
     {
         MulticlassStringGenerator result = new();
         result.Data = result._mlContext.Data.LoadFromEnumerable(ngrams.ToList());
