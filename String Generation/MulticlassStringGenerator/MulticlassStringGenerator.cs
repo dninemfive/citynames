@@ -132,5 +132,5 @@ public class MulticlassStringGenerator : IBuildLoadableStringGenerator<CityInfo,
         return result;
     }
     public string RandomString(CityInfo query, int minLength = 1, int maxLength = 100)
-        => RandomString(MulticlassFeatures.Query(BiomeEncoding.Encode(query.Biome)), minLength, maxLength);
+        => RandomString(MulticlassFeatures.Query(BiomeEncoding.Encode(query.Biome), ), minLength, maxLength);
 }
