@@ -1,4 +1,5 @@
 ﻿using d9.utl;
+using System.Numerics;
 namespace citynames;
 /// <summary>
 /// Extensions which make working with strings easier.
@@ -68,15 +69,16 @@ public static class StringExtensions
     /// <param name="otherKeys">The other keys, whose weights will be encoded as 0. If not specified,
     /// no other keys will be included.</param>
     /// <returns>A dictionary representing the above-described encoding.</returns>
-    public static IReadOnlyDictionary<string, double> ToWeightVector(this string s, IEnumerable<string>? otherKeys = null)
+    public static IReadOnlyDictionary<string, U> ToOneHotVector<U>(this string s, IEnumerable<string>? otherKeys = null)
+        where U : IFloatingPoint<U>
     {
-        Dictionary<string, double> result = new()
+        Dictionary<string, U> result = new()
         {
-            { s, 1 }
+            { s, U.One }
         };
         if (otherKeys is not null)
             foreach (string key in otherKeys)
-                result[key] = 0;
+                result[key] = U.Zero;
         return result;
     }
     public static string Tabs(this int n, string tab = "  ")

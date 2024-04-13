@@ -59,6 +59,7 @@ public class VectorEncoding<T, U>
     }
     [JsonIgnore]
     public int DimensionCount => Alphabet.Count;
+    public T this[int index] => Alphabet[index];
 }
 public static class VectorEncodingExtensions
 {
