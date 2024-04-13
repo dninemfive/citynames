@@ -23,9 +23,9 @@ public class MarkovSetStringGenerator : IBuildLoadableStringGenerator<CityInfo, 
         => new(JsonSerializer.Deserialize<Dictionary<string, MarkovStringGenerator>>(File.ReadAllText(path))!);
     public async Task SaveAsync(string path)
         => await Task.Run(() => File.WriteAllText(path, JsonSerializer.Serialize(_dict)));
-    public static MarkovSetStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> corpus, int contextLength = 2)
+    public static MarkovSetStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> corpus, int contextLength = Defaults.CONTEXT_LENGTH)
         => BuildInternal(corpus.ToNgrams(contextLength), contextLength);
-    private static MarkovSetStringGenerator BuildInternal(IEnumerable<NgramInfo> ngrams, int contextLength = 2)
+    private static MarkovSetStringGenerator BuildInternal(IEnumerable<NgramInfo> ngrams, int contextLength = Defaults.CONTEXT_LENGTH)
     {
         MarkovSetStringGenerator result = new();
         foreach (NgramInfo ngram in ngrams)

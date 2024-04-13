@@ -1,23 +1,15 @@
-﻿using Microsoft.ML.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace citynames;
-public class MulticlassFeatures(float[] biomeWeights, string[] ancestors, VectorEncoding<string, float> biomeEncoding, string result)
+﻿namespace citynames;
+public class MulticlassFeatures(float[] biomeWeights, string[] ancestors, string result)
 {
 
     public float[] BiomeWeights = biomeWeights;
     public string[] Ancestors = ancestors;
     public string Result = result;
-    public VectorEncoding<string, float> BiomeEncoding { get; private set; } = biomeEncoding;
     public MulticlassFeatures(IReadOnlyDictionary<string, float> biomeWeights, string[] ancestors, VectorEncoding<string, float> biomeEncoding, string result)
-        : this(biomeEncoding.Encode(biomeWeights), ancestors, biomeEncoding, result) { }
+        : this(biomeEncoding.Encode(biomeWeights), ancestors, result) { }
     public MulticlassFeatures(string biome, string[] ancestors, VectorEncoding<string, float> biomeEncoding, string result)
-        : this(biomeEncoding.Encode(biome), ancestors, biomeEncoding, result) { }
-    public static IEnumerable<MulticlassFeatures> From(string cityName, CityInfo cityInfo, VectorEncoding<string, float> biomeEncoding, int contextLength = 3)
+        : this(biomeEncoding.Encode(biome), ancestors, result) { }
+    public static IEnumerable<MulticlassFeatures> From(string cityName, CityInfo cityInfo, VectorEncoding<string, float> biomeEncoding, int contextLength = Defaults.CONTEXT_LENGTH)
     {
         for(int i = 0; i < cityName.Length; i++)
         {
@@ -29,6 +21,8 @@ public class MulticlassFeatures(float[] biomeWeights, string[] ancestors, Vector
     }
     public static IEnumerable<MulticlassFeatures> From(IEnumerable<(string cityName, CityInfo cityInfo)> corpus,
                                                        VectorEncoding<string, float> biomeEncoding,
-                                                       int contextLength = 3)
+                                                       int contextLength = Defaults.CONTEXT_LENGTH)
         => corpus.SelectMany(x => From(x.cityName, x.cityInfo, biomeEncoding, contextLength));
+    public static MulticlassFeatures Query(float[] biomeWeights, string[] ancestors)
+        => new(biomeWeights, ancestors, "");
 }

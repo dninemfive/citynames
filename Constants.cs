@@ -8,3 +8,7 @@ public static class Characters
     /// </summary>
     public const char STOP = (char)3;
 }
+public static class Defaults
+{
+    public const int CONTEXT_LENGTH = 2;
+}

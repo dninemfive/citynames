@@ -12,16 +12,16 @@ public class EnhancedMarkovStringGenerator
     private readonly Func<double, double> _activationFunction;
     private double DefaultActivationFunction(double input)
         => 0.01f;
-    public EnhancedMarkovStringGenerator(int contextLength = 2) : this(null, null, null, contextLength) { }
+    public EnhancedMarkovStringGenerator(int contextLength = Defaults.CONTEXT_LENGTH) : this(null, null, null, contextLength) { }
     public EnhancedMarkovStringGenerator(Dictionary<string,
                                          MarkovCharacterGenerator>? dict = null,
                                          MarkovCharacterGenerator? prior = null,
                                          Func<double, double>? activationFunction = null,
-                                         int contextLength = 2)
+                                         int contextLength = Defaults.CONTEXT_LENGTH)
     {
         ContextLength = contextLength;
         _dict = dict ?? new();
-        _prior = prior ?? new(2);
+        _prior = prior ?? new(contextLength);
         _activationFunction = activationFunction ?? DefaultActivationFunction;
     }
     public MarkovCharacterGenerator this[string key]
@@ -53,9 +53,9 @@ public class EnhancedMarkovStringGenerator
         => new(JsonSerializer.Deserialize<Dictionary<string, MarkovCharacterGenerator>>(File.ReadAllText(path))!);
     public async Task SaveAsync(string path)
         => await Task.Run(() => File.WriteAllText(path, JsonSerializer.Serialize(this)));
-    public static EnhancedMarkovStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> corpus, int contextLength = 2)
+    public static EnhancedMarkovStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> corpus, int contextLength = Defaults.CONTEXT_LENGTH)
         => BuildInternal(corpus.ToNgrams(contextLength), contextLength);
-    private static EnhancedMarkovStringGenerator BuildInternal(IEnumerable<NgramInfo> ngrams, int contextLength = 2)
+    private static EnhancedMarkovStringGenerator BuildInternal(IEnumerable<NgramInfo> ngrams, int contextLength = Defaults.CONTEXT_LENGTH)
     {
         EnhancedMarkovStringGenerator result = new(contextLength);
         foreach (NgramInfo ngram in ngrams)

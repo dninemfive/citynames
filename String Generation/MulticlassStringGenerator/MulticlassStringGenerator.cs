@@ -44,27 +44,29 @@ public class MulticlassStringGenerator : IBuildLoadableStringGenerator<CityInfo,
     }
     public EstimatorChain<ColumnConcatenatingTransformer> Pipeline { get; private set; }
     public ITransformer Model { get; private set; }
-    private PredictionEngine<NgramInfo, CharacterPrediction>? _predictionEngine;
-    public PredictionEngine<NgramInfo, CharacterPrediction> PredictionEngine
+    private PredictionEngine<MulticlassFeatures, CharacterPrediction>? _predictionEngine;
+    public PredictionEngine<MulticlassFeatures, CharacterPrediction> PredictionEngine
     {
         get
         {
-            _predictionEngine ??= _mlContext.Model.CreatePredictionEngine<NgramInfo, CharacterPrediction>(Model);
+            _predictionEngine ??= _mlContext.Model.CreatePredictionEngine<MulticlassFeatures, CharacterPrediction>(Model);
             return _predictionEngine;
         }
     }
-    public static readonly TextLoader.Options CsvLoaderOptions = new() { HasHeader = true, Separators = [','], TrimWhitespace = false };
+    public VectorEncoding<string, float> BiomeEncoding { get; private set; }
+    public int ContextLength { get; private set; }
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value [...]: only called by LoadAsync and BuildAsync,
     // which definitely initialize Data
-    private MulticlassStringGenerator()
+    private MulticlassStringGenerator(VectorEncoding<string, float> biomeEncoding)
 #pragma warning restore CS8618
     {
         Pipeline = _mlContext.Transforms.Conversion.MapValueToKey("Label", "Successor")
                                                    .Append(_mlContext.Transforms.Categorical.OneHotEncoding("BiomeEncoded", "Biome"))
                                                    .Append(_mlContext.Transforms.Categorical.OneHotEncoding("ContextEncoded", "Context"))
                                                    .Append(_mlContext.Transforms.Concatenate("Features", "BiomeEncoded", "ContextEncoded"));
+        BiomeEncoding = biomeEncoding;
     }
-    public async Task SaveAsync(string name = "model.zip")
+    public async Task SaveAsync(string name = "multiclass.zip")
         => await Task.Run(() => _mlContext.Model.Save(Model, Data.Schema, name));
     public static MulticlassStringGenerator Load(string path)
     {
@@ -72,20 +74,20 @@ public class MulticlassStringGenerator : IBuildLoadableStringGenerator<CityInfo,
         // eh, too lazy (for now?)
         throw new NotImplementedException();
     }
-    public static MulticlassStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> corpus, int contextLength = 2)
+    public static MulticlassStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> corpus, int contextLength = Defaults.CONTEXT_LENGTH)
     {
         VectorEncoding<string, float> biomeEncoding = VectorEncoding<string, float>.From(corpus.Select(x => x.metadata.Biome));
-        return BuildInternal(MulticlassFeatures.From(corpus, biomeEncoding, contextLength));
+        return BuildInternal(MulticlassFeatures.From(corpus, biomeEncoding, contextLength), biomeEncoding);
     }
-    public static MulticlassStringGenerator BuildInternal(IEnumerable<MulticlassFeatures> data)
+    public static MulticlassStringGenerator BuildInternal(IEnumerable<MulticlassFeatures> data, VectorEncoding<string, float> biomeEncoding)
     {
-        MulticlassStringGenerator result = new();
-        result.Data = result._mlContext.Data.LoadFromEnumerable(ngrams.ToList());
+        MulticlassStringGenerator result = new(biomeEncoding);
+        result.Data = result._mlContext.Data.LoadFromEnumerable(data.ToList());
         return result;
     }
-    public CharacterPrediction Predict(NgramInfo input)
+    public CharacterPrediction Predict(MulticlassFeatures input)
         => PredictionEngine.Predict(input);
-    public string RandomChar(NgramInfo input)
+    public string RandomChar(MulticlassFeatures input)
         => KeyValueMapper[Predict(input).CharacterWeights.WeightedRandomIndex() + 1];
     /*
     {
@@ -97,13 +99,14 @@ public class MulticlassStringGenerator : IBuildLoadableStringGenerator<CityInfo,
                                                         .Take(10);
         return KeyValueMapper[top10.WeightedRandomElement(x => x.weight).index];
     }*/
-    public string RandomString(NgramInfo input, int minLength = 1, int maxLength = 100)
+    public string RandomString(MulticlassFeatures input, int minLength = 1, int maxLength = 100)
     {
-        string context = input.Context.Last(2), result = input.Context;
+        string[] ancestors = input.Ancestors;
+        string result = $"{input.Ancestors.Join()}{input.Result}";
         int ct = 0;
         while (++ct < maxLength)
         {
-            CharacterPrediction prediction = Predict(new(context, "", input.Biome));
+            CharacterPrediction prediction = Predict(MulticlassFeatures.Query(input.BiomeWeights, ancestors));
             IEnumerable<float> normalizedWeights = prediction.CharacterWeights.Select(x => x * x);
             IEnumerable<(int index, float weight)> weightedIndices = 0.To(normalizedWeights.Count())
                                                                       .Select(x => x + 1)

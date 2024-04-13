@@ -16,7 +16,7 @@ public static class NgramInfoExtensions
     /// <param name="breakChars">A string of characters which will cause the method to stop yielding
     ///                         <c>NgramInfo</c>s and return early.</param>
     /// <returns>A collection of <c>NgramInfo</c>s as described above.</returns>
-    public static IEnumerable<NgramInfo> NgramInfos(this string cityName, string biome, int contextLength = 2, string breakChars = ",(")
+    public static IEnumerable<NgramInfo> NgramInfos(this string cityName, string biome, int contextLength = Defaults.CONTEXT_LENGTH, string breakChars = ",(")
     {
         cityName = cityName.AppendIfNotPresent(Characters.STOP);
         string cur = "";
@@ -45,7 +45,7 @@ public static class NgramInfoExtensions
     /// <returns>A collection of <c>NgramInfo</c>s describing the ngrams found in the
     ///          <paramref name="rawData"/>.</returns>
     public static IEnumerable<NgramInfo> ToNgrams(this IEnumerable<(string cityName, string biome)> rawData,
-                                                  int contextLength = 2,
+                                                  int contextLength = Defaults.CONTEXT_LENGTH,
                                                   string breakChars = ",(")
     {
         foreach ((string cityName, string biome) in rawData)
@@ -53,7 +53,7 @@ public static class NgramInfoExtensions
                 yield return ngram;
     }
     public static IEnumerable<NgramInfo> ToNgrams(this IEnumerable<(string city, CityInfo info)> rawData,
-                                                  int contextLength = 2,
+                                                  int contextLength = Defaults.CONTEXT_LENGTH,
                                                   string breakChars = ",(")
         => ToNgrams(rawData.Select(x => (x.city, x.info.Biome)), contextLength, breakChars);
 }

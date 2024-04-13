@@ -1,7 +1,6 @@
 ﻿using d9.utl;
-using System.Text.Json.Serialization;
 using System.Text.Json;
-using citynames;
+using System.Text.Json.Serialization;
 
 namespace citynames;
 // [Generator("regression", "regression_{contextLength}.json")]
@@ -20,10 +19,10 @@ public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo,
     public static RegressionStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> input, int contextLength)
     {
         Console.WriteLine(LogUtils.Method(args: [(nameof(input), input), (nameof(contextLength), contextLength)]));
-        VectorEncoding<string> biomeEncoding = VectorEncoding<string>.OneHot(input.Select(x => x.metadata.Biome));
+        VectorEncoding<string, double> biomeEncoding = VectorEncoding<string, double>.From(input.Select(x => x.metadata.Biome));
         List<(string item, CityInfo)> processedInput = input.Select(x => (x.item.SandwichWith(Characters.START, Characters.STOP),
                                                                               x.metadata)).ToList();
-        VectorEncoding<char> characterEncoding = VectorEncoding<char>.OneHot(processedInput.SelectMany(x => x.item));
+        VectorEncoding<char, double> characterEncoding = VectorEncoding<char, double>.From(processedInput.SelectMany(x => x.item));
         AncestorCharacterRegression model = AncestorCharacterRegression.FromData(processedInput, contextLength);
         return new(model, contextLength);
     }

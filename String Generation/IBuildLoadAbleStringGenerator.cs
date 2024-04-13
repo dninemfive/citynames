@@ -16,7 +16,7 @@ public interface IBuildLoadableStringGenerator<T, TSelf> : ISaveableStringGenera
     /// </param>
     /// <param name="contextLength">The length of context n-grams.</param>
     /// <returns>A model built as described above.</returns>
-    public static abstract TSelf Build(IEnumerable<(string item, T metadata)> corpus, int contextLength = 2);
+    public static abstract TSelf Build(IEnumerable<(string item, T metadata)> corpus, int contextLength = Defaults.CONTEXT_LENGTH);
     /// <summary>
     /// Loads the string generator from a saved file.
     /// </summary>
