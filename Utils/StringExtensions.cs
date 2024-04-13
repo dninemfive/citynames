@@ -80,5 +80,5 @@ public static class StringExtensions
         return result;
     }
     public static string Tabs(this int n, string tab = "  ")
-        => "  ".Repeated(n);
+        => tab.Repeated(n);
 }

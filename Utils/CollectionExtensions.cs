@@ -78,4 +78,12 @@ public static class CollectionExtensions
             i = increment(i);
         }
     }
+    public static T[] FifoPush<T>(this T[] array, T element)
+    {
+        T[] result = new T[array.Length];
+        for (int i = 0; i < array.Length - 1; i++)
+            result[i] = array[i + 1];
+        result[^0] = element;
+        return result;
+    }
 }

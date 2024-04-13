@@ -116,17 +116,20 @@ public class MulticlassStringGenerator : IBuildLoadableStringGenerator<CityInfo,
             weightedIndices = weightedIndices.Where(x => x.weight > threshold && (ct >= minLength || !KeyValueMapper[x.index].Contains(Characters.STOP)));
             if (!weightedIndices.Any())
                 break;
+            /*
             string weightString  = weightedIndices.OrderByDescending(x => x.weight)
                                                   .Select(x => $"{KeyValueMapper[x.index]}/{(int)KeyValueMapper[x.index][0]}: {x.weight,7:F4}")
                                                   .ListNotation();
-            // Console.WriteLine($"{result,20} + {weightString} (threshold: {threshold})");
-            context = $"{context}{KeyValueMapper[weightedIndices.WeightedRandomElement(x => x.weight).index]}".Last(2);
-            if (context.Contains(Characters.STOP))
+            Console.WriteLine($"{result,20} + {weightString} (threshold: {threshold})");
+            */
+            string next = KeyValueMapper[weightedIndices.WeightedRandomElement(x => x.weight).index];
+            if (next.Contains(Characters.STOP))
                 break;
-            result += context.Last();
+            result += next;
+            ancestors = ancestors.FifoPush(next);
         }
         return result;
     }
     public string RandomString(CityInfo query, int minLength = 1, int maxLength = 100)
-        => RandomString(NgramInfo.Query(query.Biome), minLength, maxLength);
+        => RandomString(MulticlassFeatures.Query(BiomeEncoding.Encode(query.Biome)), minLength, maxLength);
 }

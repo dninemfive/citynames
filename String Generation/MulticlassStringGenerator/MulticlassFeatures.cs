@@ -23,6 +23,8 @@ public class MulticlassFeatures(float[] biomeWeights, string[] ancestors, string
                                                        VectorEncoding<string, float> biomeEncoding,
                                                        int contextLength = Defaults.CONTEXT_LENGTH)
         => corpus.SelectMany(x => From(x.cityName, x.cityInfo, biomeEncoding, contextLength));
+    public static MulticlassFeatures Query(float[] biomeWeights)
+        => Query(biomeWeights, []);
     public static MulticlassFeatures Query(float[] biomeWeights, string[] ancestors)
         => new(biomeWeights, ancestors, "");
 }
