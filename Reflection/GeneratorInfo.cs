@@ -88,7 +88,7 @@ public class GeneratorInfo
                 // https://stackoverflow.com/a/4117437
                 catch (TargetInvocationException tie)
                 {
-                    return tie.InnerException?.Message?.PrintNull()!;
+                    return $"Caught TargetInvocationException with inner exception \"{tie.InnerException?.Message?.PrintNull()!}\"!";
                 }
             }
             else
@@ -99,8 +99,8 @@ public class GeneratorInfo
                 return $"{Type.Name} does not implement {methodName}({sigString}).";
             }
         });
-        // action.InvokeWithMessage($"{methodName}ing {Type.Name} with args {args.Select(x => x.Summary()).ListNotation()}");
-        action.Invoke();
+        action.InvokeWithMessage($"{methodName}ing {Type.Name} with args {args.Select(x => x.Summary()).ListNotation()}");
+        // action.Invoke();
         return result;
     }
     /// <summary>

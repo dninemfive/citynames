@@ -16,27 +16,6 @@ public static class Program
     public const string OUTPUT_DIRECTORY = "output";
     private static async Task Main()
     {
-        MLContext mlContext = new();
-        ExampleTestThing exampleTestThing = new(new
-        Dictionary<string, float>()
-        {
-            { "fuck", 0.9f },
-            { "cum", 4.20f },
-            { "shit", 5 }
-        });
-        IDataView data = mlContext.Data.LoadFromEnumerable([exampleTestThing]);
-        OneHotEncodingEstimator pipeline = mlContext.Transforms.Categorical.OneHotEncoding("StuffEncoded", "Stuff");
-        IDataView tfedData = pipeline.Fit(data).Transform(data);
-        static void printDataColumn(IDataView tfedData, string columnName)
-        {
-            IEnumerable<float[]> asdf = tfedData.GetColumn<float[]>(tfedData.Schema[columnName]);
-            foreach (float[] row in asdf)
-            {
-                Console.WriteLine(row.ListNotation(brackets: null));
-            }
-        }
-        printDataColumn(tfedData, "StuffEncoded");
-        return;
         Console.OutputEncoding = Encoding.Unicode;
         int contextLength = CommandLineArgs.TryParseValue<int>(nameof(contextLength))           ?? 2,
             numPerBiome   = CommandLineArgs.TryParseValue<int>(nameof(numPerBiome))             ?? 10,

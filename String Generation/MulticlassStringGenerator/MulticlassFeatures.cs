@@ -11,11 +11,15 @@ public class MulticlassFeatures(float[] biomeWeights, string[] ancestors, string
         : this(biomeEncoding.Encode(biome), ancestors, result) { }
     public static IEnumerable<MulticlassFeatures> From(string cityName, CityInfo cityInfo, VectorEncoding<string, float> biomeEncoding, int contextLength = Defaults.CONTEXT_LENGTH)
     {
+        Console.WriteLine(LogUtils.Method(args: [(nameof(cityName), cityName), (nameof(cityInfo), cityInfo), (nameof(biomeEncoding), biomeEncoding)]));
         for(int i = 0; i < cityName.Length; i++)
         {
             string[] ancestors = new string[contextLength];
-            for(int j = i - contextLength; j < i; i++)
-                ancestors[j] = j >= 0 ? $"{cityName[j]}" : "";
+            for(int j = 0; j < contextLength; j++)
+            {
+                int ancestorIndex = i - (contextLength - j);
+                ancestors[j] = ancestorIndex >= 0 ? $"{cityName[ancestorIndex]}" : "";
+            }
             yield return new(cityInfo.Biome, ancestors, biomeEncoding, $"{cityName[i]}");
         }
     }

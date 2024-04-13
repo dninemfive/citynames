@@ -76,11 +76,13 @@ public class MulticlassStringGenerator : IBuildLoadableStringGenerator<CityInfo,
     }
     public static MulticlassStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> corpus, int contextLength = Defaults.CONTEXT_LENGTH)
     {
+        Console.WriteLine(LogUtils.Method(args: [(nameof(corpus), corpus), (nameof(contextLength), contextLength)]));
         VectorEncoding<string, float> biomeEncoding = VectorEncoding<string, float>.From(corpus.Select(x => x.metadata.Biome));
         return BuildInternal(MulticlassFeatures.From(corpus, biomeEncoding, contextLength), biomeEncoding);
     }
     public static MulticlassStringGenerator BuildInternal(IEnumerable<MulticlassFeatures> data, VectorEncoding<string, float> biomeEncoding)
     {
+        Console.WriteLine(LogUtils.Method(args: [(nameof(data), data), (nameof(biomeEncoding), biomeEncoding)]));
         MulticlassStringGenerator result = new(biomeEncoding);
         result.Data = result._mlContext.Data.LoadFromEnumerable(data.ToList());
         return result;
