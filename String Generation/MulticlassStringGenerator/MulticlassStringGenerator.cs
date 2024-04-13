@@ -33,7 +33,7 @@ public class MulticlassStringGenerator : IBuildLoadableStringGenerator<CityInfo,
                 DataDebuggerPreview preview = Model.Preview(Data, maxRows: int.MaxValue);
                 ImmutableArray<DataDebuggerPreview.ColumnInfo> columnView = preview.ColumnView;
                 IEnumerable<int> ids = columnView.First(x => x.Column.Name == "Label").Values.Select(x => int.Parse($"{x}"));
-                IEnumerable<string> characters = columnView.First(x => x.Column.Name == "Successor").Values.Select(x => $"{x}");
+                IEnumerable<string> characters = columnView.First(x => x.Column.Name == "Result").Values.Select(x => $"{x}");
                 // dictionary in case this ends up sparse somehow
                 _keyValueMapper = new();
                 foreach ((int key, string value) in ids.Zip(characters))
@@ -60,10 +60,9 @@ public class MulticlassStringGenerator : IBuildLoadableStringGenerator<CityInfo,
     private MulticlassStringGenerator(VectorEncoding<string, float> biomeEncoding)
 #pragma warning restore CS8618
     {
-        Pipeline = _mlContext.Transforms.Conversion.MapValueToKey("Label", "Successor")
-                                                   .Append(_mlContext.Transforms.Categorical.OneHotEncoding("BiomeEncoded", "Biome"))
-                                                   .Append(_mlContext.Transforms.Categorical.OneHotEncoding("ContextEncoded", "Context"))
-                                                   .Append(_mlContext.Transforms.Concatenate("Features", "BiomeEncoded", "ContextEncoded"));
+        Pipeline = _mlContext.Transforms.Conversion.MapValueToKey("Label", "Result")
+                                                   .Append(_mlContext.Transforms.Categorical.OneHotEncoding("AncestorsEncoded", "Ancestors"))
+                                                   .Append(_mlContext.Transforms.Concatenate("Features", "BiomeWeights", "AncestorsEncoded"));
         BiomeEncoding = biomeEncoding;
     }
     public async Task SaveAsync(string name = "multiclass.zip")
