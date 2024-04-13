@@ -20,10 +20,10 @@ public class RegressionStringGenerator : IBuildLoadableStringGenerator<CityInfo,
     public static RegressionStringGenerator Build(IEnumerable<(string item, CityInfo metadata)> input, int contextLength)
     {
         Console.WriteLine(LogUtils.Method(args: [(nameof(input), input), (nameof(contextLength), contextLength)]));
-        OneHotEncoding<string> biomeEncoding = OneHotEncoding<string>.From(input.Select(x => x.metadata.Biome));
+        VectorEncoding<string> biomeEncoding = VectorEncoding<string>.OneHot(input.Select(x => x.metadata.Biome));
         List<(string item, CityInfo)> processedInput = input.Select(x => (x.item.SandwichWith(Characters.START, Characters.STOP),
                                                                               x.metadata)).ToList();
-        OneHotEncoding<char> characterEncoding = OneHotEncoding<char>.From(processedInput.SelectMany(x => x.item));
+        VectorEncoding<char> characterEncoding = VectorEncoding<char>.OneHot(processedInput.SelectMany(x => x.item));
         AncestorCharacterRegression model = AncestorCharacterRegression.FromData(processedInput, contextLength);
         return new(model, contextLength);
     }

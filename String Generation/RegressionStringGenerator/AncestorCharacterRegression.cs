@@ -5,14 +5,14 @@ using System.Text.Json.Serialization;
 
 namespace citynames;
 [method: JsonConstructor]
-public class AncestorCharacterRegression(OneHotEncoding<string> biomeEncoding,
-                                 OneHotEncoding<char> characterEncoding,
+public class AncestorCharacterRegression(VectorEncoding<string> biomeEncoding,
+                                 VectorEncoding<char> characterEncoding,
                                  Dictionary<int, Dictionary<char, double[]>> coefficients)
 {
     [JsonInclude]
-    public OneHotEncoding<string> BiomeEncoding { get; private set; } = biomeEncoding;
+    public VectorEncoding<string> BiomeEncoding { get; private set; } = biomeEncoding;
     [JsonInclude]
-    public OneHotEncoding<char> CharacterEncoding { get; private set; } = characterEncoding;
+    public VectorEncoding<char> CharacterEncoding { get; private set; } = characterEncoding;
     [JsonInclude]
     public Dictionary<int, Dictionary<char, double[]>> Coefficients { get; private set; } = coefficients;
 
@@ -20,17 +20,17 @@ public class AncestorCharacterRegression(OneHotEncoding<string> biomeEncoding,
         => Encode(query.BiomeWeights, ancestor, BiomeEncoding, CharacterEncoding);
     public static double[] Encode(IReadOnlyDictionary<string, double> biomeWeights,
                                   char ancestor,
-                                  OneHotEncoding<string> biomeEncoding,
-                                  OneHotEncoding<char> characterEncoding)
+                                  VectorEncoding<string> biomeEncoding,
+                                  VectorEncoding<char> characterEncoding)
         //=> characterEncoding.Encode(ancestor).AugmentWith(biomeEncoding.Encode(biomeWeights));
         => biomeEncoding.Encode(biomeWeights).AugmentWith(characterEncoding.Encode(ancestor));
-    public static double[] Encode(CharPair pair, OneHotEncoding<string> biomeEncoding, OneHotEncoding<char> characterEncoding)
+    public static double[] Encode(CharPair pair, VectorEncoding<string> biomeEncoding, VectorEncoding<char> characterEncoding)
         => Encode(pair.Data.BiomeWeights, pair.Ancestor, biomeEncoding, characterEncoding);
     public static AncestorCharacterRegression FromData(IEnumerable<(string city, CityInfo metadata)> data, int maxOffset)
     {
         Console.WriteLine(LogUtils.Method(args: [(nameof(data), data), (nameof(maxOffset), maxOffset)]));
-        OneHotEncoding<string> biomeEncoding = OneHotEncoding<string>.From(data.Select(x => x.metadata.Biome));
-        OneHotEncoding<char> characterEncoding = OneHotEncoding<char>.From(data.SelectMany(x => x.city));
+        VectorEncoding<string> biomeEncoding = VectorEncoding<string>.OneHot(data.Select(x => x.metadata.Biome));
+        VectorEncoding<char> characterEncoding = VectorEncoding<char>.OneHot(data.SelectMany(x => x.city));
         List<CharPair> pairs = CharPair.From(data, maxOffset).ToList();
         double[][] encodedData = LogUtils.LogAndTime($"{1.Tabs()}Encoding data",
                                                          () => pairs.Select(x => Encode(x, biomeEncoding, characterEncoding)).ToArray());
