@@ -69,4 +69,10 @@ public static class MathExtensions
             result[i + left.Length] = right[i];
         return result;
     }
+    public static double EnsureNonZero(this double value)
+    {
+        if (value == 0)
+            return double.Sign(value) * double.Epsilon;
+        return value;
+    }
 }
