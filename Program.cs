@@ -10,10 +10,10 @@ public static class Program
     private static async Task Main()
     {
         Console.OutputEncoding = Encoding.Unicode;
-        int contextLength        = CommandLineArgs.TryParseValue<int>(nameof(contextLength))    ?? 2,
-            numPerBiome   = CommandLineArgs.TryParseValue<int>(nameof(numPerBiome))             ?? 10,
-            minCityLength = CommandLineArgs.TryParseValue<int>(nameof(minCityLength))           ??  5,
-            maxCityLength = CommandLineArgs.TryParseValue<int>(nameof(maxCityLength))           ?? 20;
+        int contextLength = CommandLineArgs.TryParseStruct<int>(nameof(contextLength))           ??  2,
+            numPerBiome   = CommandLineArgs.TryParseStruct<int>(nameof(numPerBiome))             ?? 10,
+            minCityLength = CommandLineArgs.TryParseStruct<int>(nameof(minCityLength))           ??  5,
+            maxCityLength = CommandLineArgs.TryParseStruct<int>(nameof(maxCityLength))           ?? 20;
 
         static IEnumerable<(string, CityInfo)> buildFn() => DataLoader.GetAllCityData().Select(x => (x.city, new CityInfo(x.biome)));
 
