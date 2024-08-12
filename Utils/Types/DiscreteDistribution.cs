@@ -64,6 +64,23 @@ public class DiscreteDistribution<K, V>(CountingDictionary<K, V>? dict = null)
     /// <returns>A distribution corresponding to the input distribution with each variable multiplied by the specified factor.</returns>
     public static DiscreteDistribution<K, V> operator *(DiscreteDistribution<K, V> distribution, V factor)
         => new(distribution._dict * factor);
+    public static DiscreteDistribution<K, V> operator *(DiscreteDistribution<K, V> a, Dictionary<K, V> dict)
+    {
+        CountingDictionary<K, V> result = new();
+        foreach((K key, V value) in a)
+        {
+            if (dict.TryGetValue(key, out V factor))
+            {
+                result.Add(key, factor * value);
+            }
+            else
+            {
+                result.Add(key, value);
+            }
+            
+        }
+        return new(result);
+    }
     /// <summary>
     /// Adds two distributions together.
     /// </summary>
